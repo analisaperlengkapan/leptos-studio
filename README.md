@@ -3,17 +3,6 @@
 Leptos Studio adalah aplikasi visual UI builder drag-and-drop untuk framework Rust Leptos, terinspirasi FlutterFlow dan React Builder.
 
 ## Fitur Utama
-- Sidebar komponen (Button, Text, Input, Container, dsb)
-- Canvas drag-and-drop untuk membangun layout
-- Editor properti untuk tiap komponen
-- Preview hasil desain
-- Generator kode Rust/Leptos dari desain visual
-
-## Struktur Awal
-- src/
-  - main.rs
-  - app.rs
-  - components/
     - mod.rs
     - button.rs
     - text.rs
