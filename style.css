@@ -1,0 +1,36 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+}
+.leptos-studio {
+    display: flex;
+    height: 100vh;
+}
+.sidebar {
+    width: 200px;
+    background: #f5f5f5;
+    padding: 1rem;
+    border-right: 1px solid #ddd;
+}
+.canvas {
+    flex: 1;
+    background: #fff;
+    padding: 2rem;
+    min-width: 0;
+}
+.property-editor {
+    width: 300px;
+    background: #fafafa;
+    padding: 1rem;
+    border-left: 1px solid #ddd;
+}
+.container {
+    border: 1px dashed #aaa;
+    padding: 1rem;
+    margin: 0.5rem 0;
+}
+
+.canvas-selected {
+    outline: 2px solid #1976d2;
+    background: #e3f2fd;
+}

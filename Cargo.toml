@@ -1,0 +1,19 @@
+[package]
+name = "leptos_studio"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+leptos = "0.6"
+leptos_router = "0.6"
+leptos_dom = "0.6"
+
+web-sys = { version = "0.3", features = ["DragEvent", "DataTransfer", "Window", "Storage"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+
+
+[profile.release]
+lto = true
+codegen-units = 1

@@ -1,0 +1,33 @@
+# Rust/Leptos/Trunk
+/target/
+/pkg/
+/dist/
+/.trunk/
+
+# VSCode
+.vscode/
+
+# Node/npm
+node_modules/
+
+# WASM build artifacts
+*.wasm
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Ignore IDE and backup files
+*~
+*.bak
+.idea/
+*.iml
+
+# Cargo
+Cargo.lock
