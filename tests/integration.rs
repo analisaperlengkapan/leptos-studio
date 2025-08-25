@@ -1,4 +1,5 @@
     use leptos_studio::builder::component_library::PropSchema;
+use leptos_studio::builder::export::ExportPreset;
 #[test]
 fn test_library_component_props_schema_mixed_required_and_desc() {
     use leptos_studio::builder::component_library::LibraryComponent;
@@ -27,7 +28,7 @@ fn test_library_component_props_schema_mixed_required_and_desc() {
 #[test]
 fn test_export_input_placeholder_long_unicode() {
     let layout = vec![CanvasComponent::Input { placeholder: "panjang🌏🚀😀テストabcdefghijklmnopqrstuvwxyz0123456789".to_string() }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"panjang🌏🚀😀テストabcdefghijklmnopqrstuvwxyz0123456789\" />"));
 }
 
@@ -51,7 +52,7 @@ fn test_library_component_serialization_roundtrip() {
 }
 #[test]
 fn test_library_component_props_schema_required_and_desc_some() {
-    use leptos_studio::builder::component_library::{LibraryComponent, PropSchema};
+    use leptos_studio::builder::component_library::LibraryComponent;
     let comp = LibraryComponent {
         name: "ReqDescSome".to_string(),
         kind: "Input".to_string(),
@@ -76,7 +77,7 @@ fn test_export_input_placeholder_empty_and_whitespace_special() {
         CanvasComponent::Input { placeholder: "".to_string() },
         CanvasComponent::Input { placeholder: "   !@#  ".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"\" />"));
     assert!(code.contains("<input placeholder=\"   !@#  \" />"));
 }
@@ -104,7 +105,7 @@ fn test_library_component_props_schema_required_and_desc_none() {
 #[test]
 fn test_export_input_placeholder_unicode_and_emoji() {
     let layout = vec![CanvasComponent::Input { placeholder: "テスト🌟😀".to_string() }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"テスト🌟😀\" />"));
 }
 #[test]
@@ -121,7 +122,7 @@ fn test_export_custom_component_unicode_name() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("UnicodeName"));
     assert!(code.contains("Custom: コンポーネント🌟"));
 }
@@ -129,7 +130,7 @@ fn test_export_custom_component_unicode_name() {
 #[test]
 fn test_export_input_placeholder_escape_chars() {
     let layout = vec![CanvasComponent::Input { placeholder: "\"quote\" \\ backslash".to_string() }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"\"quote\" \\ backslash\" />"));
 }
 
@@ -140,7 +141,7 @@ fn test_export_container_many_children() {
         children.push(CanvasComponent::Button { label: format!("Btn{}", i) });
     }
     let layout = vec![CanvasComponent::Container { children }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     for i in 0..20 {
         assert!(code.contains(&format!("<button>{{\"Btn{}\"}}</button>", i)));
     }
@@ -179,7 +180,7 @@ fn test_export_custom_component_empty_props_schema_vec() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("EmptyProps"));
     assert!(custom_components[0].props_schema.as_ref().unwrap().is_empty());
 }
@@ -187,7 +188,7 @@ fn test_export_custom_component_empty_props_schema_vec() {
 #[test]
 fn test_export_input_placeholder_whitespace() {
     let layout = vec![CanvasComponent::Input { placeholder: "   ".to_string() }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"   \" />"));
 }
 
@@ -209,7 +210,7 @@ fn test_export_deeply_nested_container_and_custom() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.matches("<div class=\"container\">" ).count() >= 5);
     assert!(code.contains("DeepCustomContent"));
 }
@@ -241,7 +242,7 @@ fn test_export_custom_component_no_props_schema() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("No props"));
 }
 
@@ -257,7 +258,7 @@ fn test_export_large_mixed_layout() {
             CanvasComponent::Text { content: format!("InnerText{}", i) },
         ]});
     }
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     for i in 0..30 {
         assert!(code.contains(&format!("Btn{}", i)));
         assert!(code.contains(&format!("Text{}", i)));
@@ -295,14 +296,14 @@ fn test_export_custom_component_with_description() {
             description: Some("A description".to_string()),
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Desc"));
     assert!(custom_components[0].description.as_deref() == Some("A description"));
 }
 #[test]
 fn test_export_button_unicode_and_long_label() {
     let layout = vec![CanvasComponent::Button { label: "你好🌏🚀a very very very very very very very very long label!".to_string() }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("你好🌏🚀a very very very very very very very very long label!"));
 }
 
@@ -313,7 +314,7 @@ fn test_export_deeply_nested_10_levels() {
         comp = CanvasComponent::Container { children: vec![comp] };
     }
     let layout = vec![comp];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.matches("<div class=\"container\">" ).count() >= 10);
     assert!(code.contains("Deepest"));
 }
@@ -332,14 +333,14 @@ fn test_export_custom_component_invalid_template() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Unclosed"));
 }
 
 #[test]
 fn test_export_text_with_special_and_control_chars() {
     let layout = vec![CanvasComponent::Text { content: "Line1\nLine2\t\u{0007}".to_string() }];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("Line1"));
     assert!(code.contains("Line2"));
 }
@@ -376,7 +377,7 @@ fn test_export_code_generation() {
             CanvasComponent::Input { placeholder: "Type here".to_string() }
         ]},
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     let expected = r#"// Generated by Leptos Studio
 use leptos::*;
 
@@ -411,7 +412,7 @@ fn test_export_with_custom_component() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: MyCustom"), "Custom component marker missing");
     assert!(code.contains("Custom!"), "Custom template missing");
 }
@@ -419,7 +420,7 @@ fn test_export_with_custom_component() {
 #[test]
 fn test_export_empty_layout() {
     let layout: Vec<CanvasComponent> = vec![];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("GeneratedView"), "Should still generate component");
     assert!(code.contains("view!"), "Should still generate view! macro");
 }
@@ -432,7 +433,7 @@ fn test_export_nested_container() {
             CanvasComponent::Input { placeholder: "B".to_string() },
         ]},
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<div class=\"container\">"), "Container div missing");
     assert!(code.contains("<button>{\"A\"}</button>"), "Nested button missing");
     assert!(code.contains("<input placeholder=\"B\" />"), "Nested input missing");
@@ -443,7 +444,7 @@ fn test_export_custom_component_not_found() {
     let layout = vec![
         CanvasComponent::Custom { name: "NotExist".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("Custom: NotExist"), "Custom marker missing");
     assert!(code.contains("Template not found"), "Fallback template missing");
 }
@@ -455,7 +456,7 @@ fn test_export_mixed_components() {
         CanvasComponent::Input { placeholder: "Ph".to_string() },
         CanvasComponent::Text { content: "Teks".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<button>{\"Btn\"}</button>"));
     assert!(code.contains("<input placeholder=\"Ph\" />"));
     assert!(code.contains("<span>{\"Teks\"}</span>"));
@@ -470,7 +471,7 @@ fn test_export_deeply_nested() {
             ]},
         ]},
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.matches("<div class=\"container\">").count() >= 2, "Should have at least 2 container divs");
     assert!(code.contains("<button>{\"Deep\"}</button>"));
 }
@@ -480,7 +481,7 @@ fn test_export_input_empty_placeholder() {
     let layout = vec![
         CanvasComponent::Input { placeholder: "".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"\" />"));
 }
 
@@ -500,7 +501,7 @@ fn test_export_custom_component_empty_template() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: EmptyCustom"));
     // Should still output an empty comment block
     assert!(code.contains("/*  */"));
@@ -522,7 +523,7 @@ fn test_export_custom_component_null_template() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: NullCustom"));
     assert!(code.contains("Template not found"));
 }
@@ -546,7 +547,7 @@ fn test_export_nested_custom_and_basic() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: C1"));
     assert!(code.contains("CustomC1"));
     assert!(code.contains("<button>{\"Btn\"}</button>"));
@@ -562,8 +563,8 @@ fn test_export_order_variation() {
         CanvasComponent::Text { content: "B".to_string() },
         CanvasComponent::Button { label: "A".to_string() },
     ];
-    let code1 = generate_leptos_code(&layout1, &[]);
-    let code2 = generate_leptos_code(&layout2, &[]);
+    let code1 = generate_leptos_code(&layout1, &[], ExportPreset::Plain);
+    let code2 = generate_leptos_code(&layout2, &[], ExportPreset::Plain);
     assert_ne!(code1, code2, "Order of components should affect output");
 }
 
@@ -572,7 +573,7 @@ fn test_export_label_with_whitespace() {
     let layout = vec![
         CanvasComponent::Button { label: "  spaced  ".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<button>{\"  spaced  \"}</button>"));
 }
 
@@ -592,7 +593,7 @@ fn test_export_custom_component_special_chars() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: C$#@!"));
     assert!(code.contains("!@#$%^&*"));
 }
@@ -604,7 +605,7 @@ fn test_export_repeated_components() {
         CanvasComponent::Button { label: "X".to_string() },
         CanvasComponent::Button { label: "X".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert_eq!(code.matches("<button>{\"X\"}</button>").count(), 3, "Should have 3 identical buttons");
 }
 
@@ -624,7 +625,7 @@ fn test_export_custom_multiline_template() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Line1"));
     assert!(code.contains("Line2"));
     assert!(code.contains("Line3"));
@@ -635,7 +636,7 @@ fn test_export_input_special_chars() {
     let layout = vec![
         CanvasComponent::Input { placeholder: "<>&\"'".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"<>&\"'\" />"));
 }
 
@@ -658,7 +659,7 @@ fn test_export_nested_custom_container_input() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: C2"));
     assert!(code.contains("NestedC2"));
     assert!(code.contains("<input placeholder=\"Z\" />"));
@@ -670,7 +671,7 @@ fn test_export_large_layout_stress() {
     for i in 0..100 {
         layout.push(CanvasComponent::Button { label: format!("Btn{}", i) });
     }
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     for i in 0..100 {
         assert!(code.contains(&format!("<button>{{\"Btn{}\"}}</button>", i)), "Missing Btn{}", i);
     }
@@ -692,7 +693,7 @@ fn test_export_custom_unicode_template() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("你好🌏"));
 }
 
@@ -701,7 +702,7 @@ fn test_export_input_with_emoji() {
     let layout = vec![
         CanvasComponent::Input { placeholder: "😀🚀".to_string() },
     ];
-    let code = generate_leptos_code(&layout, &[]);
+    let code = generate_leptos_code(&layout, &[], ExportPreset::Plain);
     assert!(code.contains("<input placeholder=\"😀🚀\" />"));
 }
 
@@ -727,7 +728,7 @@ fn test_export_deeply_nested_custom_and_basic() {
             description: None,
         }
     ];
-    let code = generate_leptos_code(&layout, &custom_components);
+    let code = generate_leptos_code(&layout, &custom_components, ExportPreset::Plain);
     assert!(code.contains("Custom: DeepC"));
     assert!(code.contains("DeepCustom"));
     assert!(code.contains("<button>{\"B1\"}</button>"));

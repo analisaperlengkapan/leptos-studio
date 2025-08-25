@@ -10,7 +10,7 @@
 - 🧩 **Component library management**: Tambah/hapus custom component langsung dari sidebar
 - 🛡️ **Component props validation**: Form custom component memvalidasi nama (harus identifier Rust valid) & template (harus HTML snippet valid), error message tampil jika input tidak valid
 - 🗂️ **Version control (Git) UI**: Sidebar menampilkan status, commit, dan log Git secara langsung
-- 📤 **Flexible export**: Export desain ke format Leptos, HTML, Markdown, dan JSON
+- 📤 **Flexible export & code generation templates**: Export desain ke format Leptos, HTML, Markdown, JSON, dan preset ekspor (Plain, thaw-ui, leptos-material, leptos-use)
 ### 🔄 Roadmap Fitur
 
 ## 🛠 Instalasi dan Penggunaan
@@ -82,3 +82,4 @@ Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) unt
 - Lebih dari 50 pengujian integrasi dan property-based: mencakup semua edge case ekspor kode, serialisasi, undo/redo, validasi props, custom component, unicode, emoji, stress test, dan layout besar.
 - Semua pengujian lulus, workspace bebas error dan warning (lint/build/test).
 - Pengujian edge case: komponen kosong, input tanpa placeholder, label panjang/unicode, deeply nested, kombinasi custom & basic, validasi error handling, dan serialisasi custom component.
+- Sistem preset ekspor diuji penuh (Plain, thaw-ui, leptos-material, leptos-use) dan terintegrasi di seluruh pipeline export.

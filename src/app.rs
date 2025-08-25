@@ -109,6 +109,7 @@ pub fn App() -> impl IntoView {
     // State untuk export modal
     let show_export = create_rw_signal(false);
     let export_code = create_rw_signal(String::new());
+    use crate::builder::export::ExportPreset;
     let export_template = create_rw_signal("leptos".to_string());
 
     // Custom komponen tetap ada untuk form
@@ -122,9 +123,14 @@ pub fn App() -> impl IntoView {
         let notification = notification.clone();
         let custom_components = custom_components.clone();
         move |_| {
+            let preset = match export_template.get().as_str() {
+                "leptos" => ExportPreset::Plain,
+                "html" => ExportPreset::Plain,
+                _ => ExportPreset::Plain,
+            };
             let code = match export_template.get().as_str() {
-                "leptos" => crate::builder::export::generate_leptos_code(&components.get(), &custom_components.get()),
-                "html" => crate::builder::export::generate_html_code(&components.get(), &custom_components.get()),
+                "leptos" => crate::builder::export::generate_leptos_code(&components.get(), &custom_components.get(), preset),
+                "html" => crate::builder::export::generate_html_code(&components.get(), &custom_components.get(), preset),
                 "markdown" => crate::builder::export::generate_markdown_code(&components.get(), &custom_components.get()),
                 "json" => serde_json::to_string_pretty(&components.get()).unwrap_or("// Export failed".to_string()),
                 _ => "// Unknown template".to_string(),

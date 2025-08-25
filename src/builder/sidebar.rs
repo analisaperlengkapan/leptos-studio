@@ -1,4 +1,9 @@
+
+use crate::builder::export::{ExportPreset, generate_leptos_code};
+use web_sys::window;
+
 use crate::builder::git_panel::GitPanel;
+use crate::builder::debug_panel::DebugPanel;
 use leptos::*;
 use super::component_library::{LibraryComponent, Theme, ResponsiveMode};
 // ...existing code...
@@ -19,6 +24,8 @@ pub fn sidebar(
 ) -> impl IntoView {
     // State untuk custom theme color
     let custom_theme_color = create_rw_signal(String::from("#888"));
+    // State untuk preset ekspor kode
+    let export_preset = create_rw_signal(ExportPreset::Plain);
     // State untuk edit custom component
     let editing_idx = create_rw_signal(None::<usize>);
     let edit_name = create_rw_signal(String::new());
@@ -197,6 +204,14 @@ pub fn sidebar(
     };
     view! {
     <aside style=format!("background:{};padding:1rem;min-width:260px;", sidebar_bg)>
+        <DebugPanel 
+            components=components
+            custom_components=custom_components
+            undo_stack=undo_stack
+            redo_stack=redo_stack
+            render_count=render_count.clone()
+            render_time=render_time.clone()
+        />
         <div style="margin-bottom:16px;padding:8px;border:1px solid #bbb;background:#f9f9f9;">
             <b>Version Control (Git)</b>
             <GitPanel />
@@ -346,8 +361,32 @@ pub fn sidebar(
                 } else { view! { <div></div> } }}
             </div>
             <div><b>Components on Canvas:</b> {components.get().len()}</div>
-            // Tombol export dinonaktifkan sementara, handler dihapus untuk refactor
-            <button disabled>Export Project</button>
+            <div style="margin:12px 0;">
+                <b>Export Preset:</b>
+                <select prop:value=move || format!("{:?}", export_preset.get()) on:change=move |ev| {
+                    let val = event_target_value(&ev);
+                    export_preset.set(match val.as_str() {
+                        "ThawUi" => ExportPreset::ThawUi,
+                        "LeptosMaterial" => ExportPreset::LeptosMaterial,
+                        "LeptosUse" => ExportPreset::LeptosUse,
+                        _ => ExportPreset::Plain,
+                    });
+                }>
+                    <option value="Plain">Plain (Default)</option>
+                    <option value="ThawUi">thaw-ui</option>
+                    <option value="LeptosMaterial">leptos-material</option>
+                    <option value="LeptosUse">leptos-use</option>
+                </select>
+            </div>
+            <button on:click=move |_| {
+                let code = generate_leptos_code(&components.get(), &custom_components.get(), export_preset.get());
+                // Copy to clipboard (browser)
+                if let Some(win) = window() {
+                    let clipboard = win.navigator().clipboard();
+                    let _ = clipboard.write_text(&code);
+                }
+                notification.set(Some("✅ Kode Leptos berhasil diekspor & disalin ke clipboard!".to_string()));
+            }>Export Project</button>
             {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;font-weight:bold;margin-top:8px;">{msg}</div> })}
         </aside>
     }.into_view()

@@ -1,11 +1,19 @@
 #
-## [0.2.2] - 2025-08-25
+
+## [0.2.3] - 2025-08-25
 
 ### Added
+- 🎉 **Code generation templates (export presets)**: Export kode Leptos kini mendukung preset: Plain, thaw-ui, leptos-material, leptos-use. UI export preset di sidebar, backend export sinkron.
+- 📤 **Flexible export system**: Semua fungsi export (Leptos, HTML, Markdown) kini menerima preset/opsi ekspor.
+- 🧪 **Test coverage update**: Semua pengujian integrasi diperbarui untuk preset baru, 100% lulus.
 
 ### Changed
+- Refactor seluruh pemanggilan export agar konsisten dengan argumen preset baru.
+- Sidebar: dropdown preset export, clipboard copy fix (web_sys).
 
 ### Fixed
+- Semua error dan warning build/test/lint di workspace dioptimalkan (signature, import, clipboard API, dsb).
+- Pengujian property-based dan edge case untuk preset baru.
 
 #
 ## [0.2.1] - 2025-08-25

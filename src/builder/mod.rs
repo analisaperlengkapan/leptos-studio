@@ -11,3 +11,4 @@ pub mod project;
 // Re-export components for easier imports
 pub use property_editor::PropertyEditor;
 pub use preview::Preview;
+pub mod debug_panel;

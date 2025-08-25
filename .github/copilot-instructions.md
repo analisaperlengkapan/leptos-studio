@@ -35,7 +35,7 @@
 - [x] CONTRIBUTING guidelines
 - [x] Unit tests
 - [x] Integration tests
-- [ ] API documentation
+ - [x] API documentation (lihat API.md)
 - [x] User manual/tutorials
  - [x] Linting with leptos-lints (cargo-dylint)
  - [x] Autoformat macro Leptos with leptosfmt
@@ -44,8 +44,8 @@
 ## 🔧 Developer Experience
 - [x] Build system optimization
 - [x] Error handling
-- [ ] Debugging tools
-- [ ] Performance monitoring
+ - [x] Debugging tools
+ - [x] Performance monitoring
 - [ ] Code generation templates
  - [x] Linting & formatting instructions in CONTRIBUTING.md
 
@@ -60,7 +60,7 @@
 - Complete project documentation & user guide
 - Sidebar/canvas refactor: props now fully used, code clean, warning-free
 +- Linting Leptos (leptos-lints) terintegrasi, autoformat macro Leptos (leptosfmt) didokumentasikan
-+- Mengikuti best practice ekosistem Leptos: signals/context idiomatik, preset ekspor thaw-ui/leptos-material/leptos-use
++- API documentation internal tersedia di API.md
 
 🔄 **In Progress**
 - Advanced developer tooling
