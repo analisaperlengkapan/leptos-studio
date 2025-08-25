@@ -1,10 +1,22 @@
 use leptos::*;
 use super::canvas::CanvasComponent;
+use super::component_library::Theme;
+use super::component_library::ResponsiveMode;
 
 #[component]
-pub fn Preview(components: RwSignal<Vec<CanvasComponent>>) -> impl IntoView {
+pub fn Preview(components: RwSignal<Vec<CanvasComponent>>, theme: RwSignal<Theme>, responsive_mode: RwSignal<ResponsiveMode>) -> impl IntoView {
+    let (bg, fg) = match theme.get() {
+        Theme::Light => ("#fff", "#222"),
+        Theme::Dark => ("#222", "#eee"),
+        Theme::Custom => ("#f5f5dc", "#1a237e"), // sinkron dengan canvas.rs, bisa dihubungkan ke context jika ingin dinamis
+    };
+    let width = match responsive_mode.get() {
+        ResponsiveMode::Desktop => "100%",
+        ResponsiveMode::Tablet => "768px",
+        ResponsiveMode::Mobile => "375px",
+    };
     view! {
-        <div class="preview-area" style="background:#f9f9f9;padding:1rem;border:1px solid #eee;">
+        <div class="preview-area" style={format!("background:{};color:{};padding:1rem;border:1px solid #eee;width:{};margin:auto;", bg, fg, width)}>
             <For
                 each=move || components.get().into_iter().enumerate()
                 key=|(idx, _)| *idx

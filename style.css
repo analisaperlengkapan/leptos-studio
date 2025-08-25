@@ -1,10 +1,12 @@
 body {
     margin: 0;
     font-family: sans-serif;
+    background: #f8f9fa;
 }
 .leptos-studio {
     display: flex;
     height: 100vh;
+    background: #ffffff;
 }
 .sidebar {
     width: 200px;
@@ -17,6 +19,7 @@ body {
     background: #fff;
     padding: 2rem;
     min-width: 0;
+    border: 1px solid #eee;
 }
 .property-editor {
     width: 300px;
@@ -28,9 +31,41 @@ body {
     border: 1px dashed #aaa;
     padding: 1rem;
     margin: 0.5rem 0;
+    background: #f9f9f9;
 }
 
 .canvas-selected {
     outline: 2px solid #1976d2;
     background: #e3f2fd;
+}
+
+/* Debug styles */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    padding: 8px;
+    margin: 4px 0;
+    background: #e9ecef;
+    cursor: move;
+    border-radius: 4px;
+}
+
+.sidebar li:hover {
+    background: #dee2e6;
+}
+
+button {
+    padding: 6px 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #0056b3;
 }

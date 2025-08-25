@@ -4,20 +4,24 @@
 
 ## 🚀 Fitur Utama
 
+
 ### ✅ Fitur yang Tersedia
 - **Drag & Drop Interface**: Seret komponen (Button, Text, Input, Container) ke canvas
 - **Property Editor**: Edit properti komponen secara real-time
 - **Live Preview**: Pratinjau hasil desain secara langsung
 - **Nested Components**: Dukungan container dengan komponen bersarang
 - **Custom Components**: Buat dan gunakan komponen kustom
+- **Component Library Management**: Tambah/hapus custom component langsung dari sidebar
+- **Theme Switcher**: Ganti tema Light/Dark/Custom, sidebar & canvas reaktif
+- **Responsive Preview**: Canvas bisa diubah ke mode Desktop/Tablet/Mobile
 - **Code Export**: Generate kode Leptos dari desain visual
 - **Layout Persistence**: Simpan dan muat layout menggunakan localStorage
 
 ### 🔄 Roadmap Fitur
 - Undo/redo system
 - Import/export project files
-- Component library management
-- Responsive design preview
+- Component props validation
+- Hot reload for custom components
 - Unit dan integration tests
 - User manual dan tutorials
 
@@ -81,5 +85,5 @@ Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) unt
 ## 📊 Status
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)

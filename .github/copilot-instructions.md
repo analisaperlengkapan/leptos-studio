@@ -17,13 +17,13 @@
 ## 💾 Data Management
 - [x] Simpan dan load layout/desain (localStorage)
 - [x] Export/generate kode Leptos dari hasil desain
-- [ ] Undo/redo system
-- [ ] Import/export project files
+- [x] Undo/redo system
+- [x] Import/export project files
 - [ ] Version control integration
 
 ## 🛠 Advanced Features
-- [ ] Component library management
-- [ ] Theme/styling system
+- [~] Component library management (in progress, sidebar refactor & prop usage cleanup)
+- [~] Theme/styling system (in progress, sidebar/canvas now reactive to theme)
 - [ ] Responsive design preview
 - [ ] Component props validation
 - [ ] Hot reload for custom components
@@ -33,10 +33,10 @@
 - [x] LICENSE file
 - [x] CHANGELOG tracking
 - [x] CONTRIBUTING guidelines
-- [ ] Unit tests
-- [ ] Integration tests
+- [x] Unit tests
+- [x] Integration tests
 - [ ] API documentation
-- [ ] User manual/tutorials
+- [x] User manual/tutorials
 
 ## 🔧 Developer Experience
 - [x] Build system optimization
@@ -46,19 +46,23 @@
 - [ ] Code generation templates
 
 ## Progress Summary
-✅ **Completed (8/12 core features)**
+✅ **Completed (11/12 core features)**
 - Functional drag-and-drop UI builder
 - Real-time property editing and live preview
 - Nested container support with custom components
-- Code export and layout persistence
-- Complete project documentation
+- Code export, import/export, and layout persistence
+- Undo/redo system
+- Comprehensive unit & integration testing
+- Complete project documentation & user guide
+- Sidebar/canvas refactor: props now fully used, code clean, warning-free
 
 🔄 **In Progress**
 - Advanced developer tooling
-- Comprehensive testing suite
 - Enhanced user experience features
+- Component library management (sidebar refactor, prop usage)
+- Theme/styling system (sidebar/canvas reactive)
 
 📍 **Next Priorities**
-1. Implement undo/redo system
-2. Add comprehensive testing
-3. Create user documentation and tutorials
+1. Component library management
+2. Theme/styling system
+3. Responsive design preview

@@ -6,9 +6,25 @@
     <title>Leptos Studio</title>
     <link rel="stylesheet" href="style.css">
     <link data-trunk rel="rust" data-bin="leptos_studio" />
+    <style>
+        /* Fallback styling for visibility */
+        body { 
+            background: #f0f8ff; 
+            margin: 0; 
+            padding: 20px;
+        }
+        #leptos { 
+            min-height: 100px; 
+            background: lightgreen; 
+            border: 2px solid red; 
+            padding: 10px;
+        }
+    </style>
 </head>
 <body>
-    <main id="main"></main>
-    <script type="module">import init from './pkg/leptos_studio.js'; init();</script>
+    <div id="leptos">Loading Leptos Studio...</div>
+    <noscript>
+        <p style="color: red; font-size: 20px;">This application requires JavaScript to run.</p>
+    </noscript>
 </body>
 </html>
