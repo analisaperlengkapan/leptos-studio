@@ -110,15 +110,19 @@ pub fn App() -> impl IntoView {
     let export_code = create_rw_signal(String::new());
     let export_template = create_rw_signal("leptos".to_string());
 
+    // Custom komponen tetap ada untuk form
+    let custom_components = create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
+
     let do_export = {
         let components = components.clone();
         let export_code = export_code.clone();
         let export_template = export_template.clone();
         let show_export = show_export.clone();
         let notification = notification.clone();
+        let custom_components = custom_components.clone();
         move |_| {
             let code = match export_template.get().as_str() {
-                "leptos" => crate::builder::export::generate_leptos_code(&components.get()),
+                "leptos" => crate::builder::export::generate_leptos_code(&components.get(), &custom_components.get()),
                 "json" => serde_json::to_string_pretty(&components.get()).unwrap_or("// Export failed".to_string()),
                 _ => "// Unknown template".to_string(),
             };
@@ -197,7 +201,7 @@ pub fn App() -> impl IntoView {
         });
     }
     // Custom komponen tetap ada untuk form
-    let custom_components = create_rw_signal(Vec::<(String, String)>::new()); // (name, template)
+    let custom_components = create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
 
     // Performance monitoring
     let render_count = Rc::new(Cell::new(0));
@@ -223,7 +227,7 @@ pub fn App() -> impl IntoView {
         });
     }
     view! {
-        <div class="leptos-studio" style="background: #f0f0f0; min-height: 100vh; border: 5px solid red;">
+    <div class="leptos-studio" style="background: #f0f0f0; min-height: 100vh; border: 5px solid red;">
             <h1 style="color: red; font-size: 24px; text-align: center; background: yellow; padding: 10px; margin: 0;">"🔥 LEPTOS STUDIO - DEBUG MODE 🔥"</h1>
             <div style="border: 3px solid blue; background: lightcyan;">
                 {Sidebar(SidebarProps {
@@ -257,6 +261,7 @@ pub fn App() -> impl IntoView {
                         theme,
                         responsive_mode,
                         custom_theme_color,
+                        custom_components,
                     })}
                 </div>
                 <div style="margin-top:1rem; padding:1rem; border: 2px solid pink; background: lightpink;">
@@ -265,11 +270,12 @@ pub fn App() -> impl IntoView {
                             components=components 
                             theme=theme 
                             responsive_mode=responsive_mode
+                            custom_components=custom_components
                         />
                 </div>
             </div>
             <div style="border: 3px solid purple; background: lavender;">
-                <PropertyEditor selected=selected components=components component_library=component_library notification=notification />
+                <PropertyEditor selected=selected components=components component_library=component_library notification=notification custom_components=custom_components />
             </div>
             {move || if show_export.get() {
                 view! {

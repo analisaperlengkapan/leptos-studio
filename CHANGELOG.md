@@ -1,3 +1,17 @@
+#
+## [0.2.1] - 2025-08-25
+
+### Added
+- ♻️ Hot reload for custom components: perubahan template langsung tampil di canvas & preview tanpa reload
+- 🔥 Full refactor: seluruh codebase kini konsisten pakai LibraryComponent untuk custom_components, Sidebar/Canvas/Preview/Export/PropertyEditor sudah sinkron
+
+### Changed
+- Sidebar, Canvas, Preview, Export, PropertyEditor: migrasi penuh ke sistem custom_components baru (berbasis LibraryComponent)
+
+### Fixed
+- Build error akibat perbedaan tipe custom_components di seluruh modul
+- Bug pada edit, hapus, dan validasi custom component
+
 # Changelog
 
 All notable changes to Leptos Studio will be documented in this file.

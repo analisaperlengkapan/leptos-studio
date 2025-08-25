@@ -6,7 +6,9 @@
 
 
 ### ✅ Fitur yang Tersedia
- **Component props validation**: Form custom component memvalidasi nama (harus identifier Rust valid) & template (harus HTML snippet valid), error message tampil jika input tidak valid
+- ♻️ **Hot reload custom component**: Edit template custom component, preview langsung update tanpa reload
+- 🧩 **Component library management**: Tambah/hapus custom component langsung dari sidebar
+- 🛡️ **Component props validation**: Form custom component memvalidasi nama (harus identifier Rust valid) & template (harus HTML snippet valid), error message tampil jika input tidak valid
 ### 🔄 Roadmap Fitur
 
 ## 🛠 Instalasi dan Penggunaan
@@ -43,20 +45,23 @@ trunk build --release
 5. **Export Code**: Klik tombol "Export" untuk generate kode Leptos
 6. **Save/Load**: Gunakan tombol Save/Load untuk menyimpan layout
 
-## 🏗 Arsitektur
+
+## 🏗️ Arsitektur
 
 ```
 src/
 ├── app.rs              # Main application component
 ├── builder/            # Core builder modules
-│   ├── canvas.rs       # Canvas dengan drag-and-drop
-│   ├── sidebar.rs      # Component palette
-│   ├── property_editor.rs # Property editing panel
-│   ├── preview.rs      # Live preview
-│   └── export.rs       # Code generation
+│   ├── canvas.rs       # Canvas dengan drag-and-drop (hot reload custom component)
+│   ├── sidebar.rs      # Component palette (custom component management)
+│   ├── property_editor.rs # Property editing panel (edit + validate custom component)
+│   ├── preview.rs      # Live preview (hot reload)
+│   └── export.rs       # Code generation (sinkron custom component)
 ├── components/         # Reusable UI components
 └── lib.rs             # Library root
 ```
+
+> **Note:** Arsitektur custom component kini sepenuhnya berbasis `LibraryComponent` (bukan tuple/string), sehingga semua modul builder sinkron dan mendukung hot reload.
 
 ## 🤝 Kontribusi
 

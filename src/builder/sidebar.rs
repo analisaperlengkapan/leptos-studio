@@ -4,7 +4,7 @@ use super::component_library::{LibraryComponent, Theme, ResponsiveMode};
 
 #[component]
 pub fn sidebar(
-    custom_components: RwSignal<Vec<(String, String)>>,
+    custom_components: RwSignal<Vec<LibraryComponent>>,
     theme: RwSignal<Theme>,
     responsive_mode: RwSignal<ResponsiveMode>,
     selected: RwSignal<crate::builder::canvas::SelectedComponent>,
@@ -53,7 +53,7 @@ pub fn sidebar(
             error_msg.set("Nama komponen hanya boleh huruf, angka, dan underscore, serta tidak boleh diawali angka.".to_string());
             return;
         }
-        if custom_components.get().iter().any(|(n,_)| n == &name) {
+    if custom_components.get().iter().any(|c| c.name == name) {
             error_msg.set("Nama komponen sudah ada.".to_string());
             return;
         }
@@ -66,7 +66,14 @@ pub fn sidebar(
             error_msg.set("Template terlalu pendek.".to_string());
             return;
         }
-        custom_components.update(|cc| cc.push((name.clone(), template.clone())));
+        custom_components.update(|cc| cc.push(LibraryComponent {
+            name: name.clone(),
+            kind: "Custom".to_string(),
+            template: Some(template.clone()),
+            category: "Custom".to_string(),
+            props_schema: None,
+            description: None,
+        }));
         component_library.update(|lib| lib.push(LibraryComponent {
             name: name.clone(),
             kind: "Custom".to_string(),
@@ -89,8 +96,8 @@ pub fn sidebar(
     };
     // Handler hapus komponen custom
     let delete_custom_component = move |idx: usize| {
-        let name = custom_components.get().get(idx).map(|(n,_)| n.clone()).unwrap_or_default();
-        custom_components.update(|cc| { cc.remove(idx); });
+    let name = custom_components.get().get(idx).map(|c| c.name.clone()).unwrap_or_default();
+    custom_components.update(|cc| { cc.remove(idx); });
         component_library.update(|lib| {
             if let Some(pos) = lib.iter().position(|c| c.kind == "Custom" && c.name == name) {
                 lib.remove(pos);
@@ -110,9 +117,11 @@ pub fn sidebar(
         let edit_template = edit_template.clone();
         let editing_idx = editing_idx.clone();
         move |idx: usize| {
-            if let Some((name, template)) = custom_components.get().get(idx) {
+            if let Some(c) = custom_components.get().get(idx) {
+                let name = &c.name;
+                let template = c.template.as_deref().unwrap_or("");
                 edit_name.set(name.clone());
-                edit_template.set(template.clone());
+                edit_template.set(template.to_string());
                 editing_idx.set(Some(idx));
                 error_msg.set(String::new());
             }
@@ -120,7 +129,7 @@ pub fn sidebar(
     };
     // Handler simpan edit custom component
     let save_edit_custom_component = {
-        let custom_components = custom_components.clone();
+    let custom_components = custom_components.clone();
         let component_library = component_library.clone();
         let edit_name = edit_name.clone();
         let edit_template = edit_template.clone();
@@ -139,7 +148,7 @@ pub fn sidebar(
                 error_msg.set("Nama komponen hanya boleh huruf, angka, dan underscore, serta tidak boleh diawali angka.".to_string());
                 return;
             }
-            if custom_components.get().iter().enumerate().any(|(i, (n, _)): (usize, &(String, String))| n == &name && i != idx) {
+            if custom_components.get().iter().enumerate().any(|(i, c)| c.name == name && i != idx) {
                 error_msg.set("Nama komponen sudah ada.".to_string());
                 return;
             }
@@ -154,13 +163,13 @@ pub fn sidebar(
             // Update custom_components
             custom_components.update(|cc| {
                 if let Some(item) = cc.get_mut(idx) {
-                    item.0 = name.clone();
-                    item.1 = template.clone();
+                    item.name = name.clone();
+                    item.template = Some(template.clone());
                 }
             });
             // Update component_library
             component_library.update(|lib| {
-                if let Some(item) = lib.iter_mut().find(|c| c.kind == "Custom" && c.name == custom_components.get().get(idx).map(|(n, _): &(String, String)| n.clone()).unwrap_or_default()) {
+                if let Some(item) = lib.iter_mut().find(|c| c.kind == "Custom" && c.name == custom_components.get().get(idx).map(|c| c.name.clone()).unwrap_or_default()) {
                     item.name = name.clone();
                     item.template = Some(template.clone());
                 }

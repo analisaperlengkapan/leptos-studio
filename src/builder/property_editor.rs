@@ -8,6 +8,7 @@ pub fn PropertyEditor(
     components: RwSignal<Vec<CanvasComponent>>,
     component_library: RwSignal<Vec<LibraryComponent>>,
     notification: RwSignal<Option<String>>,
+    custom_components: RwSignal<Vec<LibraryComponent>>, // or whatever the type is
 ) -> impl IntoView {
     let idx = move || selected.get().idx;
     let comp = move || idx().and_then(|i| components.get().get(i).cloned());
@@ -106,7 +107,8 @@ pub fn PropertyEditor(
                         </div>
                     }
                 },
-                Some(CanvasComponent::Custom { name, template }) => {
+                Some(CanvasComponent::Custom { name }) => {
+                    let template = custom_components.get().iter().find(|c| c.name == *name).and_then(|c| c.template.clone()).unwrap_or_default();
                     let schema = component_library.get().iter().find(|c| c.kind == "Custom" && c.name == *name).and_then(|c| c.props_schema.clone());
                     let mut errors = vec![];
                     if let Some(props) = &schema {
@@ -120,15 +122,13 @@ pub fn PropertyEditor(
                     }
                     view! {
                         <div>
-                            <label>Template: <textarea value=template on:input=move |ev| {
+                            <label>Template: <textarea value=template.clone() on:input=move |ev| {
                                 let val = event_target_value(&ev);
-                                if let Some(i) = idx() {
-                                    components.update(|c| {
-                                        if let CanvasComponent::Custom { template, .. } = &mut c[i] {
-                                            *template = val.clone();
-                                        }
-                                    });
-                                }
+                                custom_components.update(|cc| {
+                                    if let Some(comp) = cc.iter_mut().find(|c| c.name == *name) {
+                                        comp.template = Some(val.clone());
+                                    }
+                                });
                             } /></label>
                             <ul style="color:red;list-style:circle;margin:0.5em 0 0 1em;">
                                 {errors.into_iter().map(|e| view!{ <li>{e}</li> }).collect::<Vec<_>>()}
