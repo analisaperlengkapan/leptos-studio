@@ -148,20 +148,16 @@ pub fn canvas(
         Theme::Custom => (custom_color.as_str(), "#1a237e"),
     };
     // Responsive style
-    let (width, scale) = match responsive_mode.get() {
-        ResponsiveMode::Desktop => ("100%", 1.0),
-        ResponsiveMode::Tablet => ("768px", 0.85),
-        ResponsiveMode::Mobile => ("375px", 0.7),
+    let (width, height, scale, label) = match responsive_mode.get() {
+        ResponsiveMode::Desktop => ("100%", "700px", 1.0, "Desktop (100% x 700px)"),
+        ResponsiveMode::Tablet => ("768px", "1024px", 0.85, "Tablet (768px x 1024px)"),
+        ResponsiveMode::Mobile => ("375px", "667px", 0.7, "Mobile (375px x 667px)"),
     };
     view! {
         <div class="canvas" on:drop=on_drop on:dragover=on_drag_over
-            style={format!("min-height:400px; background:{}; color:{}; border: 1px solid #aaa; width:{}; transform:scale({}); transform-origin:top left; position:relative;", bg, fg, width, scale)}>
+            style={format!("min-height:{}; background:{}; color:{}; border: 1px solid #aaa; width:{}; height:{}; transform:scale({}); transform-origin:top left; position:relative;", height, bg, fg, width, height, scale)}>
             <div style="position:absolute;top:8px;right:12px;padding:2px 10px;background:#333;color:#fff;border-radius:6px;font-size:0.95em;opacity:0.85;z-index:10;">
-                {format!("{} mode", match responsive_mode.get() {
-                    ResponsiveMode::Desktop => "Desktop",
-                    ResponsiveMode::Tablet => "Tablet",
-                    ResponsiveMode::Mobile => "Mobile",
-                })}
+                {label}
             </div>
             <p>Canvas (drag komponen ke sini)</p>
             <For
