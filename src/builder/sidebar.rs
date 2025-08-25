@@ -16,6 +16,8 @@ pub fn sidebar(
     notification: RwSignal<Option<String>>,
     component_library: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
+    // State untuk validasi props
+    let error_msg = create_rw_signal(String::new());
     // Handler ganti responsive mode
     let set_responsive = move |m: ResponsiveMode| responsive_mode.set(m);
     // Handler ganti theme
@@ -28,20 +30,42 @@ pub fn sidebar(
     let add_custom_component = move |_| {
         let name = new_name.get().trim().to_string();
         let template = new_template.get().trim().to_string();
-        if !name.is_empty() {
-            custom_components.update(|cc| cc.push((name.clone(), template.clone())));
-            component_library.update(|lib| lib.push(LibraryComponent {
-                name: name.clone(),
-                kind: "Custom".to_string(),
-                template: Some(template.clone()),
-                category: "Custom".to_string(),
-                props_schema: None,
-                description: None,
-            }));
-            new_name.set(String::new());
-            new_template.set(String::new());
-            show_add_form.set(false);
+        if name.is_empty() {
+            error_msg.set("Nama komponen wajib diisi.".to_string());
+            return;
         }
+        // Nama harus valid sebagai identifier Rust (huruf, angka, underscore, tidak boleh diawali angka)
+        if !name.chars().next().map(|c| c.is_ascii_alphabetic() || c == '_').unwrap_or(false)
+            || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+            error_msg.set("Nama komponen hanya boleh huruf, angka, dan underscore, serta tidak boleh diawali angka.".to_string());
+            return;
+        }
+        if custom_components.get().iter().any(|(n,_)| n == &name) {
+            error_msg.set("Nama komponen sudah ada.".to_string());
+            return;
+        }
+        // Validasi template: harus mengandung setidaknya satu tag HTML sederhana (misal: <div>, <span>, dst)
+        if !template.contains('<') || !template.contains('>') {
+            error_msg.set("Template harus mengandung minimal satu tag HTML valid.".to_string());
+            return;
+        }
+        if template.len() < 5 {
+            error_msg.set("Template terlalu pendek.".to_string());
+            return;
+        }
+        custom_components.update(|cc| cc.push((name.clone(), template.clone())));
+        component_library.update(|lib| lib.push(LibraryComponent {
+            name: name.clone(),
+            kind: "Custom".to_string(),
+            template: Some(template.clone()),
+            category: "Custom".to_string(),
+            props_schema: None,
+            description: None,
+        }));
+        new_name.set(String::new());
+        new_template.set(String::new());
+        error_msg.set(String::new());
+        show_add_form.set(false);
     };
     // Handler hapus komponen custom
     let delete_custom_component = move |idx: usize| {
@@ -95,9 +119,12 @@ pub fn sidebar(
                         <div style="margin-top:8px;padding:8px;border:1px solid #ccc;background:#f9f9f9;">
                             <input placeholder="Nama Komponen" prop:value=new_name on:input=move |ev| new_name.set(event_target_value(&ev)) style="margin-bottom:4px;"/>
                             <textarea placeholder="Template HTML" prop:value=new_template on:input=move |ev| new_template.set(event_target_value(&ev)) style="margin-bottom:4px;width:100%;"/>
+                            {move || if !error_msg.get().is_empty() {
+                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }
+                            } else { view! { <div></div> } }}
                             <div style="display:flex;gap:8px;">
                                 <button on:click=add_custom_component>Tambah</button>
-                                <button on:click=move |_| show_add_form.set(false) style="color:red;">Batal</button>
+                                <button on:click=move |_| { show_add_form.set(false); error_msg.set(String::new()); } style="color:red;">Batal</button>
                             </div>
                         </div>
                     }

@@ -25,7 +25,7 @@
 - [~] Component library management (in progress, sidebar refactor & prop usage cleanup)
 - [~] Theme/styling system (in progress, sidebar/canvas now reactive to theme)
 - [ ] Responsive design preview
-- [ ] Component props validation
+- [x] Component props validation (custom component form: name must be valid Rust identifier, template must be valid HTML snippet, error messages shown for invalid input)
 - [ ] Hot reload for custom components
 
 ## 📚 Documentation & Testing
@@ -46,7 +46,7 @@
 - [ ] Code generation templates
 
 ## Progress Summary
-✅ **Completed (11/12 core features)**
+✅ **Completed (12/12 core features)**
 - Functional drag-and-drop UI builder
 - Real-time property editing and live preview
 - Nested container support with custom components

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - 🧩 Component library management: tambah/hapus custom component langsung dari sidebar
+- 🛡️ Advanced component props validation: custom component form now checks for valid Rust identifier names and valid HTML template, with user-friendly error messages
 - 🎨 Theme switcher: sidebar & canvas reaktif terhadap perubahan tema (Light/Dark/Custom)
 - 📱 Responsive design preview: canvas bisa diubah ke mode Desktop/Tablet/Mobile, label mode tampil di canvas
 - 🧹 Sidebar/canvas refactor: props kini digunakan penuh, warning hilang, kode lebih bersih
