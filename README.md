@@ -25,36 +25,33 @@
 # Clone repository
 git clone git@gitlab.com:analisiskebutuhan/leptos-studio.git
 cd leptos-studio
+## Ekosistem & Best Practice Leptos
+
+Leptos Studio mengikuti praktik terbaik dari ekosistem [Leptos](https://github.com/leptos-rs/leptos):
+
+- **Fine-grained reactivity**: Semua komponen builder dan custom component menggunakan signals & context secara idiomatik.
+- **Komponen modular**: Arsitektur berbasis komponen reusable.
+- **Ekosistem library**: Mendukung ekspor/preset untuk [thaw-ui](https://github.com/thaw-ui/thaw), [leptos-material](https://github.com/jordi-star/leptos-material), [leptos-use](https://leptos-use.rs/), dsb.
+- **Autoformat**: Disarankan menggunakan [leptosfmt](https://github.com/bram209/leptosfmt) untuk format macro `view!` (instruksi di bawah).
+- **Linting**: Menggunakan [leptos-lints](https://github.com/leptos-rs/leptos-lints) untuk menjaga kualitas kode.
 
 # Install dependencies (otomatis via Cargo)
-# Jalankan development server
-trunk serve
-
-# Akses aplikasi di http://localhost:8080/
-```
 
 ### Build untuk Production
-```bash
-trunk build --release
 ```
 
 ## 🎯 Cara Penggunaan
 
-1. **Drag Components**: Seret komponen dari sidebar ke canvas
 2. **Edit Properties**: Klik komponen di canvas, edit di property panel
 3. **Nested Layout**: Drag komponen ke dalam Container untuk layout bersarang
-4. **Custom Components**: Buat komponen kustom via form di sidebar
 5. **Export Code**: Klik tombol "Export" untuk generate kode Leptos
 6. **Save/Load**: Gunakan tombol Save/Load untuk menyimpan layout
-
 
 ## 🏗️ Arsitektur
 
 ```
 src/
 ├── app.rs              # Main application component
-├── builder/            # Core builder modules
-│   ├── canvas.rs       # Canvas dengan drag-and-drop (hot reload custom component)
 │   ├── sidebar.rs      # Component palette (custom component management)
 │   ├── property_editor.rs # Property editing panel (edit + validate custom component)
 │   ├── preview.rs      # Live preview (hot reload)

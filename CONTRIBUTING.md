@@ -41,10 +41,6 @@ trunk serve
 ### 3. Pedoman Kode
 
 #### Rust/Leptos Best Practices
-- Ikuti konvensi naming Rust (snake_case untuk variables, PascalCase untuk types)
-- Gunakan `#[component]` macro untuk Leptos components
-- Maintain reactive patterns dengan signals
-- Handle errors dengan proper error types
 
 #### Code Style
 ```rust
@@ -62,6 +58,28 @@ pub fn MyComponent(props: MyProps) -> impl IntoView {
 
 // ❌ Bad
 pub fn mycomponent() -> impl IntoView { /* ... */ }
+## Linting (Leptos Best Practice)
+Leptos Studio menggunakan [leptos-lints](https://github.com/leptos-rs/leptos-lints) untuk menjaga kualitas kode. Sebelum submit PR, jalankan:
+
+```bash
+cargo install cargo-dylint dylint-link # jika belum ada
+cargo dylint --all
+```
+
+Lint akan menolak penggunaan `leptos::logging::log!` dan anti-pattern lain.
+
+## Formatting Macro Leptos
+Disarankan menggunakan [leptosfmt](https://github.com/bram209/leptosfmt) untuk autoformat macro `view!`:
+
+```bash
+cargo install leptosfmt
+leptosfmt src/
+```
+
+## Checklist PR
+- [ ] Lulus lint (`cargo dylint --all`)
+- [ ] Sudah diformat (`leptosfmt src/`)
+- [ ] Semua test lulus (`cargo test`)
 ```
 
 #### Commit Messages

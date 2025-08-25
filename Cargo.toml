@@ -1,3 +1,4 @@
+
 [package]
 name = "leptos_studio"
 version = "0.1.0"
@@ -7,7 +8,6 @@ edition = "2021"
 leptos = "0.6"
 leptos_router = "0.6"
 leptos_dom = "0.6"
-
 web-sys = { version = "0.3", features = ["DragEvent", "DataTransfer", "Window", "Storage", "console", "HtmlInputElement", "FileList", "File"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -18,7 +18,13 @@ gloo-timers = { version = "0.3.0", features = ["futures"] }
 wasm-bindgen-futures = "0.4.50"
 gloo-net = "0.6.0"
 
+[workspace]
+members = [
+	"src"
+]
 
+[workspace.metadata.dylint]
+libraries = [{ git = "https://github.com/leptos-rs/leptos-lints", tag = "v0.1.0" }]
 
 [profile.release]
 lto = true
