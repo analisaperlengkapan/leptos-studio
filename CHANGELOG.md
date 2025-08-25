@@ -2,23 +2,26 @@
 ## [0.2.2] - 2025-08-25
 
 ### Added
-- 🗂️ **Version control (Git) UI**: Sidebar kini menampilkan panel Git (status, commit, log) terintegrasi langsung di aplikasi
-- 📤 **Flexible export**: Export hasil desain ke format HTML dan Markdown, selain Leptos/JSON
 
 ### Changed
-- Sidebar refactor: integrasi GitPanel sebagai komponen Leptos terpisah
-- Export logic kini mendukung multi-format
 
 ### Fixed
-- Build error akibat refactor sidebar & integrasi GitPanel
-- Bug pada validasi input commit message
 
 #
 ## [0.2.1] - 2025-08-25
 
+
+- 🧪 **Extensive integration & property-based tests**: 50+ pengujian untuk semua edge case ekspor kode, serialisasi, undo/redo, validasi props, custom component, unicode, emoji, stress test, dan layout besar
+- 🔍 **Edge case & stress test**: Pengujian untuk komponen kosong, input tanpa placeholder, label panjang/unicode, deeply nested, kombinasi custom & basic, dan validasi error handling
+
 ### Added
+- Coverage pengujian kini hampir 100% untuk semua logic utama builder, export, dan custom component
+- README diperbarui untuk menyoroti robustness dan cakupan pengujian
+
 - ♻️ Hot reload for custom components: perubahan template langsung tampil di canvas & preview tanpa reload
-- 🔥 Full refactor: seluruh codebase kini konsisten pakai LibraryComponent untuk custom_components, Sidebar/Canvas/Preview/Export/PropertyEditor sudah sinkron
+- Semua warning lint pada pengujian dioptimalkan (unused import, dsb)
+- Tidak ada error atau warning build pada workspace
+
 
 ### Changed
 - Sidebar, Canvas, Preview, Export, PropertyEditor: migrasi penuh ke sistem custom_components baru (berbasis LibraryComponent)

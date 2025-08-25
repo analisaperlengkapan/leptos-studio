@@ -5,7 +5,6 @@ pub mod export;
 pub mod canvas;
 pub mod sidebar;
 pub mod property_editor;
-pub mod codegen;
 pub mod snackbar;
 pub mod project;
 

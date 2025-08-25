@@ -14,6 +14,7 @@ use super::builder::preview::Preview;
 
 #[component]
 pub fn App() -> impl IntoView {
+    web_sys::console::log_1(&"App: before view!".into());
     let responsive_mode = create_rw_signal(ResponsiveMode::Desktop);
     let notification = create_rw_signal(None::<String>);
     // State global theme (light/dark)
@@ -123,11 +124,15 @@ pub fn App() -> impl IntoView {
         move |_| {
             let code = match export_template.get().as_str() {
                 "leptos" => crate::builder::export::generate_leptos_code(&components.get(), &custom_components.get()),
+                "html" => crate::builder::export::generate_html_code(&components.get(), &custom_components.get()),
+                "markdown" => crate::builder::export::generate_markdown_code(&components.get(), &custom_components.get()),
                 "json" => serde_json::to_string_pretty(&components.get()).unwrap_or("// Export failed".to_string()),
                 _ => "// Unknown template".to_string(),
             };
             let msg = match export_template.get().as_str() {
                 "leptos" => "Export Leptos code berhasil!",
+                "html" => "Export HTML berhasil!",
+                "markdown" => "Export Markdown berhasil!",
                 "json" => "Export JSON berhasil!",
                 _ => "Export gagal!",
             };
@@ -227,57 +232,57 @@ pub fn App() -> impl IntoView {
         });
     }
     view! {
-    <div class="leptos-studio" style="background: #f0f0f0; min-height: 100vh; border: 5px solid red;">
-            <h1 style="color: red; font-size: 24px; text-align: center; background: yellow; padding: 10px; margin: 0;">"🔥 LEPTOS STUDIO - DEBUG MODE 🔥"</h1>
-            <div style="border: 3px solid blue; background: lightcyan;">
-                {Sidebar(SidebarProps {
-                    custom_components,
-                    theme,
-                    responsive_mode,
-                    selected,
-                    undo_stack,
-                    redo_stack,
-                    components,
-                    render_count: render_count.clone(),
-                    render_time: render_time.clone(),
-                    notification,
-                    component_library,
-                })}
-            </div>
-            <div style="display: flex; flex-direction: column; flex: 1; border: 3px solid green; background: lightgreen;">
-                <div style="padding: 0.5rem; background: #e0e0e0; border-bottom: 1px solid #ddd;">
-                    <button on:click=save_layout style="background: orange; padding: 10px; color: white; border: none; margin: 5px;">Save Layout</button>
-                    <button on:click=load_layout style="margin-left: 0.5rem; background: purple; padding: 10px; color: white; border: none; margin: 5px;">Load Layout</button>
-                    <button on:click=do_export style="margin-left: 0.5rem; background: red; padding: 10px; color: white; border: none; margin: 5px;">Export</button>
-                    <button on:click=do_undo style="margin-left: 0.5rem; background: #555; padding: 10px; color: white; border: none; margin: 5px;">Undo</button>
-                    <button on:click=do_redo style="margin-left: 0.5rem; background: #888; padding: 10px; color: white; border: none; margin: 5px;">Redo</button>
-                </div>
-                <div style="border: 2px solid orange; background: lightyellow;">
-                    {Canvas(CanvasProps {
-                        selected,
-                        components,
-                        undo_stack,
-                        redo_stack,
-                        theme,
-                        responsive_mode,
-                        custom_theme_color,
-                        custom_components,
-                    })}
-                </div>
-                <div style="margin-top:1rem; padding:1rem; border: 2px solid pink; background: lightpink;">
-                    <h4>Live Preview</h4>
-                        <Preview 
-                            components=components 
-                            theme=theme 
-                            responsive_mode=responsive_mode
-                            custom_components=custom_components
-                        />
-                </div>
-            </div>
-            <div style="border: 3px solid purple; background: lavender;">
-                <PropertyEditor selected=selected components=components component_library=component_library notification=notification custom_components=custom_components />
-            </div>
-            {move || if show_export.get() {
+        <div class="leptos-studio" style="background: #fffbe6; min-height: 100vh; border: 8px dashed #ff9800; box-shadow:0 0 20px #ff9800;">
+                    <h1 style="color: red; font-size: 24px; text-align: center; background: yellow; padding: 10px; margin: 0;">"🔥 LEPTOS STUDIO - DEBUG MODE 🔥"</h1>
+                    <div style="border: 3px solid blue; background: lightcyan;">
+                        {Sidebar(SidebarProps {
+                            custom_components,
+                            theme,
+                            responsive_mode,
+                            selected,
+                            undo_stack,
+                            redo_stack,
+                            components,
+                            render_count: render_count.clone(),
+                            render_time: render_time.clone(),
+                            notification,
+                            component_library,
+                        })}
+                    </div>
+                    <div style="display: flex; flex-direction: column; flex: 1; border: 3px solid green; background: lightgreen;">
+                        <div style="padding: 0.5rem; background: #e0e0e0; border-bottom: 1px solid #ddd;">
+                            <button on:click=save_layout style="background: orange; padding: 10px; color: white; border: none; margin: 5px;">Save Layout</button>
+                            <button on:click=load_layout style="margin-left: 0.5rem; background: purple; padding: 10px; color: white; border: none; margin: 5px;">Load Layout</button>
+                            <button on:click=do_export style="margin-left: 0.5rem; background: red; padding: 10px; color: white; border: none; margin: 5px;">Export</button>
+                            <button on:click=do_undo style="margin-left: 0.5rem; background: #555; padding: 10px; color: white; border: none; margin: 5px;">Undo</button>
+                            <button on:click=do_redo style="margin-left: 0.5rem; background: #888; padding: 10px; color: white; border: none; margin: 5px;">Redo</button>
+                        </div>
+                        <div style="border: 2px solid orange; background: lightyellow;">
+                            {Canvas(CanvasProps {
+                                selected,
+                                components,
+                                undo_stack,
+                                redo_stack,
+                                theme,
+                                responsive_mode,
+                                custom_theme_color,
+                                custom_components,
+                            })}
+                        </div>
+                        <div style="margin-top:1rem; padding:1rem; border: 2px solid pink; background: lightpink;">
+                            <h4>Live Preview</h4>
+                                <Preview 
+                                    components=components 
+                                    theme=theme 
+                                    responsive_mode=responsive_mode
+                                    custom_components=custom_components
+                                />
+                        </div>
+                    </div>
+                    <div style="border: 3px solid purple; background: lavender;">
+                        <PropertyEditor selected=selected components=components component_library=component_library notification=notification custom_components=custom_components />
+                    </div>
+                    {move || if show_export.get() {
                 view! {
                     <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
                         <div style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:90vw;">
@@ -285,6 +290,8 @@ pub fn App() -> impl IntoView {
                             <label for="export-template">Template: </label>
                             <select id="export-template" value=export_template on:input=move |ev| export_template.set(event_target_value(&ev)) style="margin-bottom:1em;">
                                 <option value="leptos">Leptos Component</option>
+                                <option value="html">HTML</option>
+                                <option value="markdown">Markdown</option>
                                 <option value="json">Raw JSON</option>
                             </select>
                             <textarea style="width:100%;height:300px;" readonly>{export_code.get()}</textarea>
@@ -294,8 +301,10 @@ pub fn App() -> impl IntoView {
                         </div>
                     </div>
                 }
-            } else { view! { <div></div> } }}
-        <Snackbar notification=notification />
-    </div>
+            } else {
+                view! { <div></div> }
+            }}
+            <Snackbar notification=notification />
+        </div>
     }
 }

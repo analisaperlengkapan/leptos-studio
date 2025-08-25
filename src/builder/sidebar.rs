@@ -1,6 +1,5 @@
 use crate::builder::git_panel::GitPanel;
 use leptos::*;
-use leptos::*;
 use super::component_library::{LibraryComponent, Theme, ResponsiveMode};
 // ...existing code...
 
@@ -243,6 +242,10 @@ pub fn sidebar(
                 <ul style="max-height:180px;overflow:auto;">
                     {move || {
                         let query = filter_query.get().to_lowercase();
+                        // Drag-and-drop reorder for custom components
+                        use leptos::ev::DragEvent;
+                        let drag_index = create_rw_signal(None::<usize>);
+                        let drop_index = create_rw_signal(None::<usize>);
                         component_library.get()
                             .iter()
                             .enumerate()
@@ -266,8 +269,55 @@ pub fn sidebar(
                                         </li>
                                     }
                                 } else {
+                                    let drag_handle = if is_custom {
+                                        view! {
+                                            <span draggable="true"
+                                                style="cursor:grab;color:#888;padding:0 4px;"
+                                                on:dragstart=move |ev: DragEvent| {
+                                                    drag_index.set(Some(i));
+                                                    ev.data_transfer().unwrap().set_data("text/plain", &i.to_string()).unwrap();
+                                                }
+                                                on:dragover=move |ev: DragEvent| {
+                                                    ev.prevent_default();
+                                                    drop_index.set(Some(i));
+                                                }
+                                                on:drop=move |ev: DragEvent| {
+                                                    ev.prevent_default();
+                                                    let from = drag_index.get();
+                                                    let to = drop_index.get();
+                                                    if let (Some(from), Some(to)) = (from, to) {
+                                                        if from != to {
+                                                            // Reorder custom_components
+                                                            custom_components.update(|cc| {
+                                                                if from < cc.len() && to < cc.len() {
+                                                                    let item = cc.remove(from);
+                                                                    cc.insert(to, item);
+                                                                }
+                                                            });
+                                                            // Reorder in component_library
+                                                            component_library.update(|lib| {
+                                                                let custom: Vec<_> = lib.iter().filter(|c| c.kind == "Custom").cloned().collect();
+                                                                let mut builtins: Vec<_> = lib.iter().filter(|c| c.kind != "Custom").cloned().collect();
+                                                                let mut custom = custom;
+                                                                if from < custom.len() && to < custom.len() {
+                                                                    let item = custom.remove(from);
+                                                                    custom.insert(to, item);
+                                                                }
+                                                                // Gabungkan kembali: builtins + custom
+                                                                builtins.extend(custom);
+                                                                *lib = builtins;
+                                                            });
+                                                        }
+                                                    }
+                                                    drag_index.set(None);
+                                                    drop_index.set(None);
+                                                }
+                                            >{'\u{2630}'}</span>
+                                        }
+                                    } else { view! { <span></span> } };
                                     view! {
                                         <li style="display:flex;align-items:center;gap:8px;">
+                                            {drag_handle}
                                             <span>{format!("{}{}", c.name, if is_custom { " (Custom)" } else { "" })}</span>
                                             {is_custom.then(|| view! { <button style="color:orange;" on:click=move |_| start_edit_custom_component(i)>Edit</button> })}
                                             {is_custom.then(|| view! { <button style="color:red;" on:click=move |_| delete_custom_component(i)>Hapus</button> })}
