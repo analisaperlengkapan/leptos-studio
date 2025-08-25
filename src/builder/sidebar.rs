@@ -16,6 +16,8 @@ pub fn sidebar(
     notification: RwSignal<Option<String>>,
     component_library: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
+    // State untuk custom theme color
+    let custom_theme_color = create_rw_signal(String::from("#888"));
     // State untuk edit custom component
     let editing_idx = create_rw_signal(None::<usize>);
     let edit_name = create_rw_signal(String::new());
@@ -26,6 +28,11 @@ pub fn sidebar(
     let set_responsive = move |m: ResponsiveMode| responsive_mode.set(m);
     // Handler ganti theme
     let set_theme = move |t: Theme| theme.set(t);
+    // Handler ganti warna custom theme
+    let set_custom_theme_color = {
+        let custom_theme_color = custom_theme_color.clone();
+        move |color: String| custom_theme_color.set(color)
+    };
     // State untuk form tambah komponen
     let show_add_form = create_rw_signal(false);
     let new_name = create_rw_signal(String::new());
@@ -72,14 +79,28 @@ pub fn sidebar(
         new_template.set(String::new());
         error_msg.set(String::new());
         show_add_form.set(false);
+        notification.set(Some(format!("✅ Komponen '{}' berhasil ditambahkan!", name)));
+        // Clear notification after 2.5s
+        let notification = notification.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            gloo_timers::future::TimeoutFuture::new(2500).await;
+            notification.set(None);
+        });
     };
     // Handler hapus komponen custom
     let delete_custom_component = move |idx: usize| {
+        let name = custom_components.get().get(idx).map(|(n,_)| n.clone()).unwrap_or_default();
         custom_components.update(|cc| { cc.remove(idx); });
         component_library.update(|lib| {
-            if let Some(pos) = lib.iter().position(|c| c.kind == "Custom" && c.name == custom_components.get().get(idx).map(|(n,_)| n.clone()).unwrap_or_default()) {
+            if let Some(pos) = lib.iter().position(|c| c.kind == "Custom" && c.name == name) {
                 lib.remove(pos);
             }
+        });
+        notification.set(Some(format!("🗑️ Komponen '{}' dihapus.", name)));
+        let notification = notification.clone();
+        wasm_bindgen_futures::spawn_local(async move {
+            gloo_timers::future::TimeoutFuture::new(2000).await;
+            notification.set(None);
         });
     };
     // Handler mulai edit custom component
@@ -105,7 +126,7 @@ pub fn sidebar(
         let edit_template = edit_template.clone();
         let editing_idx = editing_idx.clone();
         let error_msg = error_msg.clone();
-        move |_| {
+    move |_| {
             let idx = match editing_idx.get() { Some(i) => i, None => return };
             let name = edit_name.get().trim().to_string();
             let template = edit_template.get().trim().to_string();
@@ -146,6 +167,12 @@ pub fn sidebar(
             });
             editing_idx.set(None);
             error_msg.set(String::new());
+            notification.set(Some(format!("✏️ Komponen '{}' berhasil diubah!", name)));
+            let notification = notification.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                gloo_timers::future::TimeoutFuture::new(2000).await;
+                notification.set(None);
+            });
         }
     };
     // Handler batal edit
@@ -153,12 +180,15 @@ pub fn sidebar(
         editing_idx.set(None);
         error_msg.set(String::new());
     };
+    let sidebar_bg = match theme.get() {
+        Theme::Light => "#fff".to_string(),
+        Theme::Dark => "#222".to_string(),
+        Theme::Custom => custom_theme_color.get(),
+    };
     view! {
-    <aside style=format!("background:{};padding:1rem;min-width:260px;", match theme.get() {
-            Theme::Light => "#fff",
-            Theme::Dark => "#222",
-            Theme::Custom => "#888",
-        })>
+    <aside style=format!("background:{};padding:1rem;min-width:260px;", sidebar_bg)>
+    // ...existing code...
+    // Pass custom_theme_color to canvas as a prop (update App and Canvas signatures as needed)
             <h2>Sidebar</h2>
             <div style="margin-bottom:8px;">
                 <b>Theme:</b> {format!("{:?}", theme.get())}
@@ -167,6 +197,14 @@ pub fn sidebar(
                     <button on:click=move |_| set_theme(Theme::Dark) disabled=theme.get() == Theme::Dark>Dark</button>
                     <button on:click=move |_| set_theme(Theme::Custom) disabled=theme.get() == Theme::Custom>Custom</button>
                 </div>
+                {move || if theme.get() == Theme::Custom {
+                    view! {
+                        <div style="margin-top:8px;">
+                            <label for="custom-theme-color"><b>Sidebar Color:</b></label>
+                            <input id="custom-theme-color" type="color" prop:value=custom_theme_color on:input=move |ev| set_custom_theme_color(event_target_value(&ev)) style="margin-left:8px;vertical-align:middle;" />
+                        </div>
+                    }
+                } else { view! { <div></div> } }}
             </div>
             <div style="margin-bottom:8px;">
                 <b>Responsive:</b> {format!("{:?}", responsive_mode.get())}
@@ -247,7 +285,7 @@ pub fn sidebar(
             <div><b>Components on Canvas:</b> {components.get().len()}</div>
             // Tombol export dinonaktifkan sementara, handler dihapus untuk refactor
             <button disabled>Export Project</button>
-            {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;">{msg}</div> })}
+            {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;font-weight:bold;margin-top:8px;">{msg}</div> })}
         </aside>
     }.into_view()
 }

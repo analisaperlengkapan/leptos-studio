@@ -28,6 +28,7 @@ pub fn canvas(
     redo_stack: RwSignal<Vec<Vec<CanvasComponent>>>,
     theme: RwSignal<Theme>,
     responsive_mode: RwSignal<ResponsiveMode>,
+    custom_theme_color: RwSignal<String>,
 ) -> impl IntoView {
     let on_drop = {
         let components = components.clone();
@@ -140,10 +141,11 @@ pub fn canvas(
         }
     }
 
+    let custom_color = custom_theme_color.get();
     let (bg, fg) = match theme.get() {
         Theme::Light => ("#fff", "#222"),
         Theme::Dark => ("#222", "#eee"),
-        Theme::Custom => ("#f5f5dc", "#1a237e"), // contoh warna custom, bisa diatur dari Sidebar nanti
+        Theme::Custom => (custom_color.as_str(), "#1a237e"),
     };
     // Responsive style
     let (width, scale) = match responsive_mode.get() {

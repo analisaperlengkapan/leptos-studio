@@ -18,6 +18,8 @@ pub fn App() -> impl IntoView {
     let notification = create_rw_signal(None::<String>);
     // State global theme (light/dark)
     let theme = create_rw_signal(Theme::Light);
+    // State custom theme color (sinkron dengan sidebar)
+    let custom_theme_color = create_rw_signal(String::from("#888"));
     // Debug log
     web_sys::console::log_1(&"🔥 Leptos Studio App component loaded".into());
     web_sys::console::log_1(&"🔥 Starting component initialization".into());
@@ -254,6 +256,7 @@ pub fn App() -> impl IntoView {
                         redo_stack,
                         theme,
                         responsive_mode,
+                        custom_theme_color,
                     })}
                 </div>
                 <div style="margin-top:1rem; padding:1rem; border: 2px solid pink; background: lightpink;">
