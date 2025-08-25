@@ -9,6 +9,8 @@
 - ♻️ **Hot reload custom component**: Edit template custom component, preview langsung update tanpa reload
 - 🧩 **Component library management**: Tambah/hapus custom component langsung dari sidebar
 - 🛡️ **Component props validation**: Form custom component memvalidasi nama (harus identifier Rust valid) & template (harus HTML snippet valid), error message tampil jika input tidak valid
+- 🗂️ **Version control (Git) UI**: Sidebar menampilkan status, commit, dan log Git secara langsung
+- 📤 **Flexible export**: Export desain ke format Leptos, HTML, Markdown, dan JSON
 ### 🔄 Roadmap Fitur
 
 ## 🛠 Instalasi dan Penggunaan
@@ -74,5 +76,5 @@ Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) unt
 ## 📊 Status
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)

@@ -1,4 +1,19 @@
 #
+## [0.2.2] - 2025-08-25
+
+### Added
+- 🗂️ **Version control (Git) UI**: Sidebar kini menampilkan panel Git (status, commit, log) terintegrasi langsung di aplikasi
+- 📤 **Flexible export**: Export hasil desain ke format HTML dan Markdown, selain Leptos/JSON
+
+### Changed
+- Sidebar refactor: integrasi GitPanel sebagai komponen Leptos terpisah
+- Export logic kini mendukung multi-format
+
+### Fixed
+- Build error akibat refactor sidebar & integrasi GitPanel
+- Bug pada validasi input commit message
+
+#
 ## [0.2.1] - 2025-08-25
 
 ### Added

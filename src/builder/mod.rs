@@ -1,3 +1,4 @@
+pub mod git_panel;
 pub mod component_library;
 pub mod preview;
 pub mod export;

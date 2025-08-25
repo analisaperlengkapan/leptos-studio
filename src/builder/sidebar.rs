@@ -1,3 +1,5 @@
+use crate::builder::git_panel::GitPanel;
+use leptos::*;
 use leptos::*;
 use super::component_library::{LibraryComponent, Theme, ResponsiveMode};
 // ...existing code...
@@ -196,19 +198,21 @@ pub fn sidebar(
     };
     view! {
     <aside style=format!("background:{};padding:1rem;min-width:260px;", sidebar_bg)>
-    // ...existing code...
-    // Pass custom_theme_color to canvas as a prop (update App and Canvas signatures as needed)
-            <h2>Sidebar</h2>
-            <div style="margin-bottom:8px;">
-                <b>Theme:</b> {format!("{:?}", theme.get())}
-                <div style="margin-top:4px;display:flex;gap:8px;">
-                    <button on:click=move |_| set_theme(Theme::Light) disabled=theme.get() == Theme::Light>Light</button>
-                    <button on:click=move |_| set_theme(Theme::Dark) disabled=theme.get() == Theme::Dark>Dark</button>
-                    <button on:click=move |_| set_theme(Theme::Custom) disabled=theme.get() == Theme::Custom>Custom</button>
-                </div>
-                {move || if theme.get() == Theme::Custom {
-                    view! {
-                        <div style="margin-top:8px;">
+        <div style="margin-bottom:16px;padding:8px;border:1px solid #bbb;background:#f9f9f9;">
+            <b>Version Control (Git)</b>
+            <GitPanel />
+        </div>
+        <h2>Sidebar</h2>
+        <div style="margin-bottom:8px;">
+            <b>Theme:</b> {format!("{:?}", theme.get())}
+            <div style="margin-top:4px;display:flex;gap:8px;">
+                <button on:click=move |_| set_theme(Theme::Light) disabled=theme.get() == Theme::Light>Light</button>
+                <button on:click=move |_| set_theme(Theme::Dark) disabled=theme.get() == Theme::Dark>Dark</button>
+                <button on:click=move |_| set_theme(Theme::Custom) disabled=theme.get() == Theme::Custom>Custom</button>
+            </div>
+            {move || if theme.get() == Theme::Custom {
+                view! {
+                    <div style="margin-top:8px;">
                             <label for="custom-theme-color"><b>Sidebar Color:</b></label>
                             <input id="custom-theme-color" type="color" prop:value=custom_theme_color on:input=move |ev| set_custom_theme_color(event_target_value(&ev)) style="margin-left:8px;vertical-align:middle;" />
                         </div>
