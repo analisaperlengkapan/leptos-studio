@@ -7,6 +7,11 @@ pub mod sidebar;
 pub mod property_editor;
 pub mod snackbar;
 pub mod project;
+pub mod keyboard;
+pub mod command_palette;
+pub mod breadcrumb;
+pub mod drag_drop;
+pub mod design_tokens;
 
 // Re-export components for easier imports
 pub use property_editor::PropertyEditor;

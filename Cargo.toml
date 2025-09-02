@@ -1,25 +1,38 @@
 
 [package]
 name = "leptos_studio"
-version = "0.1.0"
+version = "0.2.3"
 edition = "2021"
+description = "Visual UI builder for Leptos framework"
+license = "MIT"
+repository = "https://gitlab.com/analisiskebutuhan/leptos-studio"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = "0.6"
-leptos_router = "0.6"
+leptos = { version = "0.6", features = ["csr"] }
+leptos_router = { version = "0.6", features = ["csr"] }
 leptos_dom = "0.6"
-web-sys = { version = "0.3", features = ["DragEvent", "DataTransfer", "Window", "Storage", "console", "HtmlInputElement", "FileList", "File", "Clipboard", "Navigator"] }
+web-sys = { version = "0.3", features = [
+    "DragEvent", "DataTransfer", "Window", "Storage", "console", 
+    "HtmlInputElement", "FileList", "File", "Clipboard", "Navigator",
+    "Element", "HtmlElement", "Event", "EventTarget"
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 console_error_panic_hook = "0.1"
-js-sys = "0.3.77"
-wasm-bindgen = "0.2.100"
-gloo-timers = { version = "0.3.0", features = ["futures"] }
-wasm-bindgen-futures = "0.4.50"
-gloo-net = "0.6.0"
+js-sys = "0.3"
+wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
+gloo-timers = { version = "0.3", features = ["futures"] }
+wasm-bindgen-futures = "0.4"
+gloo-net = "0.6"
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
 
 [workspace]
-# (tidak ada members, single crate)
+# Single crate workspace
 
 [workspace.metadata.dylint]
 libraries = [{ git = "https://github.com/leptos-rs/leptos-lints", tag = "v0.1.0" }]
@@ -27,3 +40,13 @@ libraries = [{ git = "https://github.com/leptos-rs/leptos-lints", tag = "v0.1.0"
 [profile.release]
 lto = true
 codegen-units = 1
+panic = "abort"
+opt-level = "s"
+
+[profile.dev]
+debug = true
+opt-level = 0
+
+# WASM-specific optimizations
+[profile.release.package."*"]
+opt-level = "s"

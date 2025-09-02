@@ -1,8 +1,8 @@
-    use leptos_studio::builder::component_library::PropSchema;
-use leptos_studio::builder::export::ExportPreset;
+use leptos_studio::builder::component_library::{LibraryComponent, PropSchema};
+use leptos_studio::builder::canvas::CanvasComponent;
+use leptos_studio::builder::export::{ExportPreset, generate_leptos_code};
 #[test]
 fn test_library_component_props_schema_mixed_required_and_desc() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let comp = LibraryComponent {
         name: "MixedProps".to_string(),
         kind: "Input".to_string(),
@@ -34,8 +34,6 @@ fn test_export_input_placeholder_long_unicode() {
 
 #[test]
 fn test_library_component_serialization_roundtrip() {
-    use leptos_studio::builder::component_library::LibraryComponent;
-    use serde_json;
     let original = LibraryComponent {
         name: "SerTest".to_string(),
         kind: "Custom".to_string(),
@@ -52,7 +50,6 @@ fn test_library_component_serialization_roundtrip() {
 }
 #[test]
 fn test_library_component_props_schema_required_and_desc_some() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let comp = LibraryComponent {
         name: "ReqDescSome".to_string(),
         kind: "Input".to_string(),
@@ -83,7 +80,6 @@ fn test_export_input_placeholder_empty_and_whitespace_special() {
 }
 #[test]
 fn test_library_component_props_schema_required_and_desc_none() {
-    use leptos_studio::builder::component_library::{LibraryComponent, PropSchema};
     let comp = LibraryComponent {
         name: "ReqDescNone".to_string(),
         kind: "Input".to_string(),
@@ -110,7 +106,6 @@ fn test_export_input_placeholder_unicode_and_emoji() {
 }
 #[test]
 fn test_export_custom_component_unicode_name() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![CanvasComponent::Custom { name: "コンポーネント🌟".to_string() }];
     let custom_components = vec![
         LibraryComponent {
@@ -149,7 +144,6 @@ fn test_export_container_many_children() {
 
 #[test]
 fn test_library_component_props_schema_types() {
-    use leptos_studio::builder::component_library::{LibraryComponent, PropSchema};
     let comp = LibraryComponent {
         name: "TypedProps".to_string(),
         kind: "Input".to_string(),
@@ -168,7 +162,6 @@ fn test_library_component_props_schema_types() {
 }
 #[test]
 fn test_export_custom_component_empty_props_schema_vec() {
-    use leptos_studio::builder::component_library::{LibraryComponent, PropSchema};
     let layout = vec![CanvasComponent::Custom { name: "EmptyProps".to_string() }];
     let custom_components = vec![
         LibraryComponent {
@@ -194,7 +187,6 @@ fn test_export_input_placeholder_whitespace() {
 
 #[test]
 fn test_export_deeply_nested_container_and_custom() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let mut comp = CanvasComponent::Custom { name: "DeepCustom".to_string() };
     for _ in 0..5 {
         comp = CanvasComponent::Container { children: vec![comp] };
@@ -217,7 +209,6 @@ fn test_export_deeply_nested_container_and_custom() {
 
 #[test]
 fn test_library_component_description_none() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let comp = LibraryComponent {
         name: "NoDesc".to_string(),
         kind: "Button".to_string(),
@@ -230,7 +221,6 @@ fn test_library_component_description_none() {
 }
 #[test]
 fn test_export_custom_component_no_props_schema() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![CanvasComponent::Custom { name: "NoProps".to_string() }];
     let custom_components = vec![
         LibraryComponent {
@@ -284,7 +274,6 @@ fn test_canvas_component_container_with_mixed_children() {
 
 #[test]
 fn test_export_custom_component_with_description() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![CanvasComponent::Custom { name: "DescComp".to_string() }];
     let custom_components = vec![
         LibraryComponent {
@@ -321,7 +310,6 @@ fn test_export_deeply_nested_10_levels() {
 
 #[test]
 fn test_export_custom_component_invalid_template() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![CanvasComponent::Custom { name: "Invalid".to_string() }];
     let custom_components = vec![
         LibraryComponent {
@@ -365,8 +353,6 @@ fn test_canvas_component_custom_empty_name() {
     }
 }
 // Integration test: Simulate layout changes and export
-use leptos_studio::builder::canvas::CanvasComponent;
-use leptos_studio::builder::export::generate_leptos_code;
 
 #[test]
 fn test_export_code_generation() {
@@ -398,7 +384,6 @@ pub fn GeneratedView() -> impl IntoView {
 
 #[test]
 fn test_export_with_custom_component() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Custom { name: "MyCustom".to_string() },
     ];
@@ -487,7 +472,6 @@ fn test_export_input_empty_placeholder() {
 
 #[test]
 fn test_export_custom_component_empty_template() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Custom { name: "EmptyCustom".to_string() },
     ];
@@ -509,7 +493,6 @@ fn test_export_custom_component_empty_template() {
 
 #[test]
 fn test_export_custom_component_null_template() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Custom { name: "NullCustom".to_string() },
     ];
@@ -530,7 +513,6 @@ fn test_export_custom_component_null_template() {
 
 #[test]
 fn test_export_nested_custom_and_basic() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Container { children: vec![
             CanvasComponent::Custom { name: "C1".to_string() },
@@ -579,7 +561,6 @@ fn test_export_label_with_whitespace() {
 
 #[test]
 fn test_export_custom_component_special_chars() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Custom { name: "C$#@!".to_string() },
     ];
@@ -611,7 +592,6 @@ fn test_export_repeated_components() {
 
 #[test]
 fn test_export_custom_multiline_template() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Custom { name: "Multi".to_string() },
     ];
@@ -642,7 +622,6 @@ fn test_export_input_special_chars() {
 
 #[test]
 fn test_export_nested_custom_container_input() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Container { children: vec![
             CanvasComponent::Custom { name: "C2".to_string() },
@@ -679,7 +658,6 @@ fn test_export_large_layout_stress() {
 
 #[test]
 fn test_export_custom_unicode_template() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Custom { name: "Uni".to_string() },
     ];
@@ -708,7 +686,6 @@ fn test_export_input_with_emoji() {
 
 #[test]
 fn test_export_deeply_nested_custom_and_basic() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let layout = vec![
         CanvasComponent::Container { children: vec![
             CanvasComponent::Custom { name: "DeepC".to_string() },
@@ -737,7 +714,6 @@ fn test_export_deeply_nested_custom_and_basic() {
 
 #[test]
 fn test_canvas_component_serialization_roundtrip() {
-    use serde_json;
     let original = CanvasComponent::Container { children: vec![
         CanvasComponent::Button { label: "A".to_string() },
         CanvasComponent::Input { placeholder: "B".to_string() },
@@ -771,7 +747,6 @@ fn test_undo_redo_stack_behavior() {
 
 #[test]
 fn test_library_component_props_schema() {
-    use leptos_studio::builder::component_library::{LibraryComponent, PropSchema};
     let comp = LibraryComponent {
         name: "TestInput".to_string(),
         kind: "Input".to_string(),
@@ -789,7 +764,6 @@ fn test_library_component_props_schema() {
 
 #[test]
 fn test_library_component_default_basic() {
-    use leptos_studio::builder::component_library::LibraryComponent;
     let btn = LibraryComponent {
         name: "Button".to_string(),
         kind: "Button".to_string(),
@@ -815,7 +789,6 @@ fn test_canvas_component_equality() {
 
 #[test]
 fn test_canvas_component_deserialize_invalid_json() {
-    use serde_json;
     let bad_json = "{\"Button\":{\"label\":123}}";
     let result: Result<CanvasComponent, _> = serde_json::from_str(bad_json);
     assert!(result.is_err(), "Should error on invalid label type");
