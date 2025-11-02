@@ -194,9 +194,72 @@ pub fn App() -> impl IntoView {
                         selected.set(SelectedComponent { idx: Some(count - 1) });
                     }
                 }
-                KeyboardAction::Copy | KeyboardAction::Paste | KeyboardAction::NewComponent | KeyboardAction::Duplicate => {
-                    // TODO: Implement these actions
-                    notification.set(Some(format!("Action {:?} not implemented yet", action)));
+                KeyboardAction::Copy => {
+                    if let Some(idx) = selected.get().idx {
+                        let comps = components.get();
+                        if let Some(comp) = comps.get(idx) {
+                            // Store in browser clipboard using web-sys
+                            if let Ok(json) = serde_json::to_string(comp) {
+                                if let Some(window) = web_sys::window() {
+                                    let clipboard = window.navigator().clipboard();
+                                    let promise = clipboard.write_text(&json);
+                                    wasm_bindgen_futures::spawn_local(async move {
+                                        let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+                                    });
+                                    notification.set(Some("✂️ Komponen disalin ke clipboard!".to_string()));
+                                } else {
+                                    notification.set(Some("⚠️ Window tidak tersedia.".to_string()));
+                                }
+                            } else {
+                                notification.set(Some("⚠️ Gagal serialisasi komponen.".to_string()));
+                            }
+                        }
+                    } else {
+                        notification.set(Some("⚠️ Tidak ada komponen yang dipilih.".to_string()));
+                    }
+                }
+                KeyboardAction::Paste => {
+                    if let Some(window) = web_sys::window() {
+                        let clipboard = window.navigator().clipboard();
+                        let promise = clipboard.read_text();
+                        let components = components;
+                        let undo_stack = undo_stack;
+                        let redo_stack = redo_stack;
+                        let notification = notification;
+                        wasm_bindgen_futures::spawn_local(async move {
+                            if let Ok(result) = wasm_bindgen_futures::JsFuture::from(promise).await {
+                                if let Some(text) = result.as_string() {
+                                    if let Ok(comp) = serde_json::from_str::<CanvasComponent>(&text) {
+                                        // Push current state to undo stack
+                                        undo_stack.update(|stack| stack.push(components.get()));
+                                        redo_stack.set(Vec::new());
+                                        components.update(|c| c.push(comp));
+                                        notification.set(Some("📋 Komponen berhasil di-paste!".to_string()));
+                                    } else {
+                                        notification.set(Some("⚠️ Clipboard tidak berisi komponen valid.".to_string()));
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+                KeyboardAction::Duplicate => {
+                    if let Some(idx) = selected.get().idx {
+                        let comps = components.get();
+                        if let Some(comp) = comps.get(idx).cloned() {
+                            // Push current state to undo stack
+                            undo_stack.update(|stack| stack.push(components.get()));
+                            redo_stack.set(Vec::new());
+                            components.update(|c| c.push(comp));
+                            notification.set(Some("🔄 Komponen berhasil diduplikasi!".to_string()));
+                        }
+                    } else {
+                        notification.set(Some("⚠️ Tidak ada komponen yang dipilih.".to_string()));
+                    }
+                }
+                KeyboardAction::NewComponent => {
+                    // Open command palette or show notification
+                    notification.set(Some("ℹ️ Drag komponen dari sidebar untuk menambahkan.".to_string()));
                 }
             }
         }
@@ -305,6 +368,7 @@ pub fn App() -> impl IntoView {
                     is_open=show_command_palette.read_only()
                     close=show_command_palette.write_only()
                     search=command_search
+                    on_action=keyboard_action_handler.clone()
                 />
                 
                 <header style="

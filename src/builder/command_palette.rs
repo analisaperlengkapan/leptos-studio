@@ -1,6 +1,12 @@
+//! Command Palette Component
+//! 
+//! VS Code-style command palette for quick access to all application commands.
+//! Features fuzzy search, keyboard navigation, and command execution.
+
 use leptos::*;
 use crate::builder::keyboard::KeyboardAction;
 
+/// Represents a single command in the command palette
 #[derive(Clone, Debug, PartialEq)]
 pub struct Command {
     pub id: String,
@@ -10,6 +16,13 @@ pub struct Command {
 }
 
 impl Command {
+    /// Create a new command
+    /// 
+    /// # Arguments
+    /// * `id` - Unique identifier for the command
+    /// * `title` - Display title shown in palette
+    /// * `category` - Category for grouping (e.g., "Edit", "File")
+    /// * `action` - The keyboard action to execute
     pub fn new(id: &str, title: &str, category: &str, action: KeyboardAction) -> Self {
         Self {
             id: id.to_string(),
@@ -20,6 +33,17 @@ impl Command {
     }
 }
 
+/// Fuzzy match algorithm for searching commands
+/// 
+/// Returns a score if the pattern matches the text, with higher scores
+/// for consecutive character matches.
+/// 
+/// # Arguments
+/// * `text` - The text to search in
+/// * `pattern` - The search pattern
+/// 
+/// # Returns
+/// * `Some(score)` if pattern matches, `None` otherwise
 fn fuzzy_match(text: &str, pattern: &str) -> Option<i32> {
     let text_chars: Vec<char> = text.chars().collect();
     let pattern_chars: Vec<char> = pattern.chars().collect();
@@ -45,11 +69,14 @@ fn fuzzy_match(text: &str, pattern: &str) -> Option<i32> {
     None
 }
 
+/// Get all available commands
+/// 
+/// Returns the complete list of commands available in the command palette,
+/// organized by category (Edit, File, Components, Selection).
 fn get_commands() -> Vec<Command> {
     vec![
         // Edit commands
         Command::new("undo", "Undo", "Edit", KeyboardAction::Undo),
-        // FIXME: Add other KeyboardAction variants as needed
         Command::new("redo", "Redo", "Edit", KeyboardAction::Redo),
         // Delete
         Command::new("delete", "Delete Selected", "Edit", KeyboardAction::Delete),
@@ -70,17 +97,37 @@ fn get_commands() -> Vec<Command> {
     ]
 }
 
-fn execute_command(action: KeyboardAction) {
-    // TODO: Implement actual command execution
-    leptos::logging::log!("Executing command: {:?}", action);
-}
-
+/// VS Code-style Command Palette Component
+/// 
+/// A modal overlay that provides quick access to all application commands
+/// through fuzzy search and keyboard navigation.
+/// 
+/// # Features
+/// * Fuzzy search across command titles and categories
+/// * Keyboard navigation (Arrow Up/Down, Enter, Escape)
+/// * Mouse hover selection
+/// * Command execution through callback
+/// 
+/// # Keyboard Shortcuts
+/// * `↑/↓` - Navigate commands
+/// * `Enter` - Execute selected command
+/// * `Escape` - Close palette
+/// 
+/// # Props
+/// * `is_open` - Read signal controlling visibility
+/// * `close` - Write signal to close the palette
+/// * `search` - RwSignal for search input
+/// * `on_action` - Callback executed when a command is selected
 #[component]
-pub fn CommandPalette(
+pub fn CommandPalette<F>(
     is_open: ReadSignal<bool>,
     close: WriteSignal<bool>,
     #[prop(into)] search: RwSignal<String>,
-) -> impl IntoView {
+    on_action: F,
+) -> impl IntoView 
+where
+    F: Fn(KeyboardAction) + 'static + Clone,
+{
     let (filtered_commands, set_filtered_commands) = create_signal(get_commands());
     let (selected_index, set_selected_index) = create_signal(0);
 
@@ -107,39 +154,8 @@ pub fn CommandPalette(
         set_selected_index.set(0);
     });
 
-    // Handle keyboard navigation
-    let handle_keydown = move |ev: web_sys::KeyboardEvent| {
-        let key = ev.key();
-        match key.as_str() {
-            "ArrowUp" => {
-                ev.prevent_default();
-                set_selected_index.update(|idx| {
-                    let len = filtered_commands.get().len();
-                    *idx = if *idx > 0 { *idx - 1 } else { len.saturating_sub(1) };
-                });
-            }
-            "ArrowDown" => {
-                ev.prevent_default();
-                set_selected_index.update(|idx| {
-                    let len = filtered_commands.get().len();
-                    *idx = (*idx + 1) % len;
-                });
-            }
-            "Enter" => {
-                ev.prevent_default();
-                let commands = filtered_commands.get();
-                if let Some(command) = commands.get(selected_index.get()) {
-                    execute_command(command.action.clone());
-                    close.set(false);
-                }
-            }
-            "Escape" => {
-                ev.prevent_default();
-                close.set(false);
-            }
-            _ => {}
-        }
-    };
+    // Handle keyboard navigation with stored action
+    let stored_on_action = store_value(on_action);
 
     view! {
         <Show when=move || is_open.get()>
@@ -174,7 +190,38 @@ pub fn CommandPalette(
                         flex-direction: column;
                     "
                     on:click=move |ev| ev.stop_propagation()
-                    on:keydown=handle_keydown
+                    on:keydown=move |ev: web_sys::KeyboardEvent| {
+                        let key = ev.key();
+                        match key.as_str() {
+                            "ArrowUp" => {
+                                ev.prevent_default();
+                                set_selected_index.update(|idx| {
+                                    let len = filtered_commands.get().len();
+                                    *idx = if *idx > 0 { *idx - 1 } else { len.saturating_sub(1) };
+                                });
+                            }
+                            "ArrowDown" => {
+                                ev.prevent_default();
+                                set_selected_index.update(|idx| {
+                                    let len = filtered_commands.get().len();
+                                    *idx = (*idx + 1) % len;
+                                });
+                            }
+                            "Enter" => {
+                                ev.prevent_default();
+                                let commands = filtered_commands.get();
+                                if let Some(command) = commands.get(selected_index.get()) {
+                                    stored_on_action.with_value(|action| action(command.action.clone()));
+                                    close.set(false);
+                                }
+                            }
+                            "Escape" => {
+                                ev.prevent_default();
+                                close.set(false);
+                            }
+                            _ => {}
+                        }
+                    }
                 >
                     <div class="command-palette-search" style="
                         padding: 16px;
@@ -233,7 +280,7 @@ pub fn CommandPalette(
                                         on:click={
                                             let command = command_clone.clone();
                                             move |_| {
-                                                execute_command(command.action.clone());
+                                                stored_on_action.with_value(|action| action(command.action.clone()));
                                                 close.set(false);
                                             }
                                         }
