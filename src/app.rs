@@ -368,7 +368,7 @@ pub fn App() -> impl IntoView {
                     is_open=show_command_palette.read_only()
                     close=show_command_palette.write_only()
                     search=command_search
-                    on_action=keyboard_action_handler.clone()
+                    on_action=keyboard_action_handler
                 />
                 
                 <header style="

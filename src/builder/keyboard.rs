@@ -1,7 +1,19 @@
+//! Keyboard Shortcut System
+//!
+//! Provides a comprehensive keyboard shortcut system with platform-aware
+//! modifier keys (Cmd on Mac, Ctrl on Windows/Linux) and action dispatch.
+//!
+//! # Features
+//! * Platform-aware keyboard shortcuts
+//! * Prevents conflicts with input fields
+//! * Configurable shortcut definitions
+//! * Action-based dispatch system
+
 use leptos::*;
 use leptos::ev::KeyboardEvent;
 use web_sys::wasm_bindgen::JsCast;
 
+/// Actions that can be triggered by keyboard shortcuts
 #[derive(Clone, Debug, PartialEq)]
 pub enum KeyboardAction {
     Undo,
@@ -18,6 +30,7 @@ pub enum KeyboardAction {
     Duplicate,
 }
 
+/// Defines a keyboard shortcut with modifiers and action
 #[derive(Clone, Debug)]
 pub struct KeyboardShortcut {
     pub key: String,
@@ -30,6 +43,16 @@ pub struct KeyboardShortcut {
 }
 
 impl KeyboardShortcut {
+    /// Create a new keyboard shortcut
+    ///
+    /// # Arguments
+    /// * `key` - The key code (e.g., "z", "Delete")
+    /// * `ctrl` - Whether Ctrl key is required
+    /// * `shift` - Whether Shift key is required
+    /// * `alt` - Whether Alt key is required
+    /// * `meta` - Whether Meta/Cmd key is required
+    /// * `action` - The action to trigger
+    /// * `description` - Human-readable description
     pub fn new(key: &str, ctrl: bool, shift: bool, alt: bool, meta: bool, action: KeyboardAction, description: &str) -> Self {
         Self {
             key: key.to_string(),
@@ -42,6 +65,10 @@ impl KeyboardShortcut {
         }
     }
 
+    /// Check if a keyboard event matches this shortcut
+    ///
+    /// Compares both key and modifiers to determine if the event
+    /// should trigger this shortcut's action.
     pub fn matches(&self, event: &KeyboardEvent) -> bool {
         let key_match = self.key.to_lowercase() == event.key().to_lowercase() || 
                        self.key.to_lowercase() == event.code().to_lowercase();
@@ -53,6 +80,9 @@ impl KeyboardShortcut {
         self.meta == event.meta_key()
     }
 
+    /// Get a human-readable display string for the shortcut
+    ///
+    /// Returns a string like "⌘ + Z" or "Ctrl + Shift + A"
     pub fn display_string(&self) -> String {
         let mut parts = Vec::new();
         
@@ -75,6 +105,24 @@ impl KeyboardShortcut {
     }
 }
 
+/// Get the default set of keyboard shortcuts
+///
+/// Returns a comprehensive list of all keyboard shortcuts used by the application,
+/// including editing, navigation, file operations, and component management.
+///
+/// # Default Shortcuts
+/// * **Ctrl+Z**: Undo
+/// * **Ctrl+Y / Ctrl+Shift+Z**: Redo
+/// * **Delete / Backspace**: Delete selected
+/// * **Ctrl+C**: Copy
+/// * **Ctrl+V**: Paste
+/// * **Ctrl+D**: Duplicate
+/// * **Ctrl+A**: Select all
+/// * **Escape**: Deselect
+/// * **Ctrl+K**: Open command palette
+/// * **Ctrl+S**: Save
+/// * **Ctrl+E**: Export
+/// * **Ctrl+N**: New component
 pub fn get_default_shortcuts() -> Vec<KeyboardShortcut> {
     vec![
         KeyboardShortcut::new("z", true, false, false, false, KeyboardAction::Undo, "Undo last action"),
@@ -94,6 +142,34 @@ pub fn get_default_shortcuts() -> Vec<KeyboardShortcut> {
     ]
 }
 
+/// Global Keyboard Handler Component
+///
+/// Listens for keyboard events globally and dispatches actions when shortcuts match.
+/// Automatically ignores events from input fields to prevent conflicts.
+///
+/// # Features
+/// * Global keyboard event listening
+/// * Smart input field detection
+/// * Prevents default browser behavior for handled shortcuts
+/// * Event propagation control
+///
+/// # Props
+/// * `shortcuts` - List of keyboard shortcuts to handle
+/// * `on_action` - Callback invoked when a shortcut is triggered
+///
+/// # Example
+/// ```rust,ignore
+/// <KeyboardHandler 
+///     shortcuts=get_default_shortcuts()
+///     on_action=move |action| {
+///         match action {
+///             KeyboardAction::Undo => // handle undo
+///             KeyboardAction::Redo => // handle redo
+///             // ...
+///         }
+///     }
+/// />
+/// ```
 #[component]
 pub fn KeyboardHandler<F>(
     shortcuts: Vec<KeyboardShortcut>,
