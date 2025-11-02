@@ -1,7 +1,19 @@
-use leptos::*;
+//! Keyboard Shortcut System
+//!
+//! Provides a comprehensive keyboard shortcut system with platform-aware
+//! modifier keys (Cmd on Mac, Ctrl on Windows/Linux) and action dispatch.
+//!
+//! # Features
+//! * Platform-aware keyboard shortcuts
+//! * Prevents conflicts with input fields
+//! * Configurable shortcut definitions
+//! * Action-based dispatch system
+
 use leptos::ev::KeyboardEvent;
+use leptos::*;
 use web_sys::wasm_bindgen::JsCast;
 
+/// Actions that can be triggered by keyboard shortcuts
 #[derive(Clone, Debug, PartialEq)]
 pub enum KeyboardAction {
     Undo,
@@ -18,6 +30,7 @@ pub enum KeyboardAction {
     Duplicate,
 }
 
+/// Defines a keyboard shortcut with modifiers and action
 #[derive(Clone, Debug)]
 pub struct KeyboardShortcut {
     pub key: String,
@@ -30,7 +43,25 @@ pub struct KeyboardShortcut {
 }
 
 impl KeyboardShortcut {
-    pub fn new(key: &str, ctrl: bool, shift: bool, alt: bool, meta: bool, action: KeyboardAction, description: &str) -> Self {
+    /// Create a new keyboard shortcut
+    ///
+    /// # Arguments
+    /// * `key` - The key code (e.g., "z", "Delete")
+    /// * `ctrl` - Whether Ctrl key is required
+    /// * `shift` - Whether Shift key is required
+    /// * `alt` - Whether Alt key is required
+    /// * `meta` - Whether Meta/Cmd key is required
+    /// * `action` - The action to trigger
+    /// * `description` - Human-readable description
+    pub fn new(
+        key: &str,
+        ctrl: bool,
+        shift: bool,
+        alt: bool,
+        meta: bool,
+        action: KeyboardAction,
+        description: &str,
+    ) -> Self {
         Self {
             key: key.to_string(),
             ctrl,
@@ -42,20 +73,27 @@ impl KeyboardShortcut {
         }
     }
 
+    /// Check if a keyboard event matches this shortcut
+    ///
+    /// Compares both key and modifiers to determine if the event
+    /// should trigger this shortcut's action.
     pub fn matches(&self, event: &KeyboardEvent) -> bool {
-        let key_match = self.key.to_lowercase() == event.key().to_lowercase() || 
-                       self.key.to_lowercase() == event.code().to_lowercase();
-        
-        key_match && 
-        self.ctrl == event.ctrl_key() &&
-        self.shift == event.shift_key() &&
-        self.alt == event.alt_key() &&
-        self.meta == event.meta_key()
+        let key_match = self.key.to_lowercase() == event.key().to_lowercase()
+            || self.key.to_lowercase() == event.code().to_lowercase();
+
+        key_match
+            && self.ctrl == event.ctrl_key()
+            && self.shift == event.shift_key()
+            && self.alt == event.alt_key()
+            && self.meta == event.meta_key()
     }
 
+    /// Get a human-readable display string for the shortcut
+    ///
+    /// Returns a string like "⌘ + Z" or "Ctrl + Shift + A"
     pub fn display_string(&self) -> String {
         let mut parts = Vec::new();
-        
+
         if self.meta {
             parts.push("⌘".to_string());
         }
@@ -68,38 +106,193 @@ impl KeyboardShortcut {
         if self.alt {
             parts.push("Alt".to_string());
         }
-        
+
         let key_upper = self.key.to_uppercase();
         parts.push(key_upper);
         parts.join(" + ")
     }
 }
 
+/// Get the default set of keyboard shortcuts
+///
+/// Returns a comprehensive list of all keyboard shortcuts used by the application,
+/// including editing, navigation, file operations, and component management.
+///
+/// # Default Shortcuts
+/// * **Ctrl+Z**: Undo
+/// * **Ctrl+Y / Ctrl+Shift+Z**: Redo
+/// * **Delete / Backspace**: Delete selected
+/// * **Ctrl+C**: Copy
+/// * **Ctrl+V**: Paste
+/// * **Ctrl+D**: Duplicate
+/// * **Ctrl+A**: Select all
+/// * **Escape**: Deselect
+/// * **Ctrl+K**: Open command palette
+/// * **Ctrl+S**: Save
+/// * **Ctrl+E**: Export
+/// * **Ctrl+N**: New component
 pub fn get_default_shortcuts() -> Vec<KeyboardShortcut> {
     vec![
-        KeyboardShortcut::new("z", true, false, false, false, KeyboardAction::Undo, "Undo last action"),
-        KeyboardShortcut::new("z", true, true, false, false, KeyboardAction::Redo, "Redo last action"),
-        KeyboardShortcut::new("y", true, false, false, false, KeyboardAction::Redo, "Redo last action"),
-        KeyboardShortcut::new("Delete", false, false, false, false, KeyboardAction::Delete, "Delete selected component"),
-        KeyboardShortcut::new("Backspace", false, false, false, false, KeyboardAction::Delete, "Delete selected component"),
-        KeyboardShortcut::new("c", true, false, false, false, KeyboardAction::Copy, "Copy selected component"),
-        KeyboardShortcut::new("v", true, false, false, false, KeyboardAction::Paste, "Paste component"),
-        KeyboardShortcut::new("a", true, false, false, false, KeyboardAction::SelectAll, "Select all components"),
-        KeyboardShortcut::new("Escape", false, false, false, false, KeyboardAction::Deselect, "Deselect all"),
-        KeyboardShortcut::new("k", true, false, false, false, KeyboardAction::OpenCommandPalette, "Open command palette"),
-        KeyboardShortcut::new("s", true, false, false, false, KeyboardAction::Save, "Save project"),
-        KeyboardShortcut::new("e", true, false, false, false, KeyboardAction::Export, "Export code"),
-        KeyboardShortcut::new("n", true, false, false, false, KeyboardAction::NewComponent, "New component"),
-        KeyboardShortcut::new("d", true, false, false, false, KeyboardAction::Duplicate, "Duplicate selected"),
+        KeyboardShortcut::new(
+            "z",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Undo,
+            "Undo last action",
+        ),
+        KeyboardShortcut::new(
+            "z",
+            true,
+            true,
+            false,
+            false,
+            KeyboardAction::Redo,
+            "Redo last action",
+        ),
+        KeyboardShortcut::new(
+            "y",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Redo,
+            "Redo last action",
+        ),
+        KeyboardShortcut::new(
+            "Delete",
+            false,
+            false,
+            false,
+            false,
+            KeyboardAction::Delete,
+            "Delete selected component",
+        ),
+        KeyboardShortcut::new(
+            "Backspace",
+            false,
+            false,
+            false,
+            false,
+            KeyboardAction::Delete,
+            "Delete selected component",
+        ),
+        KeyboardShortcut::new(
+            "c",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Copy,
+            "Copy selected component",
+        ),
+        KeyboardShortcut::new(
+            "v",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Paste,
+            "Paste component",
+        ),
+        KeyboardShortcut::new(
+            "a",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::SelectAll,
+            "Select all components",
+        ),
+        KeyboardShortcut::new(
+            "Escape",
+            false,
+            false,
+            false,
+            false,
+            KeyboardAction::Deselect,
+            "Deselect all",
+        ),
+        KeyboardShortcut::new(
+            "k",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::OpenCommandPalette,
+            "Open command palette",
+        ),
+        KeyboardShortcut::new(
+            "s",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Save,
+            "Save project",
+        ),
+        KeyboardShortcut::new(
+            "e",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Export,
+            "Export code",
+        ),
+        KeyboardShortcut::new(
+            "n",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::NewComponent,
+            "New component",
+        ),
+        KeyboardShortcut::new(
+            "d",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Duplicate,
+            "Duplicate selected",
+        ),
     ]
 }
 
+/// Global Keyboard Handler Component
+///
+/// Listens for keyboard events globally and dispatches actions when shortcuts match.
+/// Automatically ignores events from input fields to prevent conflicts.
+///
+/// # Features
+/// * Global keyboard event listening
+/// * Smart input field detection
+/// * Prevents default browser behavior for handled shortcuts
+/// * Event propagation control
+///
+/// # Props
+/// * `shortcuts` - List of keyboard shortcuts to handle
+/// * `on_action` - Callback invoked when a shortcut is triggered
+///
+/// # Example
+/// ```rust,ignore
+/// <KeyboardHandler
+///     shortcuts=get_default_shortcuts()
+///     on_action=move |action| {
+///         match action {
+///             KeyboardAction::Undo => // handle undo
+///             KeyboardAction::Redo => // handle redo
+///             // ...
+///         }
+///     }
+/// />
+/// ```
 #[component]
-pub fn KeyboardHandler<F>(
-    shortcuts: Vec<KeyboardShortcut>,
-    on_action: F,
-) -> impl IntoView 
-where 
+pub fn KeyboardHandler<F>(shortcuts: Vec<KeyboardShortcut>, on_action: F) -> impl IntoView
+where
     F: Fn(KeyboardAction) + 'static + Clone,
 {
     let on_keydown = {
@@ -131,7 +324,7 @@ where
     };
 
     view! {
-        <div 
+        <div
             style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1;"
             on:keydown=on_keydown
             tabindex="-1"

@@ -4,7 +4,7 @@ use wasm_bindgen::JsCast;
 #[derive(Clone, Debug, PartialEq)]
 pub enum DragState {
     NotDragging,
-    Dragging { 
+    Dragging {
         component_type: String,
         ghost_x: f64,
         ghost_y: f64,
@@ -18,12 +18,10 @@ pub enum DragState {
 }
 
 #[component]
-pub fn DragPreview(
-    drag_state: RwSignal<DragState>,
-) -> impl IntoView {
+pub fn DragPreview(drag_state: RwSignal<DragState>) -> impl IntoView {
     view! {
         <Show when=move || !matches!(drag_state.get(), DragState::NotDragging)>
-            <div 
+            <div
                 class="drag-ghost"
                 style=move || {
                     match drag_state.get() {
@@ -90,18 +88,22 @@ pub fn create_drag_handlers(
     component_type: String,
     drag_state: RwSignal<DragState>,
     config: DragDropConfig,
-) -> (impl Fn(leptos::ev::DragEvent), impl Fn(leptos::ev::DragEvent), impl Fn(leptos::ev::DragEvent)) {
+) -> (
+    impl Fn(leptos::ev::DragEvent),
+    impl Fn(leptos::ev::DragEvent),
+    impl Fn(leptos::ev::DragEvent),
+) {
     let component_type_start = component_type.clone();
     let component_type_drag = component_type.clone();
     let _component_type_end = component_type.clone();
 
     let on_drag_start = move |ev: leptos::ev::DragEvent| {
         let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
-        
+
         if let Some(dt) = drag_ev.data_transfer() {
             _ = dt.set_data("component", &component_type_start);
-            _ = dt.set_effect_allowed("copy");
-            
+            dt.set_effect_allowed("copy");
+
             // Set custom drag image (invisible)
             if config.enable_ghost {
                 if let Some(document) = web_sys::window().and_then(|w| w.document()) {
@@ -110,7 +112,7 @@ pub fn create_drag_handlers(
                         _ = img.style().set_property("width", "1px");
                         _ = img.style().set_property("height", "1px");
                         _ = img.style().set_property("background", "transparent");
-                        _ = dt.set_drag_image(&img, 0, 0);
+                        dt.set_drag_image(&img, 0, 0);
                     }
                 }
             }
@@ -118,7 +120,7 @@ pub fn create_drag_handlers(
 
         let client_x = drag_ev.client_x() as f64;
         let client_y = drag_ev.client_y() as f64;
-        
+
         drag_state.set(DragState::Dragging {
             component_type: component_type_start.clone(),
             ghost_x: client_x,
@@ -131,7 +133,7 @@ pub fn create_drag_handlers(
             let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
             let client_x = drag_ev.client_x() as f64;
             let client_y = drag_ev.client_y() as f64;
-            
+
             if client_x > 0.0 && client_y > 0.0 {
                 if let DragState::Dragging { .. } = drag_state.get() {
                     drag_state.set(DragState::Dragging {
@@ -148,13 +150,17 @@ pub fn create_drag_handlers(
                     });
                 }
             }
-            
+
             // Auto-scroll
             if config.enable_auto_scroll {
                 if let Some(window) = web_sys::window() {
                     let _scroll_y = window.scroll_y().unwrap_or(0.0);
-                    let inner_height = window.inner_height().unwrap_or(wasm_bindgen::JsValue::from(600.0)).as_f64().unwrap_or(600.0);
-                    
+                    let inner_height = window
+                        .inner_height()
+                        .unwrap_or(wasm_bindgen::JsValue::from(600.0))
+                        .as_f64()
+                        .unwrap_or(600.0);
+
                     if client_y < config.scroll_threshold {
                         window.scroll_by_with_x_and_y(0.0, -config.scroll_speed);
                     } else if client_y > inner_height - config.scroll_threshold {
@@ -176,15 +182,24 @@ pub fn create_drop_zone_handlers(
     zone_name: String,
     drag_state: RwSignal<DragState>,
     config: DragDropConfig,
-) -> (impl Fn(leptos::ev::DragEvent), impl Fn(leptos::ev::DragEvent), impl Fn(leptos::ev::DragEvent)) {
+) -> (
+    impl Fn(leptos::ev::DragEvent),
+    impl Fn(leptos::ev::DragEvent),
+    impl Fn(leptos::ev::DragEvent),
+) {
     let zone_enter = zone_name.clone();
     let _zone_leave = zone_name.clone();
 
     let on_drag_enter = move |ev: leptos::ev::DragEvent| {
         let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
         drag_ev.prevent_default();
-        
-        if let DragState::Dragging { component_type, ghost_x, ghost_y } = drag_state.get() {
+
+        if let DragState::Dragging {
+            component_type,
+            ghost_x,
+            ghost_y,
+        } = drag_state.get()
+        {
             if config.enable_drop_zones {
                 drag_state.set(DragState::DraggingOver {
                     component_type,
@@ -204,14 +219,22 @@ pub fn create_drop_zone_handlers(
 
     let on_drag_leave = move |ev: leptos::ev::DragEvent| {
         let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
-        
+
         // Only change state if we're actually leaving the drop zone
         if let Some(related_target) = drag_ev.related_target() {
             if let Some(current_target) = drag_ev.current_target() {
-                if let (Ok(related_element), Ok(current_element)) = 
-                    (related_target.dyn_into::<web_sys::Element>(), current_target.dyn_into::<web_sys::Element>()) {
+                if let (Ok(related_element), Ok(current_element)) = (
+                    related_target.dyn_into::<web_sys::Element>(),
+                    current_target.dyn_into::<web_sys::Element>(),
+                ) {
                     if !current_element.contains(Some(&related_element)) {
-                        if let DragState::DraggingOver { component_type, ghost_x, ghost_y, .. } = drag_state.get() {
+                        if let DragState::DraggingOver {
+                            component_type,
+                            ghost_x,
+                            ghost_y,
+                            ..
+                        } = drag_state.get()
+                        {
                             drag_state.set(DragState::Dragging {
                                 component_type,
                                 ghost_x,
@@ -239,11 +262,8 @@ where
     F: Fn(leptos::ev::DragEvent) + 'static,
 {
     let config = config.unwrap_or_default();
-    let (on_drag_enter, on_drag_over, on_drag_leave) = create_drop_zone_handlers(
-        zone_name.clone(),
-        drag_state,
-        config,
-    );
+    let (on_drag_enter, on_drag_over, on_drag_leave) =
+        create_drop_zone_handlers(zone_name.clone(), drag_state, config);
 
     let is_drag_over = create_memo(move |_| {
         matches!(
@@ -261,9 +281,9 @@ where
                     transition: all 0.2s ease;
                     position: relative;
                 ";
-                
+
                 if is_drag_over.get() {
-                    format!("{} 
+                    format!("{}
                         background: rgba(9, 105, 218, 0.05);
                         border: 2px dashed #0969da;
                         border-radius: 6px;
@@ -278,7 +298,7 @@ where
             on:drop=on_drop
         >
             {children()}
-            
+
             <Show when=move || is_drag_over.get()>
                 <div style="
                     position: absolute;

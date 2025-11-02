@@ -1,11 +1,10 @@
-
-use crate::builder::export::{ExportPreset, generate_leptos_code};
+use crate::builder::export::{generate_leptos_code, ExportPreset};
 use web_sys::window;
 
-use crate::builder::git_panel::GitPanel;
+use super::component_library::{LibraryComponent, ResponsiveMode, Theme};
 use crate::builder::debug_panel::DebugPanel;
+use crate::builder::git_panel::GitPanel;
 use leptos::*;
-use super::component_library::{LibraryComponent, Theme, ResponsiveMode};
 // ...existing code...
 
 #[component]
@@ -37,10 +36,7 @@ pub fn sidebar(
     // Handler ganti theme
     let set_theme = move |t: Theme| theme.set(t);
     // Handler ganti warna custom theme
-    let set_custom_theme_color = {
-        let custom_theme_color = custom_theme_color.clone();
-        move |color: String| custom_theme_color.set(color)
-    };
+    let set_custom_theme_color = move |color: String| custom_theme_color.set(color);
     // State untuk form tambah komponen
     let show_add_form = create_rw_signal(false);
     let new_name = create_rw_signal(String::new());
@@ -56,12 +52,17 @@ pub fn sidebar(
             return;
         }
         // Nama harus valid sebagai identifier Rust (huruf, angka, underscore, tidak boleh diawali angka)
-        if !name.chars().next().map(|c| c.is_ascii_alphabetic() || c == '_').unwrap_or(false)
-            || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        if !name
+            .chars()
+            .next()
+            .map(|c| c.is_ascii_alphabetic() || c == '_')
+            .unwrap_or(false)
+            || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        {
             error_msg.set("Nama komponen hanya boleh huruf, angka, dan underscore, serta tidak boleh diawali angka.".to_string());
             return;
         }
-    if custom_components.get().iter().any(|c| c.name == name) {
+        if custom_components.get().iter().any(|c| c.name == name) {
             error_msg.set("Nama komponen sudah ada.".to_string());
             return;
         }
@@ -74,29 +75,36 @@ pub fn sidebar(
             error_msg.set("Template terlalu pendek.".to_string());
             return;
         }
-        custom_components.update(|cc| cc.push(LibraryComponent {
-            name: name.clone(),
-            kind: "Custom".to_string(),
-            template: Some(template.clone()),
-            category: "Custom".to_string(),
-            props_schema: None,
-            description: None,
-        }));
-        component_library.update(|lib| lib.push(LibraryComponent {
-            name: name.clone(),
-            kind: "Custom".to_string(),
-            template: Some(template.clone()),
-            category: "Custom".to_string(),
-            props_schema: None,
-            description: None,
-        }));
+        custom_components.update(|cc| {
+            cc.push(LibraryComponent {
+                name: name.clone(),
+                kind: "Custom".to_string(),
+                template: Some(template.clone()),
+                category: "Custom".to_string(),
+                props_schema: None,
+                description: None,
+            })
+        });
+        component_library.update(|lib| {
+            lib.push(LibraryComponent {
+                name: name.clone(),
+                kind: "Custom".to_string(),
+                template: Some(template.clone()),
+                category: "Custom".to_string(),
+                props_schema: None,
+                description: None,
+            })
+        });
         new_name.set(String::new());
         new_template.set(String::new());
         error_msg.set(String::new());
         show_add_form.set(false);
-        notification.set(Some(format!("✅ Komponen '{}' berhasil ditambahkan!", name)));
+        notification.set(Some(format!(
+            "✅ Komponen '{}' berhasil ditambahkan!",
+            name
+        )));
         // Clear notification after 2.5s
-        let notification = notification.clone();
+        let notification = notification;
         wasm_bindgen_futures::spawn_local(async move {
             gloo_timers::future::TimeoutFuture::new(2500).await;
             notification.set(None);
@@ -104,93 +112,109 @@ pub fn sidebar(
     };
     // Handler hapus komponen custom
     let delete_custom_component = move |idx: usize| {
-    let name = custom_components.get().get(idx).map(|c| c.name.clone()).unwrap_or_default();
-    custom_components.update(|cc| { cc.remove(idx); });
+        let name = custom_components
+            .get()
+            .get(idx)
+            .map(|c| c.name.clone())
+            .unwrap_or_default();
+        custom_components.update(|cc| {
+            cc.remove(idx);
+        });
         component_library.update(|lib| {
-            if let Some(pos) = lib.iter().position(|c| c.kind == "Custom" && c.name == name) {
+            if let Some(pos) = lib
+                .iter()
+                .position(|c| c.kind == "Custom" && c.name == name)
+            {
                 lib.remove(pos);
             }
         });
         notification.set(Some(format!("🗑️ Komponen '{}' dihapus.", name)));
-        let notification = notification.clone();
+        let notification = notification;
         wasm_bindgen_futures::spawn_local(async move {
             gloo_timers::future::TimeoutFuture::new(2000).await;
             notification.set(None);
         });
     };
     // Handler mulai edit custom component
-    let start_edit_custom_component = {
-        let custom_components = custom_components.clone();
-        let edit_name = edit_name.clone();
-        let edit_template = edit_template.clone();
-        let editing_idx = editing_idx.clone();
-        move |idx: usize| {
-            if let Some(c) = custom_components.get().get(idx) {
-                let name = &c.name;
-                let template = c.template.as_deref().unwrap_or("");
-                edit_name.set(name.clone());
-                edit_template.set(template.to_string());
-                editing_idx.set(Some(idx));
-                error_msg.set(String::new());
-            }
+    let start_edit_custom_component = move |idx: usize| {
+        if let Some(c) = custom_components.get().get(idx) {
+            let name = &c.name;
+            let template = c.template.as_deref().unwrap_or("");
+            edit_name.set(name.clone());
+            edit_template.set(template.to_string());
+            editing_idx.set(Some(idx));
+            error_msg.set(String::new());
         }
     };
     // Handler simpan edit custom component
-    let save_edit_custom_component = {
-    let custom_components = custom_components.clone();
-        let component_library = component_library.clone();
-        let edit_name = edit_name.clone();
-        let edit_template = edit_template.clone();
-        let editing_idx = editing_idx.clone();
-        let error_msg = error_msg.clone();
-    move |_| {
-            let idx = match editing_idx.get() { Some(i) => i, None => return };
-            let name = edit_name.get().trim().to_string();
-            let template = edit_template.get().trim().to_string();
-            if name.is_empty() {
-                error_msg.set("Nama komponen wajib diisi.".to_string());
-                return;
-            }
-            if !name.chars().next().map(|c| c.is_ascii_alphabetic() || c == '_').unwrap_or(false)
-                || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
-                error_msg.set("Nama komponen hanya boleh huruf, angka, dan underscore, serta tidak boleh diawali angka.".to_string());
-                return;
-            }
-            if custom_components.get().iter().enumerate().any(|(i, c)| c.name == name && i != idx) {
-                error_msg.set("Nama komponen sudah ada.".to_string());
-                return;
-            }
-            if !template.contains('<') || !template.contains('>') {
-                error_msg.set("Template harus mengandung minimal satu tag HTML valid.".to_string());
-                return;
-            }
-            if template.len() < 5 {
-                error_msg.set("Template terlalu pendek.".to_string());
-                return;
-            }
-            // Update custom_components
-            custom_components.update(|cc| {
-                if let Some(item) = cc.get_mut(idx) {
-                    item.name = name.clone();
-                    item.template = Some(template.clone());
-                }
-            });
-            // Update component_library
-            component_library.update(|lib| {
-                if let Some(item) = lib.iter_mut().find(|c| c.kind == "Custom" && c.name == custom_components.get().get(idx).map(|c| c.name.clone()).unwrap_or_default()) {
-                    item.name = name.clone();
-                    item.template = Some(template.clone());
-                }
-            });
-            editing_idx.set(None);
-            error_msg.set(String::new());
-            notification.set(Some(format!("✏️ Komponen '{}' berhasil diubah!", name)));
-            let notification = notification.clone();
-            wasm_bindgen_futures::spawn_local(async move {
-                gloo_timers::future::TimeoutFuture::new(2000).await;
-                notification.set(None);
-            });
+    let save_edit_custom_component = move |_| {
+        let idx = match editing_idx.get() {
+            Some(i) => i,
+            None => return,
+        };
+        let name = edit_name.get().trim().to_string();
+        let template = edit_template.get().trim().to_string();
+        if name.is_empty() {
+            error_msg.set("Nama komponen wajib diisi.".to_string());
+            return;
         }
+        if !name
+            .chars()
+            .next()
+            .map(|c| c.is_ascii_alphabetic() || c == '_')
+            .unwrap_or(false)
+            || !name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+        {
+            error_msg.set("Nama komponen hanya boleh huruf, angka, dan underscore, serta tidak boleh diawali angka.".to_string());
+            return;
+        }
+        if custom_components
+            .get()
+            .iter()
+            .enumerate()
+            .any(|(i, c)| c.name == name && i != idx)
+        {
+            error_msg.set("Nama komponen sudah ada.".to_string());
+            return;
+        }
+        if !template.contains('<') || !template.contains('>') {
+            error_msg.set("Template harus mengandung minimal satu tag HTML valid.".to_string());
+            return;
+        }
+        if template.len() < 5 {
+            error_msg.set("Template terlalu pendek.".to_string());
+            return;
+        }
+        // Update custom_components
+        custom_components.update(|cc| {
+            if let Some(item) = cc.get_mut(idx) {
+                item.name = name.clone();
+                item.template = Some(template.clone());
+            }
+        });
+        // Update component_library
+        component_library.update(|lib| {
+            if let Some(item) = lib.iter_mut().find(|c| {
+                c.kind == "Custom"
+                    && c.name
+                        == custom_components
+                            .get()
+                            .get(idx)
+                            .map(|c| c.name.clone())
+                            .unwrap_or_default()
+            }) {
+                item.name = name.clone();
+                item.template = Some(template.clone());
+            }
+        });
+        editing_idx.set(None);
+        error_msg.set(String::new());
+        notification.set(Some(format!("✏️ Komponen '{}' berhasil diubah!", name)));
+        let notification = notification;
+        wasm_bindgen_futures::spawn_local(async move {
+            gloo_timers::future::TimeoutFuture::new(2000).await;
+            notification.set(None);
+        });
     };
     // Handler batal edit
     let cancel_edit_custom_component = move |_| {
@@ -204,7 +228,7 @@ pub fn sidebar(
     };
     view! {
     <aside style=format!("background:{};padding:1rem;min-width:260px;", sidebar_bg)>
-        <DebugPanel 
+        <DebugPanel
             components=components
             custom_components=custom_components
             undo_stack=undo_stack

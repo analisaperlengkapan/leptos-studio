@@ -1,5 +1,5 @@
 use leptos::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct ColorToken {
@@ -63,44 +63,171 @@ impl Default for DesignTokens {
 
 fn default_color_tokens() -> Vec<ColorToken> {
     vec![
-        ColorToken { name: "primary-50".to_string(), value: "#eff6ff".to_string(), description: Some("Lightest primary blue".to_string()) },
-        ColorToken { name: "primary-100".to_string(), value: "#dbeafe".to_string(), description: Some("Very light primary blue".to_string()) },
-        ColorToken { name: "primary-500".to_string(), value: "#3b82f6".to_string(), description: Some("Primary blue".to_string()) },
-        ColorToken { name: "primary-600".to_string(), value: "#2563eb".to_string(), description: Some("Dark primary blue".to_string()) },
-        ColorToken { name: "primary-900".to_string(), value: "#1e3a8a".to_string(), description: Some("Darkest primary blue".to_string()) },
-        
-        ColorToken { name: "gray-50".to_string(), value: "#f9fafb".to_string(), description: Some("Lightest gray".to_string()) },
-        ColorToken { name: "gray-100".to_string(), value: "#f3f4f6".to_string(), description: Some("Very light gray".to_string()) },
-        ColorToken { name: "gray-200".to_string(), value: "#e5e7eb".to_string(), description: Some("Light gray".to_string()) },
-        ColorToken { name: "gray-300".to_string(), value: "#d1d5db".to_string(), description: Some("Medium light gray".to_string()) },
-        ColorToken { name: "gray-400".to_string(), value: "#9ca3af".to_string(), description: Some("Medium gray".to_string()) },
-        ColorToken { name: "gray-500".to_string(), value: "#6b7280".to_string(), description: Some("Medium dark gray".to_string()) },
-        ColorToken { name: "gray-600".to_string(), value: "#4b5563".to_string(), description: Some("Dark gray".to_string()) },
-        ColorToken { name: "gray-700".to_string(), value: "#374151".to_string(), description: Some("Very dark gray".to_string()) },
-        ColorToken { name: "gray-800".to_string(), value: "#1f2937".to_string(), description: Some("Darkest gray".to_string()) },
-        ColorToken { name: "gray-900".to_string(), value: "#111827".to_string(), description: Some("Black gray".to_string()) },
-        
-        ColorToken { name: "success-500".to_string(), value: "#10b981".to_string(), description: Some("Success green".to_string()) },
-        ColorToken { name: "warning-500".to_string(), value: "#f59e0b".to_string(), description: Some("Warning orange".to_string()) },
-        ColorToken { name: "error-500".to_string(), value: "#ef4444".to_string(), description: Some("Error red".to_string()) },
-        
-        ColorToken { name: "white".to_string(), value: "#ffffff".to_string(), description: Some("Pure white".to_string()) },
-        ColorToken { name: "black".to_string(), value: "#000000".to_string(), description: Some("Pure black".to_string()) },
+        ColorToken {
+            name: "primary-50".to_string(),
+            value: "#eff6ff".to_string(),
+            description: Some("Lightest primary blue".to_string()),
+        },
+        ColorToken {
+            name: "primary-100".to_string(),
+            value: "#dbeafe".to_string(),
+            description: Some("Very light primary blue".to_string()),
+        },
+        ColorToken {
+            name: "primary-500".to_string(),
+            value: "#3b82f6".to_string(),
+            description: Some("Primary blue".to_string()),
+        },
+        ColorToken {
+            name: "primary-600".to_string(),
+            value: "#2563eb".to_string(),
+            description: Some("Dark primary blue".to_string()),
+        },
+        ColorToken {
+            name: "primary-900".to_string(),
+            value: "#1e3a8a".to_string(),
+            description: Some("Darkest primary blue".to_string()),
+        },
+        ColorToken {
+            name: "gray-50".to_string(),
+            value: "#f9fafb".to_string(),
+            description: Some("Lightest gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-100".to_string(),
+            value: "#f3f4f6".to_string(),
+            description: Some("Very light gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-200".to_string(),
+            value: "#e5e7eb".to_string(),
+            description: Some("Light gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-300".to_string(),
+            value: "#d1d5db".to_string(),
+            description: Some("Medium light gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-400".to_string(),
+            value: "#9ca3af".to_string(),
+            description: Some("Medium gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-500".to_string(),
+            value: "#6b7280".to_string(),
+            description: Some("Medium dark gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-600".to_string(),
+            value: "#4b5563".to_string(),
+            description: Some("Dark gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-700".to_string(),
+            value: "#374151".to_string(),
+            description: Some("Very dark gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-800".to_string(),
+            value: "#1f2937".to_string(),
+            description: Some("Darkest gray".to_string()),
+        },
+        ColorToken {
+            name: "gray-900".to_string(),
+            value: "#111827".to_string(),
+            description: Some("Black gray".to_string()),
+        },
+        ColorToken {
+            name: "success-500".to_string(),
+            value: "#10b981".to_string(),
+            description: Some("Success green".to_string()),
+        },
+        ColorToken {
+            name: "warning-500".to_string(),
+            value: "#f59e0b".to_string(),
+            description: Some("Warning orange".to_string()),
+        },
+        ColorToken {
+            name: "error-500".to_string(),
+            value: "#ef4444".to_string(),
+            description: Some("Error red".to_string()),
+        },
+        ColorToken {
+            name: "white".to_string(),
+            value: "#ffffff".to_string(),
+            description: Some("Pure white".to_string()),
+        },
+        ColorToken {
+            name: "black".to_string(),
+            value: "#000000".to_string(),
+            description: Some("Pure black".to_string()),
+        },
     ]
 }
 
 fn default_spacing_tokens() -> Vec<SpacingToken> {
     vec![
-        SpacingToken { name: "1".to_string(), value: "4px".to_string(), rem_value: 0.25, description: Some("Extra small spacing".to_string()) },
-        SpacingToken { name: "2".to_string(), value: "8px".to_string(), rem_value: 0.5, description: Some("Small spacing".to_string()) },
-        SpacingToken { name: "3".to_string(), value: "12px".to_string(), rem_value: 0.75, description: Some("Medium small spacing".to_string()) },
-        SpacingToken { name: "4".to_string(), value: "16px".to_string(), rem_value: 1.0, description: Some("Medium spacing".to_string()) },
-        SpacingToken { name: "5".to_string(), value: "20px".to_string(), rem_value: 1.25, description: Some("Medium large spacing".to_string()) },
-        SpacingToken { name: "6".to_string(), value: "24px".to_string(), rem_value: 1.5, description: Some("Large spacing".to_string()) },
-        SpacingToken { name: "8".to_string(), value: "32px".to_string(), rem_value: 2.0, description: Some("Extra large spacing".to_string()) },
-        SpacingToken { name: "10".to_string(), value: "40px".to_string(), rem_value: 2.5, description: Some("2X large spacing".to_string()) },
-        SpacingToken { name: "12".to_string(), value: "48px".to_string(), rem_value: 3.0, description: Some("3X large spacing".to_string()) },
-        SpacingToken { name: "16".to_string(), value: "64px".to_string(), rem_value: 4.0, description: Some("4X large spacing".to_string()) },
+        SpacingToken {
+            name: "1".to_string(),
+            value: "4px".to_string(),
+            rem_value: 0.25,
+            description: Some("Extra small spacing".to_string()),
+        },
+        SpacingToken {
+            name: "2".to_string(),
+            value: "8px".to_string(),
+            rem_value: 0.5,
+            description: Some("Small spacing".to_string()),
+        },
+        SpacingToken {
+            name: "3".to_string(),
+            value: "12px".to_string(),
+            rem_value: 0.75,
+            description: Some("Medium small spacing".to_string()),
+        },
+        SpacingToken {
+            name: "4".to_string(),
+            value: "16px".to_string(),
+            rem_value: 1.0,
+            description: Some("Medium spacing".to_string()),
+        },
+        SpacingToken {
+            name: "5".to_string(),
+            value: "20px".to_string(),
+            rem_value: 1.25,
+            description: Some("Medium large spacing".to_string()),
+        },
+        SpacingToken {
+            name: "6".to_string(),
+            value: "24px".to_string(),
+            rem_value: 1.5,
+            description: Some("Large spacing".to_string()),
+        },
+        SpacingToken {
+            name: "8".to_string(),
+            value: "32px".to_string(),
+            rem_value: 2.0,
+            description: Some("Extra large spacing".to_string()),
+        },
+        SpacingToken {
+            name: "10".to_string(),
+            value: "40px".to_string(),
+            rem_value: 2.5,
+            description: Some("2X large spacing".to_string()),
+        },
+        SpacingToken {
+            name: "12".to_string(),
+            value: "48px".to_string(),
+            rem_value: 3.0,
+            description: Some("3X large spacing".to_string()),
+        },
+        SpacingToken {
+            name: "16".to_string(),
+            value: "64px".to_string(),
+            rem_value: 4.0,
+            description: Some("4X large spacing".to_string()),
+        },
     ]
 }
 
@@ -167,59 +294,126 @@ fn default_typography_tokens() -> Vec<TypographyToken> {
 
 fn default_border_radius_tokens() -> Vec<BorderRadiusToken> {
     vec![
-        BorderRadiusToken { name: "none".to_string(), value: "0px".to_string(), description: Some("No border radius".to_string()) },
-        BorderRadiusToken { name: "sm".to_string(), value: "2px".to_string(), description: Some("Small border radius".to_string()) },
-        BorderRadiusToken { name: "md".to_string(), value: "4px".to_string(), description: Some("Medium border radius".to_string()) },
-        BorderRadiusToken { name: "lg".to_string(), value: "6px".to_string(), description: Some("Large border radius".to_string()) },
-        BorderRadiusToken { name: "xl".to_string(), value: "12px".to_string(), description: Some("Extra large border radius".to_string()) },
-        BorderRadiusToken { name: "full".to_string(), value: "9999px".to_string(), description: Some("Full border radius".to_string()) },
+        BorderRadiusToken {
+            name: "none".to_string(),
+            value: "0px".to_string(),
+            description: Some("No border radius".to_string()),
+        },
+        BorderRadiusToken {
+            name: "sm".to_string(),
+            value: "2px".to_string(),
+            description: Some("Small border radius".to_string()),
+        },
+        BorderRadiusToken {
+            name: "md".to_string(),
+            value: "4px".to_string(),
+            description: Some("Medium border radius".to_string()),
+        },
+        BorderRadiusToken {
+            name: "lg".to_string(),
+            value: "6px".to_string(),
+            description: Some("Large border radius".to_string()),
+        },
+        BorderRadiusToken {
+            name: "xl".to_string(),
+            value: "12px".to_string(),
+            description: Some("Extra large border radius".to_string()),
+        },
+        BorderRadiusToken {
+            name: "full".to_string(),
+            value: "9999px".to_string(),
+            description: Some("Full border radius".to_string()),
+        },
     ]
 }
 
 fn default_shadow_tokens() -> Vec<ShadowToken> {
     vec![
-        ShadowToken { name: "none".to_string(), value: "none".to_string(), description: Some("No shadow".to_string()) },
-        ShadowToken { name: "sm".to_string(), value: "0 1px 2px 0 rgb(0 0 0 / 0.05)".to_string(), description: Some("Small shadow".to_string()) },
-        ShadowToken { name: "md".to_string(), value: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)".to_string(), description: Some("Medium shadow".to_string()) },
-        ShadowToken { name: "lg".to_string(), value: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)".to_string(), description: Some("Large shadow".to_string()) },
-        ShadowToken { name: "xl".to_string(), value: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)".to_string(), description: Some("Extra large shadow".to_string()) },
+        ShadowToken {
+            name: "none".to_string(),
+            value: "none".to_string(),
+            description: Some("No shadow".to_string()),
+        },
+        ShadowToken {
+            name: "sm".to_string(),
+            value: "0 1px 2px 0 rgb(0 0 0 / 0.05)".to_string(),
+            description: Some("Small shadow".to_string()),
+        },
+        ShadowToken {
+            name: "md".to_string(),
+            value: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)".to_string(),
+            description: Some("Medium shadow".to_string()),
+        },
+        ShadowToken {
+            name: "lg".to_string(),
+            value: "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)".to_string(),
+            description: Some("Large shadow".to_string()),
+        },
+        ShadowToken {
+            name: "xl".to_string(),
+            value: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+                .to_string(),
+            description: Some("Extra large shadow".to_string()),
+        },
     ]
 }
 
 impl DesignTokens {
     pub fn to_css_variables(&self) -> String {
         let mut css = ":root {\n".to_string();
-        
+
         // Colors
         for color in &self.colors {
             css.push_str(&format!("  --color-{}: {};\n", color.name, color.value));
         }
-        
+
         // Spacing
         for spacing in &self.spacing {
-            css.push_str(&format!("  --spacing-{}: {};\n", spacing.name, spacing.value));
+            css.push_str(&format!(
+                "  --spacing-{}: {};\n",
+                spacing.name, spacing.value
+            ));
         }
-        
+
         // Typography
         for typo in &self.typography {
-            css.push_str(&format!("  --font-size-{}: {};\n", typo.name.replace("text-", ""), typo.font_size));
-            css.push_str(&format!("  --line-height-{}: {};\n", typo.name.replace("text-", ""), typo.line_height));
-            css.push_str(&format!("  --font-weight-{}: {};\n", typo.name.replace("text-", ""), typo.font_weight));
+            css.push_str(&format!(
+                "  --font-size-{}: {};\n",
+                typo.name.replace("text-", ""),
+                typo.font_size
+            ));
+            css.push_str(&format!(
+                "  --line-height-{}: {};\n",
+                typo.name.replace("text-", ""),
+                typo.line_height
+            ));
+            css.push_str(&format!(
+                "  --font-weight-{}: {};\n",
+                typo.name.replace("text-", ""),
+                typo.font_weight
+            ));
             if let Some(spacing) = &typo.letter_spacing {
-                css.push_str(&format!("  --letter-spacing-{}: {};\n", typo.name.replace("text-", ""), spacing));
+                css.push_str(&format!(
+                    "  --letter-spacing-{}: {};\n",
+                    typo.name.replace("text-", ""),
+                    spacing
+                ));
             }
         }
-        
+
         // Border radius
         for radius in &self.border_radius {
-            css.push_str(&format!("  --border-radius-{}: {};\n", radius.name, radius.value));
+            css.push_str(&format!(
+                "  --border-radius-{}: {};\n",
+                radius.name, radius.value
+            ));
         }
-        
+
         // Shadows
         for shadow in &self.shadows {
             css.push_str(&format!("  --shadow-{}: {};\n", shadow.name, shadow.value));
         }
-        
+
         css.push_str("}\n");
         css
     }
@@ -229,12 +423,12 @@ impl DesignTokens {
             if let Some(document) = window.document() {
                 if let Some(head) = document.head() {
                     // Remove existing design token styles
-                    if let Ok(existing) = document.query_selector("#design-tokens-style") {
-                        if let Some(existing_element) = existing {
-                            existing_element.remove();
-                        }
+                    if let Ok(Some(existing_element)) =
+                        document.query_selector("#design-tokens-style")
+                    {
+                        existing_element.remove();
                     }
-                    
+
                     // Create new style element
                     if let Ok(style_element) = document.create_element("style") {
                         style_element.set_id("design-tokens-style");
@@ -276,10 +470,7 @@ impl DesignTokens {
 }
 
 #[component]
-pub fn DesignTokenProvider(
-    tokens: RwSignal<DesignTokens>,
-    children: Children,
-) -> impl IntoView {
+pub fn DesignTokenProvider(tokens: RwSignal<DesignTokens>, children: Children) -> impl IntoView {
     // Apply tokens to document whenever they change
     create_effect(move |_| {
         let tokens = tokens.get();
@@ -294,9 +485,7 @@ pub fn DesignTokenProvider(
 }
 
 #[component]
-pub fn TokenPreview(
-    tokens: RwSignal<DesignTokens>,
-) -> impl IntoView {
+pub fn TokenPreview(tokens: RwSignal<DesignTokens>) -> impl IntoView {
     view! {
         <div style="
             display: grid;

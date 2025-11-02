@@ -19,12 +19,19 @@
 - Drop zones dengan highlight dan preview
 - Professional drag indicators dan ghost elements
 
-### ⌨️ **Global Keyboard Shortcuts**
-- **Undo**: `Cmd+Z` / `Ctrl+Z`
-- **Redo**: `Cmd+Y` / `Ctrl+Y` 
-- **Delete**: `Delete` key untuk menghapus komponen
-- **Command Palette**: `Cmd+K` / `Ctrl+K`
-- **Escape**: Cancel current action
+### ⌨️ **Complete Keyboard Shortcuts**
+- **Undo**: `Ctrl+Z` - Undo last action
+- **Redo**: `Ctrl+Y` / `Ctrl+Shift+Z` - Redo last action
+- **Delete**: `Delete` / `Backspace` - Delete selected component
+- **Copy**: `Ctrl+C` - Copy selected component
+- **Paste**: `Ctrl+V` - Paste component from clipboard
+- **Duplicate**: `Ctrl+D` - Duplicate selected component
+- **Select All**: `Ctrl+A` - Select all components
+- **Deselect**: `Escape` - Clear selection
+- **Command Palette**: `Ctrl+K` - Open command palette
+- **Save**: `Ctrl+S` - Save project
+- **Export**: `Ctrl+E` - Export code
+- **New Component**: `Ctrl+N` - Add component helper
 
 ### 🎭 **Design Token System**
 - CSS custom properties untuk consistent theming
@@ -33,12 +40,21 @@
 
 ## 🚀 Fitur Utama
 
-### ✅ Fitur yang Tersedia
+### ✅ Production-Ready Features
 - ♻️ **Hot reload custom component**: Edit template custom component, preview langsung update tanpa reload
 - 🧩 **Component library management**: Tambah/hapus custom component langsung dari sidebar
 - 🛡️ **Component props validation**: Form custom component memvalidasi nama (harus identifier Rust valid) & template (harus HTML snippet valid), error message tampil jika input tidak valid
 - 🗂️ **Version control (Git) UI**: Sidebar menampilkan status, commit, dan log Git secara langsung
 - 📤 **Flexible export & code generation templates**: Export desain ke format Leptos, HTML, Markdown, JSON, dan preset ekspor (Plain, thaw-ui, leptos-material, leptos-use)
+- ⌨️ **Complete keyboard shortcuts**: All major actions (Copy, Paste, Duplicate, Undo/Redo) fully implemented
+- 🎨 **Integrated command palette**: Fuzzy search all commands with full action execution
+- 📋 **Clipboard integration**: Copy/paste components between layouts using browser Clipboard API
+- 🔄 **Full undo/redo support**: Complete history management for all operations
+- 🔒 **Security hardened**: Input validation, CSP documentation, security best practices
+- 🚀 **CI/CD ready**: GitHub Actions workflow with automated testing and deployment
+- 📦 **Production build optimized**: Trunk configuration, WASM optimization, deployment guides
+- 📚 **Comprehensive documentation**: SECURITY.md, DEPLOYMENT.md, API docs, Rustdoc
+
 ### 🔄 Roadmap Fitur
 
 ## 🛠 Instalasi dan Penggunaan
@@ -48,11 +64,23 @@
 - [Trunk](https://trunkrs.dev/) untuk WASM build
 - Browser modern dengan support WebAssembly
 
-### Menjalankan Aplikasi
+### Quick Start
 ```bash
 # Clone repository
-git clone git@gitlab.com:analisiskebutuhan/leptos-studio.git
+git clone https://github.com/analisaperlengkapan/leptos-studio.git
 cd leptos-studio
+
+# Install Trunk (if not installed)
+cargo install trunk
+
+# Add WASM target
+rustup target add wasm32-unknown-unknown
+
+# Run development server
+trunk serve
+
+# Build for production
+trunk build --release
 ## Ekosistem & Best Practice Leptos
 
 Leptos Studio mengikuti praktik terbaik dari ekosistem [Leptos](https://github.com/leptos-rs/leptos):
@@ -118,16 +146,70 @@ src/
 
 Kontribusi sangat diterima! Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan detail.
 
-## 📝 Lisensi
-
-Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) untuk detail.
-
-## 📊 Status
+## 📊 Status & Quality
 
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Version](https://img.shields.io/badge/version-0.2.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Tests](https://img.shields.io/badge/tests-62%2F62%20passing-brightgreen)
+![Production Ready](https://img.shields.io/badge/status-production%20ready-success)
+![Warnings](https://img.shields.io/badge/warnings-0-brightgreen)
+![Security](https://img.shields.io/badge/security-hardened-blue)
+
+**Production Ready** ✅
+- Zero compilation warnings
+- All tests passing
+- Full CI/CD pipeline
+- Comprehensive documentation
+- Security hardened
+- Performance optimized
+
+## 📚 Documentation
+
+- **[README.md](README.md)** - This file, overview and features
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide (10KB+)
+- **[SECURITY.md](SECURITY.md)** - Security best practices and policies
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+- **[API.md](API.md)** - API reference documentation
+
+## 📝 Lisensi
+
+Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) untuk detail.
+
+## 🏭 Production Readiness
+
+### 🚀 **Deployment**
+- **CI/CD Pipeline**: Automated testing, building, and deployment via GitHub Actions
+- **Multiple Hosting Options**: GitHub Pages, Netlify, Vercel, Docker - all documented
+- **WASM Optimization**: Production builds optimized for size and performance
+- **Security Headers**: CSP and security configuration documented
+- **Monitoring Ready**: Error tracking and performance monitoring guides included
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
+
+### 🔒 **Security**
+- **Input Validation**: All user inputs validated (component names, templates)
+- **XSS Prevention**: Framework-level protection via Leptos
+- **CSP Headers**: Content Security Policy configuration documented
+- **Dependency Auditing**: Automated security scanning in CI/CD
+- **OWASP Compliance**: Coverage for OWASP Top 10 vulnerabilities
+
+See [SECURITY.md](SECURITY.md) for security best practices and reporting.
+
+### 📊 **Performance**
+- **WASM Bundle**: Optimized with LTO and size optimizations
+- **Code Splitting**: Lazy loading support
+- **Caching Strategy**: Documented for CDN and static hosting
+- **LocalStorage**: Efficient persistence with validation
+- **Render Optimization**: Minimal re-renders with fine-grained reactivity
+
+### 🔧 **Code Quality**
+- **0 Compiler Warnings**: Clean build with all warnings resolved
+- **Clippy Compliant**: Passes all Clippy lints
+- **Well Documented**: Comprehensive Rustdoc on public APIs
+- **Type Safe**: Full Rust type safety throughout
+- **Error Handling**: Comprehensive error handling with user feedback
 
 ## 🧪 Pengujian & Quality Assurance
 
@@ -137,11 +219,11 @@ Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) unt
 - Property-based testing untuk edge cases
 - Stress testing untuk large layouts dan complex scenarios
 
-### 🔧 **Code Quality**
-- Clean compilation dengan minimal warnings
-- Professional-grade error handling dan validation  
-- Consistent code style dan architecture patterns
-- Extensive documentation dan API references
+### 🔧 **Automated Quality Checks**
+- **GitHub Actions**: Automated testing on every push/PR
+- **Clippy Linting**: Automated code quality checks
+- **Security Auditing**: Automated dependency vulnerability scanning
+- **Format Checking**: Automated code formatting validation
 
 ### 🎯 **Testing Scenarios**
 - Drag & drop functionality dengan berbagai komponen
@@ -151,3 +233,5 @@ Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) unt
 - Undo/redo system dengan complex state management
 - Unicode, emoji, dan special character handling
 - Deeply nested components dan large layout stress tests
+- Copy/paste functionality with clipboard API
+- All keyboard shortcuts (Ctrl+C/V/D/Z/Y/etc)

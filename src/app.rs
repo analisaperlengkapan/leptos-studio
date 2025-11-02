@@ -1,20 +1,20 @@
-use leptos::*;
-use crate::builder::sidebar::{Sidebar, SidebarProps};
-use crate::builder::canvas::{Canvas, CanvasProps};
-use crate::builder::keyboard::{KeyboardHandler, KeyboardAction, get_default_shortcuts};
-use crate::builder::command_palette::CommandPalette;
 use crate::builder::breadcrumb::BreadcrumbNavigation;
-use crate::builder::drag_drop::{DragPreview, DragState};
+use crate::builder::canvas::{Canvas, CanvasProps};
+use crate::builder::command_palette::CommandPalette;
 use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
+use crate::builder::drag_drop::{DragPreview, DragState};
+use crate::builder::keyboard::{get_default_shortcuts, KeyboardAction, KeyboardHandler};
+use crate::builder::sidebar::{Sidebar, SidebarProps};
+use leptos::*;
 
+use super::builder::canvas::{CanvasComponent, SelectedComponent};
+use super::builder::component_library::LibraryComponent;
+use super::builder::component_library::{ResponsiveMode, Theme};
+use super::builder::preview::Preview;
+use super::builder::property_editor::PropertyEditor;
+use super::builder::snackbar::Snackbar;
 use std::cell::Cell;
 use std::rc::Rc;
-use super::builder::snackbar::Snackbar;
-use super::builder::component_library::{Theme, ResponsiveMode};
-use super::builder::component_library::LibraryComponent;
-use super::builder::canvas::{SelectedComponent, CanvasComponent};
-use super::builder::property_editor::PropertyEditor;
-use super::builder::preview::Preview;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -24,17 +24,17 @@ pub fn App() -> impl IntoView {
     let theme = create_rw_signal(Theme::Light);
     // State custom theme color (sinkron dengan sidebar)
     let custom_theme_color = create_rw_signal(String::from("#888"));
-    
+
     // Design tokens
     let design_tokens = create_rw_signal(DesignTokens::default());
-    
+
     // Drag state for enhanced drag & drop
     let drag_state = create_rw_signal(DragState::NotDragging);
-    
+
     // Command palette state
     let show_command_palette = create_rw_signal(false);
     let command_search = create_rw_signal(String::new());
-    
+
     let selected = create_rw_signal(SelectedComponent { idx: None });
     let components = create_rw_signal(Vec::<CanvasComponent>::new());
     // Undo/Redo stacks
@@ -43,7 +43,14 @@ pub fn App() -> impl IntoView {
     // Save/load handlers
     let save_layout = move |_| {
         if let Ok(json) = serde_json::to_string(&components.get()) {
-            if web_sys::window().unwrap().local_storage().unwrap().unwrap().set_item("leptos_studio_layout", &json).is_ok() {
+            if web_sys::window()
+                .unwrap()
+                .local_storage()
+                .unwrap()
+                .unwrap()
+                .set_item("leptos_studio_layout", &json)
+                .is_ok()
+            {
                 notification.set(Some("Layout berhasil disimpan!".to_string()));
             } else {
                 notification.set(Some("Gagal menyimpan layout!".to_string()));
@@ -52,61 +59,49 @@ pub fn App() -> impl IntoView {
             notification.set(Some("Gagal serialisasi layout!".to_string()));
         }
     };
-    let load_layout = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let notification = notification.clone();
-        move |_| {
-            if let Ok(Some(json)) = web_sys::window().unwrap().local_storage().unwrap().unwrap().get_item("leptos_studio_layout") {
-                if let Ok(data) = serde_json::from_str(&json) {
-                    // Push current state to undo stack
-                    undo_stack.update(|stack| stack.push(components.get()));
-                    redo_stack.set(Vec::new());
-                    components.set(data);
-                    notification.set(Some("Layout berhasil dimuat!".to_string()));
-                } else {
-                    notification.set(Some("Gagal parsing JSON layout!".to_string()));
-                }
+    let load_layout = move |_| {
+        if let Ok(Some(json)) = web_sys::window()
+            .unwrap()
+            .local_storage()
+            .unwrap()
+            .unwrap()
+            .get_item("leptos_studio_layout")
+        {
+            if let Ok(data) = serde_json::from_str(&json) {
+                // Push current state to undo stack
+                undo_stack.update(|stack| stack.push(components.get()));
+                redo_stack.set(Vec::new());
+                components.set(data);
+                notification.set(Some("Layout berhasil dimuat!".to_string()));
             } else {
-                notification.set(Some("Tidak ada layout yang disimpan!".to_string()));
+                notification.set(Some("Gagal parsing JSON layout!".to_string()));
             }
+        } else {
+            notification.set(Some("Tidak ada layout yang disimpan!".to_string()));
         }
     };
     // Undo handler
-    let do_undo = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let notification = notification.clone();
-        move |_| {
-            let mut undo = undo_stack.get();
-            if let Some(prev) = undo.pop() {
-                redo_stack.update(|stack| stack.push(components.get()));
-                components.set(prev);
-                undo_stack.set(undo);
-                notification.set(Some("Undo berhasil.".to_string()));
-            } else {
-                notification.set(Some("Tidak ada aksi untuk di-undo.".to_string()));
-            }
+    let do_undo = move |_| {
+        let mut undo = undo_stack.get();
+        if let Some(prev) = undo.pop() {
+            redo_stack.update(|stack| stack.push(components.get()));
+            components.set(prev);
+            undo_stack.set(undo);
+            notification.set(Some("Undo berhasil.".to_string()));
+        } else {
+            notification.set(Some("Tidak ada aksi untuk di-undo.".to_string()));
         }
     };
     // Redo handler
-    let do_redo = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let notification = notification.clone();
-        move |_| {
-            let mut redo = redo_stack.get();
-            if let Some(next) = redo.pop() {
-                undo_stack.update(|stack| stack.push(components.get()));
-                components.set(next);
-                redo_stack.set(redo);
-                notification.set(Some("Redo berhasil.".to_string()));
-            } else {
-                notification.set(Some("Tidak ada aksi untuk di-redo.".to_string()));
-            }
+    let do_redo = move |_| {
+        let mut redo = redo_stack.get();
+        if let Some(next) = redo.pop() {
+            undo_stack.update(|stack| stack.push(components.get()));
+            components.set(next);
+            redo_stack.set(redo);
+            notification.set(Some("Redo berhasil.".to_string()));
+        } else {
+            notification.set(Some("Tidak ada aksi untuk di-redo.".to_string()));
         }
     };
     // State untuk export modal
@@ -116,92 +111,155 @@ pub fn App() -> impl IntoView {
     let export_template = create_rw_signal("leptos".to_string());
 
     // Custom komponen tetap ada untuk form
-    let custom_components = create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
+    let custom_components =
+        create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
 
-    let do_export = {
-        let components = components.clone();
-        let export_code = export_code.clone();
-        let export_template = export_template.clone();
-        let show_export = show_export.clone();
-        let notification = notification.clone();
-        let custom_components = custom_components.clone();
-        move |_| {
-            let preset = match export_template.get().as_str() {
-                "leptos" => ExportPreset::Plain,
-                "html" => ExportPreset::Plain,
-                _ => ExportPreset::Plain,
-            };
-            let code = match export_template.get().as_str() {
-                "leptos" => crate::builder::export::generate_leptos_code(&components.get(), &custom_components.get(), preset),
-                "html" => crate::builder::export::generate_html_code(&components.get(), &custom_components.get(), preset),
-                "markdown" => crate::builder::export::generate_markdown_code(&components.get(), &custom_components.get()),
-                "json" => serde_json::to_string_pretty(&components.get()).unwrap_or("// Export failed".to_string()),
-                _ => "// Unknown template".to_string(),
-            };
-            let msg = match export_template.get().as_str() {
-                "leptos" => "Export Leptos code berhasil!",
-                "html" => "Export HTML berhasil!",
-                "markdown" => "Export Markdown berhasil!",
-                "json" => "Export JSON berhasil!",
-                _ => "Export gagal!",
-            };
-            export_code.set(code);
-            show_export.set(true);
-            notification.set(Some(msg.to_string()));
-        }
+    let do_export = move |_| {
+        let preset = match export_template.get().as_str() {
+            "leptos" => ExportPreset::Plain,
+            "html" => ExportPreset::Plain,
+            _ => ExportPreset::Plain,
+        };
+        let code = match export_template.get().as_str() {
+            "leptos" => crate::builder::export::generate_leptos_code(
+                &components.get(),
+                &custom_components.get(),
+                preset,
+            ),
+            "html" => crate::builder::export::generate_html_code(
+                &components.get(),
+                &custom_components.get(),
+                preset,
+            ),
+            "markdown" => crate::builder::export::generate_markdown_code(
+                &components.get(),
+                &custom_components.get(),
+            ),
+            "json" => serde_json::to_string_pretty(&components.get())
+                .unwrap_or("// Export failed".to_string()),
+            _ => "// Unknown template".to_string(),
+        };
+        let msg = match export_template.get().as_str() {
+            "leptos" => "Export Leptos code berhasil!",
+            "html" => "Export HTML berhasil!",
+            "markdown" => "Export Markdown berhasil!",
+            "json" => "Export JSON berhasil!",
+            _ => "Export gagal!",
+        };
+        export_code.set(code);
+        show_export.set(true);
+        notification.set(Some(msg.to_string()));
     };
-    
+
     // Keyboard action handler
-    let keyboard_action_handler = {
-        let do_undo = do_undo.clone();
-        let do_redo = do_redo.clone();
-        let save_layout = save_layout.clone();
-        let do_export = do_export.clone();
-        let selected = selected.clone();
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let show_command_palette = show_command_palette.clone();
-        let notification = notification.clone();
-        
-        move |action: KeyboardAction| {
-            match action {
-                KeyboardAction::Undo => do_undo(leptos::ev::MouseEvent::new("click").unwrap()),
-                KeyboardAction::Redo => do_redo(leptos::ev::MouseEvent::new("click").unwrap()),
-                KeyboardAction::Save => save_layout(leptos::ev::MouseEvent::new("click").unwrap()),
-                KeyboardAction::Export => do_export(leptos::ev::MouseEvent::new("click").unwrap()),
-                KeyboardAction::OpenCommandPalette => show_command_palette.set(true),
-                KeyboardAction::Deselect => selected.set(SelectedComponent { idx: None }),
-                KeyboardAction::Delete => {
-                    if let Some(idx) = selected.get().idx {
+    let keyboard_action_handler = move |action: KeyboardAction| {
+        match action {
+            KeyboardAction::Undo => do_undo(leptos::ev::MouseEvent::new("click").unwrap()),
+            KeyboardAction::Redo => do_redo(leptos::ev::MouseEvent::new("click").unwrap()),
+            KeyboardAction::Save => save_layout(leptos::ev::MouseEvent::new("click").unwrap()),
+            KeyboardAction::Export => do_export(leptos::ev::MouseEvent::new("click").unwrap()),
+            KeyboardAction::OpenCommandPalette => show_command_palette.set(true),
+            KeyboardAction::Deselect => selected.set(SelectedComponent { idx: None }),
+            KeyboardAction::Delete => {
+                if let Some(idx) = selected.get().idx {
+                    // Push current state to undo stack
+                    undo_stack.update(|stack| stack.push(components.get()));
+                    redo_stack.set(Vec::new());
+
+                    components.update(|c| {
+                        if idx < c.len() {
+                            c.remove(idx);
+                        }
+                    });
+                    selected.set(SelectedComponent { idx: None });
+                    notification.set(Some("Komponen berhasil dihapus.".to_string()));
+                }
+            }
+            KeyboardAction::SelectAll => {
+                // Select last component (simple implementation)
+                let count = components.get().len();
+                if count > 0 {
+                    selected.set(SelectedComponent {
+                        idx: Some(count - 1),
+                    });
+                }
+            }
+            KeyboardAction::Copy => {
+                if let Some(idx) = selected.get().idx {
+                    let comps = components.get();
+                    if let Some(comp) = comps.get(idx) {
+                        // Store in browser clipboard using web-sys
+                        if let Ok(json) = serde_json::to_string(comp) {
+                            if let Some(window) = web_sys::window() {
+                                let clipboard = window.navigator().clipboard();
+                                let promise = clipboard.write_text(&json);
+                                wasm_bindgen_futures::spawn_local(async move {
+                                    let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+                                });
+                                notification
+                                    .set(Some("✂️ Komponen disalin ke clipboard!".to_string()));
+                            } else {
+                                notification.set(Some("⚠️ Window tidak tersedia.".to_string()));
+                            }
+                        } else {
+                            notification.set(Some("⚠️ Gagal serialisasi komponen.".to_string()));
+                        }
+                    }
+                } else {
+                    notification.set(Some("⚠️ Tidak ada komponen yang dipilih.".to_string()));
+                }
+            }
+            KeyboardAction::Paste => {
+                if let Some(window) = web_sys::window() {
+                    let clipboard = window.navigator().clipboard();
+                    let promise = clipboard.read_text();
+                    let components = components;
+                    let undo_stack = undo_stack;
+                    let redo_stack = redo_stack;
+                    let notification = notification;
+                    wasm_bindgen_futures::spawn_local(async move {
+                        if let Ok(result) = wasm_bindgen_futures::JsFuture::from(promise).await {
+                            if let Some(text) = result.as_string() {
+                                if let Ok(comp) = serde_json::from_str::<CanvasComponent>(&text) {
+                                    // Push current state to undo stack
+                                    undo_stack.update(|stack| stack.push(components.get()));
+                                    redo_stack.set(Vec::new());
+                                    components.update(|c| c.push(comp));
+                                    notification
+                                        .set(Some("📋 Komponen berhasil di-paste!".to_string()));
+                                } else {
+                                    notification.set(Some(
+                                        "⚠️ Clipboard tidak berisi komponen valid.".to_string(),
+                                    ));
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            KeyboardAction::Duplicate => {
+                if let Some(idx) = selected.get().idx {
+                    let comps = components.get();
+                    if let Some(comp) = comps.get(idx).cloned() {
                         // Push current state to undo stack
                         undo_stack.update(|stack| stack.push(components.get()));
                         redo_stack.set(Vec::new());
-                        
-                        components.update(|c| {
-                            if idx < c.len() {
-                                c.remove(idx);
-                            }
-                        });
-                        selected.set(SelectedComponent { idx: None });
-                        notification.set(Some("Komponen berhasil dihapus.".to_string()));
+                        components.update(|c| c.push(comp));
+                        notification.set(Some("🔄 Komponen berhasil diduplikasi!".to_string()));
                     }
+                } else {
+                    notification.set(Some("⚠️ Tidak ada komponen yang dipilih.".to_string()));
                 }
-                KeyboardAction::SelectAll => {
-                    // Select last component (simple implementation)
-                    let count = components.get().len();
-                    if count > 0 {
-                        selected.set(SelectedComponent { idx: Some(count - 1) });
-                    }
-                }
-                KeyboardAction::Copy | KeyboardAction::Paste | KeyboardAction::NewComponent | KeyboardAction::Duplicate => {
-                    // TODO: Implement these actions
-                    notification.set(Some(format!("Action {:?} not implemented yet", action)));
-                }
+            }
+            KeyboardAction::NewComponent => {
+                // Open command palette or show notification
+                notification.set(Some(
+                    "ℹ️ Drag komponen dari sidebar untuk menambahkan.".to_string(),
+                ));
             }
         }
     };
-    
+
     let close_export = move |_| show_export.set(false);
 
     // State library komponen (default + custom)
@@ -211,9 +269,12 @@ pub fn App() -> impl IntoView {
             kind: "Button".to_string(),
             template: None,
             category: "Basic".to_string(),
-            props_schema: Some(vec![
-                crate::builder::component_library::PropSchema { name: "label".to_string(), prop_type: "string".to_string(), required: true, description: None },
-            ]),
+            props_schema: Some(vec![crate::builder::component_library::PropSchema {
+                name: "label".to_string(),
+                prop_type: "string".to_string(),
+                required: true,
+                description: None,
+            }]),
             description: None,
         },
         LibraryComponent {
@@ -221,9 +282,12 @@ pub fn App() -> impl IntoView {
             kind: "Text".to_string(),
             template: None,
             category: "Basic".to_string(),
-            props_schema: Some(vec![
-                crate::builder::component_library::PropSchema { name: "content".to_string(), prop_type: "string".to_string(), required: true, description: None },
-            ]),
+            props_schema: Some(vec![crate::builder::component_library::PropSchema {
+                name: "content".to_string(),
+                prop_type: "string".to_string(),
+                required: true,
+                description: None,
+            }]),
             description: None,
         },
         LibraryComponent {
@@ -231,9 +295,12 @@ pub fn App() -> impl IntoView {
             kind: "Input".to_string(),
             template: None,
             category: "Basic".to_string(),
-            props_schema: Some(vec![
-                crate::builder::component_library::PropSchema { name: "placeholder".to_string(), prop_type: "string".to_string(), required: false, description: None },
-            ]),
+            props_schema: Some(vec![crate::builder::component_library::PropSchema {
+                name: "placeholder".to_string(),
+                prop_type: "string".to_string(),
+                required: false,
+                description: None,
+            }]),
             description: None,
         },
         LibraryComponent {
@@ -247,7 +314,13 @@ pub fn App() -> impl IntoView {
     ];
     let component_library = create_rw_signal({
         // Coba load dari localStorage
-        if let Ok(Some(json)) = web_sys::window().unwrap().local_storage().unwrap().unwrap().get_item("leptos_studio_component_library") {
+        if let Ok(Some(json)) = web_sys::window()
+            .unwrap()
+            .local_storage()
+            .unwrap()
+            .unwrap()
+            .get_item("leptos_studio_component_library")
+        {
             if let Ok(val) = serde_json::from_str(&json) {
                 val
             } else {
@@ -258,14 +331,16 @@ pub fn App() -> impl IntoView {
         }
     });
     // Auto-save component_library ke localStorage setiap berubah
-    {
-        let component_library = component_library.clone();
-        create_effect(move |_| {
-            if let Ok(json) = serde_json::to_string(&component_library.get()) {
-                _ = web_sys::window().unwrap().local_storage().unwrap().unwrap().set_item("leptos_studio_component_library", &json);
-            }
-        });
-    }
+    create_effect(move |_| {
+        if let Ok(json) = serde_json::to_string(&component_library.get()) {
+            _ = web_sys::window()
+                .unwrap()
+                .local_storage()
+                .unwrap()
+                .unwrap()
+                .set_item("leptos_studio_component_library", &json);
+        }
+    });
 
     #[cfg(debug_assertions)]
     let render_count = Rc::new(Cell::new(0));
@@ -275,7 +350,7 @@ pub fn App() -> impl IntoView {
     let render_count = Rc::new(Cell::new(0));
     #[cfg(not(debug_assertions))]
     let render_time = Rc::new(Cell::new(0f64));
-    
+
     view! {
         <DesignTokenProvider tokens=design_tokens>
             <div class="leptos-studio" style=move || {
@@ -285,28 +360,29 @@ pub fn App() -> impl IntoView {
                     Theme::Custom => custom_theme_color.get().trim_start_matches('#').to_string(),
                 };
                 let text = "333333";
-                if theme.get() == Theme::Dark { 
+                if theme.get() == Theme::Dark {
                     format!("background: #{}; color: #ffffff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg)
                 } else {
                     format!("background: #{}; color: #{}; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg, text)
                 }
             } tabindex="0">
                 // Global keyboard handler
-                <KeyboardHandler 
+                <KeyboardHandler
                     shortcuts=get_default_shortcuts()
                     on_action=keyboard_action_handler
                 />
-                
+
                 // Drag preview for enhanced drag & drop
                 <DragPreview drag_state=drag_state />
-                
+
                 // Command palette
-                <CommandPalette 
+                <CommandPalette
                     is_open=show_command_palette.read_only()
                     close=show_command_palette.write_only()
                     search=command_search
+                    on_action=keyboard_action_handler
                 />
-                
+
                 <header style="
                     background: white; 
                     padding: 1rem; 
@@ -334,13 +410,13 @@ pub fn App() -> impl IntoView {
                         </div>
                     </div>
                 </header>
-                
+
                 // Breadcrumb navigation
-                <BreadcrumbNavigation 
+                <BreadcrumbNavigation
                     components=components
                     selected=selected
                 />
-                
+
                 <div class="app-layout">
                     <aside style="width: 300px; background: white;">
                         {Sidebar(SidebarProps {

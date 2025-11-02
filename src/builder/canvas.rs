@@ -1,8 +1,7 @@
-
+use super::component_library::{LibraryComponent, Theme};
 use leptos::*;
-use super::component_library::{Theme, LibraryComponent};
+use serde::{Deserialize, Serialize};
 use web_sys::wasm_bindgen::JsCast;
-use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CanvasComponent {
@@ -31,35 +30,38 @@ pub fn canvas(
     custom_theme_color: RwSignal<String>,
     custom_components: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
-    let on_drop = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        move |ev: leptos::ev::DragEvent| {
-            let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
-            drag_ev.prevent_default();
-            if let Some(dt) = drag_ev.data_transfer() {
-                if let Ok(data) = dt.get_data("component") {
-                    if !data.is_empty() {
-                        // Push current state to undo stack
-                        undo_stack.update(|stack| stack.push(components.get()));
-                        redo_stack.set(Vec::new());
-                        components.update(|c| {
-                            if let Some(rest) = data.strip_prefix("Custom::") {
-                                let mut parts = rest.splitn(2, "::");
-                                let name = parts.next().unwrap_or("").to_string();
-                                c.push(CanvasComponent::Custom { name });
-                            } else {
-                                match data.as_str() {
-                                    "Button" => c.push(CanvasComponent::Button { label: "Button".to_string() }),
-                                    "Text" => c.push(CanvasComponent::Text { content: "Text".to_string() }),
-                                    "Input" => c.push(CanvasComponent::Input { placeholder: "Input".to_string() }),
-                                    "Container" => c.push(CanvasComponent::Container { children: vec![] }),
-                                    _ => {}
+    let on_drop = move |ev: leptos::ev::DragEvent| {
+        let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
+        drag_ev.prevent_default();
+        if let Some(dt) = drag_ev.data_transfer() {
+            if let Ok(data) = dt.get_data("component") {
+                if !data.is_empty() {
+                    // Push current state to undo stack
+                    undo_stack.update(|stack| stack.push(components.get()));
+                    redo_stack.set(Vec::new());
+                    components.update(|c| {
+                        if let Some(rest) = data.strip_prefix("Custom::") {
+                            let mut parts = rest.splitn(2, "::");
+                            let name = parts.next().unwrap_or("").to_string();
+                            c.push(CanvasComponent::Custom { name });
+                        } else {
+                            match data.as_str() {
+                                "Button" => c.push(CanvasComponent::Button {
+                                    label: "Button".to_string(),
+                                }),
+                                "Text" => c.push(CanvasComponent::Text {
+                                    content: "Text".to_string(),
+                                }),
+                                "Input" => c.push(CanvasComponent::Input {
+                                    placeholder: "Input".to_string(),
+                                }),
+                                "Container" => {
+                                    c.push(CanvasComponent::Container { children: vec![] })
                                 }
+                                _ => {}
                             }
-                        });
-                    }
+                        }
+                    });
                 }
             }
         }
@@ -74,25 +76,32 @@ pub fn canvas(
     fn render_component(
         comp: CanvasComponent,
         parent_idx: Option<usize>,
-        selected: RwSignal<SelectedComponent>,
+        _selected: RwSignal<SelectedComponent>,
         components: RwSignal<Vec<CanvasComponent>>,
         undo_stack: RwSignal<Vec<Vec<CanvasComponent>>>,
         redo_stack: RwSignal<Vec<Vec<CanvasComponent>>>,
-    custom_components: RwSignal<Vec<LibraryComponent>>,
+        custom_components: RwSignal<Vec<LibraryComponent>>,
     ) -> leptos::View {
         match comp {
-            CanvasComponent::Button { label } => view! { <div><button>{label}</button></div> }.into_view(),
-            CanvasComponent::Text { content } => view! { <div><span>{content}</span></div> }.into_view(),
-            CanvasComponent::Input { placeholder } => view! { <div><input placeholder=placeholder /></div> }.into_view(),
+            CanvasComponent::Button { label } => {
+                view! { <div><button>{label}</button></div> }.into_view()
+            }
+            CanvasComponent::Text { content } => {
+                view! { <div><span>{content}</span></div> }.into_view()
+            }
+            CanvasComponent::Input { placeholder } => {
+                view! { <div><input placeholder=placeholder /></div> }.into_view()
+            }
             CanvasComponent::Custom { name } => {
-                let template = custom_components.get().iter().find(|c| c.name == *name).and_then(|c| c.template.clone()).unwrap_or("<i>Template not found</i>".to_string());
+                let template = custom_components
+                    .get()
+                    .iter()
+                    .find(|c| c.name == *name)
+                    .and_then(|c| c.template.clone())
+                    .unwrap_or("<i>Template not found</i>".to_string());
                 view! { <div><span style="color:#7b1fa2;">Custom: {name.clone()}</span><div>{template}</div></div> }.into_view()
-            },
+            }
             CanvasComponent::Container { children } => {
-                let components = components.clone();
-                let undo_stack = undo_stack.clone();
-                let redo_stack = redo_stack.clone();
-                let custom_components = custom_components.clone();
                 let on_drag_over = move |ev: leptos::ev::DragEvent| {
                     let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
                     drag_ev.prevent_default();
@@ -108,17 +117,34 @@ pub fn canvas(
                                     undo_stack.update(|stack| stack.push(components.get()));
                                     redo_stack.set(Vec::new());
                                     components.update(|c| {
-                                        if let CanvasComponent::Container { children } = &mut c[idx] {
+                                        if let CanvasComponent::Container { children } = &mut c[idx]
+                                        {
                                             if let Some(rest) = data.strip_prefix("Custom::") {
                                                 let mut parts = rest.splitn(2, "::");
                                                 let name = parts.next().unwrap_or("").to_string();
                                                 children.push(CanvasComponent::Custom { name });
                                             } else {
                                                 match data.as_str() {
-                                                    "Button" => children.push(CanvasComponent::Button { label: "Button".to_string() }),
-                                                    "Text" => children.push(CanvasComponent::Text { content: "Text".to_string() }),
-                                                    "Input" => children.push(CanvasComponent::Input { placeholder: "Input".to_string() }),
-                                                    "Container" => children.push(CanvasComponent::Container { children: vec![] }),
+                                                    "Button" => {
+                                                        children.push(CanvasComponent::Button {
+                                                            label: "Button".to_string(),
+                                                        })
+                                                    }
+                                                    "Text" => {
+                                                        children.push(CanvasComponent::Text {
+                                                            content: "Text".to_string(),
+                                                        })
+                                                    }
+                                                    "Input" => {
+                                                        children.push(CanvasComponent::Input {
+                                                            placeholder: "Input".to_string(),
+                                                        })
+                                                    }
+                                                    "Container" => {
+                                                        children.push(CanvasComponent::Container {
+                                                            children: vec![],
+                                                        })
+                                                    }
                                                     _ => {}
                                                 }
                                             }
@@ -136,7 +162,7 @@ pub fn canvas(
                             each=move || children.clone().into_iter().enumerate()
                             key=|(i, _)| *i
                             children=move |(_i, child)| {
-                                render_component(child, None, selected, components, undo_stack, redo_stack, custom_components.clone())
+                                render_component(child, None, _selected, components, undo_stack, redo_stack, custom_components)
                             }
                         />
                     </div>
@@ -171,7 +197,7 @@ pub fn canvas(
                     let selected_signal = selected;
                     let is_selected = move || selected_signal.get().idx == Some(idx);
                     let onclick = move |_| selected_signal.set(SelectedComponent { idx: Some(idx) });
-                    let custom_components = custom_components.clone();
+                    let custom_components = custom_components;
                     view! {
                         <div class:canvas-selected=is_selected on:click=onclick>
                             {render_component(comp.clone(), Some(idx), selected, components, undo_stack, redo_stack, custom_components)}

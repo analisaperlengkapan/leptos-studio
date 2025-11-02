@@ -18,7 +18,7 @@ pub enum Theme {
     Custom,
 }
 // Shared definition for LibraryComponent used in component library management
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LibraryComponent {
