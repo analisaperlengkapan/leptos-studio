@@ -38,7 +38,7 @@ pub fn sidebar(
     let set_theme = move |t: Theme| theme.set(t);
     // Handler ganti warna custom theme
     let set_custom_theme_color = {
-        let custom_theme_color = custom_theme_color.clone();
+        let custom_theme_color = custom_theme_color;
         move |color: String| custom_theme_color.set(color)
     };
     // State untuk form tambah komponen
@@ -96,7 +96,7 @@ pub fn sidebar(
         show_add_form.set(false);
         notification.set(Some(format!("✅ Komponen '{}' berhasil ditambahkan!", name)));
         // Clear notification after 2.5s
-        let notification = notification.clone();
+        let notification = notification;
         wasm_bindgen_futures::spawn_local(async move {
             gloo_timers::future::TimeoutFuture::new(2500).await;
             notification.set(None);
@@ -112,7 +112,7 @@ pub fn sidebar(
             }
         });
         notification.set(Some(format!("🗑️ Komponen '{}' dihapus.", name)));
-        let notification = notification.clone();
+        let notification = notification;
         wasm_bindgen_futures::spawn_local(async move {
             gloo_timers::future::TimeoutFuture::new(2000).await;
             notification.set(None);
@@ -120,10 +120,10 @@ pub fn sidebar(
     };
     // Handler mulai edit custom component
     let start_edit_custom_component = {
-        let custom_components = custom_components.clone();
-        let edit_name = edit_name.clone();
-        let edit_template = edit_template.clone();
-        let editing_idx = editing_idx.clone();
+        let custom_components = custom_components;
+        let edit_name = edit_name;
+        let edit_template = edit_template;
+        let editing_idx = editing_idx;
         move |idx: usize| {
             if let Some(c) = custom_components.get().get(idx) {
                 let name = &c.name;
@@ -137,12 +137,12 @@ pub fn sidebar(
     };
     // Handler simpan edit custom component
     let save_edit_custom_component = {
-    let custom_components = custom_components.clone();
-        let component_library = component_library.clone();
-        let edit_name = edit_name.clone();
-        let edit_template = edit_template.clone();
-        let editing_idx = editing_idx.clone();
-        let error_msg = error_msg.clone();
+    let custom_components = custom_components;
+        let component_library = component_library;
+        let edit_name = edit_name;
+        let edit_template = edit_template;
+        let editing_idx = editing_idx;
+        let error_msg = error_msg;
     move |_| {
             let idx = match editing_idx.get() { Some(i) => i, None => return };
             let name = edit_name.get().trim().to_string();
@@ -185,7 +185,7 @@ pub fn sidebar(
             editing_idx.set(None);
             error_msg.set(String::new());
             notification.set(Some(format!("✏️ Komponen '{}' berhasil diubah!", name)));
-            let notification = notification.clone();
+            let notification = notification;
             wasm_bindgen_futures::spawn_local(async move {
                 gloo_timers::future::TimeoutFuture::new(2000).await;
                 notification.set(None);

@@ -23,31 +23,19 @@ pub fn GitPanel() -> impl IntoView {
     let do_commit = move |_| {
         set_busy.set(true);
         let msg = commit_msg.get();
-        let set_status = set_status.clone();
-        let set_busy = set_busy.clone();
+        let set_status = set_status;
+        let set_busy = set_busy;
         leptos::spawn_local(async move {
-            match Request::post("/api/git/commit").body(msg).expect("Failed to build request").send().await {
-                Ok(r) => match r.text().await {
-                    Ok(txt) => set_status.set(txt),
-                    Err(_) => {},
-                },
-                Err(_) => {},
-            }
+            if let Ok(r) = Request::post("/api/git/commit").body(msg).expect("Failed to build request").send().await { if let Ok(txt) = r.text().await { set_status.set(txt) } }
             set_busy.set(false);
         });
     };
     let do_log = move |_| {
         set_busy.set(true);
-        let set_log = set_log.clone();
-        let set_busy = set_busy.clone();
+        let set_log = set_log;
+        let set_busy = set_busy;
         leptos::spawn_local(async move {
-            match Request::get("/api/git/log").send().await {
-                Ok(r) => match r.text().await {
-                    Ok(txt) => set_log.set(txt),
-                    Err(_) => {},
-                },
-                Err(_) => {},
-            }
+            if let Ok(r) = Request::get("/api/git/log").send().await { if let Ok(txt) = r.text().await { set_log.set(txt) } }
             set_busy.set(false);
         });
     };

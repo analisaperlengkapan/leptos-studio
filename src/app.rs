@@ -53,10 +53,10 @@ pub fn App() -> impl IntoView {
         }
     };
     let load_layout = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let notification = notification.clone();
+        let components = components;
+        let undo_stack = undo_stack;
+        let redo_stack = redo_stack;
+        let notification = notification;
         move |_| {
             if let Ok(Some(json)) = web_sys::window().unwrap().local_storage().unwrap().unwrap().get_item("leptos_studio_layout") {
                 if let Ok(data) = serde_json::from_str(&json) {
@@ -75,10 +75,10 @@ pub fn App() -> impl IntoView {
     };
     // Undo handler
     let do_undo = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let notification = notification.clone();
+        let components = components;
+        let undo_stack = undo_stack;
+        let redo_stack = redo_stack;
+        let notification = notification;
         move |_| {
             let mut undo = undo_stack.get();
             if let Some(prev) = undo.pop() {
@@ -93,10 +93,10 @@ pub fn App() -> impl IntoView {
     };
     // Redo handler
     let do_redo = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let notification = notification.clone();
+        let components = components;
+        let undo_stack = undo_stack;
+        let redo_stack = redo_stack;
+        let notification = notification;
         move |_| {
             let mut redo = redo_stack.get();
             if let Some(next) = redo.pop() {
@@ -119,12 +119,12 @@ pub fn App() -> impl IntoView {
     let custom_components = create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
 
     let do_export = {
-        let components = components.clone();
-        let export_code = export_code.clone();
-        let export_template = export_template.clone();
-        let show_export = show_export.clone();
-        let notification = notification.clone();
-        let custom_components = custom_components.clone();
+        let components = components;
+        let export_code = export_code;
+        let export_template = export_template;
+        let show_export = show_export;
+        let notification = notification;
+        let custom_components = custom_components;
         move |_| {
             let preset = match export_template.get().as_str() {
                 "leptos" => ExportPreset::Plain,
@@ -153,16 +153,16 @@ pub fn App() -> impl IntoView {
     
     // Keyboard action handler
     let keyboard_action_handler = {
-        let do_undo = do_undo.clone();
-        let do_redo = do_redo.clone();
-        let save_layout = save_layout.clone();
-        let do_export = do_export.clone();
-        let selected = selected.clone();
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
-        let show_command_palette = show_command_palette.clone();
-        let notification = notification.clone();
+        let do_undo = do_undo;
+        let do_redo = do_redo;
+        let save_layout = save_layout;
+        let do_export = do_export;
+        let selected = selected;
+        let components = components;
+        let undo_stack = undo_stack;
+        let redo_stack = redo_stack;
+        let show_command_palette = show_command_palette;
+        let notification = notification;
         
         move |action: KeyboardAction| {
             match action {
@@ -259,7 +259,7 @@ pub fn App() -> impl IntoView {
     });
     // Auto-save component_library ke localStorage setiap berubah
     {
-        let component_library = component_library.clone();
+        let component_library = component_library;
         create_effect(move |_| {
             if let Ok(json) = serde_json::to_string(&component_library.get()) {
                 _ = web_sys::window().unwrap().local_storage().unwrap().unwrap().set_item("leptos_studio_component_library", &json);

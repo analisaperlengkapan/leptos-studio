@@ -100,7 +100,7 @@ pub fn create_drag_handlers(
         
         if let Some(dt) = drag_ev.data_transfer() {
             _ = dt.set_data("component", &component_type_start);
-            _ = dt.set_effect_allowed("copy");
+            dt.set_effect_allowed("copy");
             
             // Set custom drag image (invisible)
             if config.enable_ghost {
@@ -110,7 +110,7 @@ pub fn create_drag_handlers(
                         _ = img.style().set_property("width", "1px");
                         _ = img.style().set_property("height", "1px");
                         _ = img.style().set_property("background", "transparent");
-                        _ = dt.set_drag_image(&img, 0, 0);
+                        dt.set_drag_image(&img, 0, 0);
                     }
                 }
             }

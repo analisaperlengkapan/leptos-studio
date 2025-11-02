@@ -32,9 +32,9 @@ pub fn canvas(
     custom_components: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
     let on_drop = {
-        let components = components.clone();
-        let undo_stack = undo_stack.clone();
-        let redo_stack = redo_stack.clone();
+        let components = components;
+        let undo_stack = undo_stack;
+        let redo_stack = redo_stack;
         move |ev: leptos::ev::DragEvent| {
             let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
             drag_ev.prevent_default();
@@ -89,10 +89,10 @@ pub fn canvas(
                 view! { <div><span style="color:#7b1fa2;">Custom: {name.clone()}</span><div>{template}</div></div> }.into_view()
             },
             CanvasComponent::Container { children } => {
-                let components = components.clone();
-                let undo_stack = undo_stack.clone();
-                let redo_stack = redo_stack.clone();
-                let custom_components = custom_components.clone();
+                let components = components;
+                let undo_stack = undo_stack;
+                let redo_stack = redo_stack;
+                let custom_components = custom_components;
                 let on_drag_over = move |ev: leptos::ev::DragEvent| {
                     let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
                     drag_ev.prevent_default();
@@ -136,7 +136,7 @@ pub fn canvas(
                             each=move || children.clone().into_iter().enumerate()
                             key=|(i, _)| *i
                             children=move |(_i, child)| {
-                                render_component(child, None, selected, components, undo_stack, redo_stack, custom_components.clone())
+                                render_component(child, None, selected, components, undo_stack, redo_stack, custom_components)
                             }
                         />
                     </div>
@@ -171,7 +171,7 @@ pub fn canvas(
                     let selected_signal = selected;
                     let is_selected = move || selected_signal.get().idx == Some(idx);
                     let onclick = move |_| selected_signal.set(SelectedComponent { idx: Some(idx) });
-                    let custom_components = custom_components.clone();
+                    let custom_components = custom_components;
                     view! {
                         <div class:canvas-selected=is_selected on:click=onclick>
                             {render_component(comp.clone(), Some(idx), selected, components, undo_stack, redo_stack, custom_components)}

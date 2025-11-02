@@ -93,7 +93,8 @@ pub fn BreadcrumbNavigation(
                             {move || if index > 0 { 
                                 view! { <span class="breadcrumb-separator">"/"</span> }.into_view()
                             } else { 
-                                view! { <></> }.into_view()
+                                view! { <></> };
+                                ().into_view()
                             }}
                             
                             <button
@@ -129,7 +130,8 @@ pub fn BreadcrumbNavigation(
                                             ">{item_name}</span>
                                         }.into_view()
                                     } else {
-                                        view! { <></> }.into_view()
+                                        view! { <></> };
+                                        ().into_view()
                                     }
                                 }}
                             </button>

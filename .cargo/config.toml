@@ -1,2 +1,4 @@
 [target.'cfg(all())']
-rustflags = ["-Dleptos_print_stdout"]
+# Removed leptos_print_stdout lint - not available in Leptos 0.6
+# Use cargo-dylint with leptos-lints for Leptos-specific lints
+rustflags = []

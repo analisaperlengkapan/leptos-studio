@@ -1,0 +1,48 @@
+[[hooks]]
+stage = "pre_build"
+command = "sh"
+command_arguments = ["-c", "echo 'Starting Leptos Studio build...'"]
+
+[build]
+# The target directory for build artifacts
+target = "dist"
+# The public URL from which assets are served
+public_url = "/"
+# Enable release optimizations
+release = true
+# Enable minification
+minify = "on"
+# Don't include source maps in production builds
+filehash = true
+
+[watch]
+# Files to watch for changes
+watch = ["src", "style.css", "index.html"]
+# Ignore patterns
+ignore = ["dist", "target", ".git"]
+
+[serve]
+# Address to serve on
+address = "127.0.0.1"
+# Port to serve on
+port = 8080
+# Open browser automatically
+open = false
+# Enable WebSocket for auto-reload
+ws_protocol = "ws"
+
+[clean]
+# Directories to clean
+dist = "dist"
+cargo = false
+
+# WASM optimization settings
+[build.target]
+# Use wasm32-unknown-unknown target
+wasm = true
+
+# Production optimizations
+[[hooks]]
+stage = "post_build"
+command = "sh"
+command_arguments = ["-c", "echo 'Build complete! Artifacts in dist/'"]

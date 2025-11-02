@@ -28,7 +28,7 @@ fn fuzzy_match(text: &str, pattern: &str) -> Option<i32> {
     let mut score = 0;
     let mut consecutive_matches = 0;
     
-    for (_text_idx, &text_char) in text_chars.iter().enumerate() {
+    for &text_char in text_chars.iter() {
         if pattern_idx < pattern_chars.len() && text_char == pattern_chars[pattern_idx] {
             pattern_idx += 1;
             consecutive_matches += 1;
