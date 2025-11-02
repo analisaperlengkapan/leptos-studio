@@ -1,6 +1,6 @@
-use leptos::*;
 use super::canvas::{CanvasComponent, SelectedComponent};
-use super::component_library::{LibraryComponent};
+use super::component_library::LibraryComponent;
+use leptos::*;
 
 #[component]
 pub fn PropertyEditor(

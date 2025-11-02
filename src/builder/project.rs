@@ -1,7 +1,7 @@
 // ...existing code...
-use serde::{Serialize, Deserialize};
 use crate::builder::canvas::CanvasComponent;
 use crate::builder::component_library::LibraryComponent;
+use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ProjectFile {
@@ -11,6 +11,9 @@ pub struct ProjectFile {
 
 impl ProjectFile {
     pub fn new(layout: Vec<CanvasComponent>, component_library: Vec<LibraryComponent>) -> Self {
-        Self { layout, component_library }
+        Self {
+            layout,
+            component_library,
+        }
     }
 }

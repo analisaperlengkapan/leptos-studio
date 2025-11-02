@@ -1,10 +1,10 @@
 //! Command Palette Component
-//! 
+//!
 //! VS Code-style command palette for quick access to all application commands.
 //! Features fuzzy search, keyboard navigation, and command execution.
 
-use leptos::*;
 use crate::builder::keyboard::KeyboardAction;
+use leptos::*;
 
 /// Represents a single command in the command palette
 #[derive(Clone, Debug, PartialEq)]
@@ -17,7 +17,7 @@ pub struct Command {
 
 impl Command {
     /// Create a new command
-    /// 
+    ///
     /// # Arguments
     /// * `id` - Unique identifier for the command
     /// * `title` - Display title shown in palette
@@ -34,30 +34,30 @@ impl Command {
 }
 
 /// Fuzzy match algorithm for searching commands
-/// 
+///
 /// Returns a score if the pattern matches the text, with higher scores
 /// for consecutive character matches.
-/// 
+///
 /// # Arguments
 /// * `text` - The text to search in
 /// * `pattern` - The search pattern
-/// 
+///
 /// # Returns
 /// * `Some(score)` if pattern matches, `None` otherwise
 fn fuzzy_match(text: &str, pattern: &str) -> Option<i32> {
     let text_chars: Vec<char> = text.chars().collect();
     let pattern_chars: Vec<char> = pattern.chars().collect();
-    
+
     let mut pattern_idx = 0;
     let mut score = 0;
     let mut consecutive_matches = 0;
-    
+
     for &text_char in text_chars.iter() {
         if pattern_idx < pattern_chars.len() && text_char == pattern_chars[pattern_idx] {
             pattern_idx += 1;
             consecutive_matches += 1;
             score += consecutive_matches * 10;
-            
+
             if pattern_idx == pattern_chars.len() {
                 return Some(score);
             }
@@ -65,12 +65,12 @@ fn fuzzy_match(text: &str, pattern: &str) -> Option<i32> {
             consecutive_matches = 0;
         }
     }
-    
+
     None
 }
 
 /// Get all available commands
-/// 
+///
 /// Returns the complete list of commands available in the command palette,
 /// organized by category (Edit, File, Components, Selection).
 fn get_commands() -> Vec<Command> {
@@ -80,39 +80,54 @@ fn get_commands() -> Vec<Command> {
         Command::new("redo", "Redo", "Edit", KeyboardAction::Redo),
         // Delete
         Command::new("delete", "Delete Selected", "Edit", KeyboardAction::Delete),
-        // Copy/Paste  
+        // Copy/Paste
         Command::new("copy", "Copy", "Edit", KeyboardAction::Copy),
         // Paste
         Command::new("paste", "Paste", "Edit", KeyboardAction::Paste),
         // Selection
-        Command::new("select_all", "Select All", "Selection", KeyboardAction::SelectAll),
+        Command::new(
+            "select_all",
+            "Select All",
+            "Selection",
+            KeyboardAction::SelectAll,
+        ),
         // Deselect
-        Command::new("deselect", "Deselect All", "Selection", KeyboardAction::Deselect),
+        Command::new(
+            "deselect",
+            "Deselect All",
+            "Selection",
+            KeyboardAction::Deselect,
+        ),
         // File operations
         Command::new("save", "Save Project", "File", KeyboardAction::Save),
         // Export
         Command::new("export", "Export Code", "File", KeyboardAction::Export),
         // Components
-        Command::new("new_component", "Add Component", "Components", KeyboardAction::NewComponent),
+        Command::new(
+            "new_component",
+            "Add Component",
+            "Components",
+            KeyboardAction::NewComponent,
+        ),
     ]
 }
 
 /// VS Code-style Command Palette Component
-/// 
+///
 /// A modal overlay that provides quick access to all application commands
 /// through fuzzy search and keyboard navigation.
-/// 
+///
 /// # Features
 /// * Fuzzy search across command titles and categories
 /// * Keyboard navigation (Arrow Up/Down, Enter, Escape)
 /// * Mouse hover selection
 /// * Command execution through callback
-/// 
+///
 /// # Keyboard Shortcuts
 /// * `↑/↓` - Navigate commands
 /// * `Enter` - Execute selected command
 /// * `Escape` - Close palette
-/// 
+///
 /// # Props
 /// * `is_open` - Read signal controlling visibility
 /// * `close` - Write signal to close the palette
@@ -124,7 +139,7 @@ pub fn CommandPalette<F>(
     close: WriteSignal<bool>,
     #[prop(into)] search: RwSignal<String>,
     on_action: F,
-) -> impl IntoView 
+) -> impl IntoView
 where
     F: Fn(KeyboardAction) + 'static + Clone,
 {
@@ -159,7 +174,7 @@ where
 
     view! {
         <Show when=move || is_open.get()>
-            <div 
+            <div
                 class="command-palette-backdrop"
                 style="
                     position: fixed;
@@ -176,7 +191,7 @@ where
                 "
                 on:click=move |_| close.set(false)
             >
-                <div 
+                <div
                     class="command-palette"
                     style="
                         background: var(--color-surface);
@@ -246,7 +261,7 @@ where
                             "
                         />
                     </div>
-                    
+
                     <div class="command-palette-results" style="
                         max-height: 400px;
                         overflow-y: auto;
@@ -258,7 +273,7 @@ where
                             children=move |(idx, command)| {
                                 let is_selected = move || selected_index.get() == idx;
                                 let command_clone = command.clone();
-                                
+
                                 view! {
                                     <div
                                         class="command-palette-item"
@@ -301,7 +316,7 @@ where
                                 }
                             }
                         />
-                        
+
                         <Show when=move || filtered_commands.get().is_empty()>
                             <div style="
                                 padding: 24px;

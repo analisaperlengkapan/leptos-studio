@@ -1,5 +1,5 @@
-use leptos::*;
 use gloo_net::http::Request;
+use leptos::*;
 
 #[component]
 pub fn GitPanel() -> impl IntoView {
@@ -26,7 +26,16 @@ pub fn GitPanel() -> impl IntoView {
         let set_status = set_status;
         let set_busy = set_busy;
         leptos::spawn_local(async move {
-            if let Ok(r) = Request::post("/api/git/commit").body(msg).expect("Failed to build request").send().await { if let Ok(txt) = r.text().await { set_status.set(txt) } }
+            if let Ok(r) = Request::post("/api/git/commit")
+                .body(msg)
+                .expect("Failed to build request")
+                .send()
+                .await
+            {
+                if let Ok(txt) = r.text().await {
+                    set_status.set(txt)
+                }
+            }
             set_busy.set(false);
         });
     };
@@ -35,7 +44,11 @@ pub fn GitPanel() -> impl IntoView {
         let set_log = set_log;
         let set_busy = set_busy;
         leptos::spawn_local(async move {
-            if let Ok(r) = Request::get("/api/git/log").send().await { if let Ok(txt) = r.text().await { set_log.set(txt) } }
+            if let Ok(r) = Request::get("/api/git/log").send().await {
+                if let Ok(txt) = r.text().await {
+                    set_log.set(txt)
+                }
+            }
             set_busy.set(false);
         });
     };

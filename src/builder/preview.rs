@@ -1,9 +1,8 @@
-
-use leptos::*;
 use super::canvas::CanvasComponent;
-use crate::builder::component_library::LibraryComponent;
-use super::component_library::Theme;
 use super::component_library::ResponsiveMode;
+use super::component_library::Theme;
+use crate::builder::component_library::LibraryComponent;
+use leptos::*;
 
 #[component]
 pub fn Preview(

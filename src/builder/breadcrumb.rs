@@ -1,5 +1,5 @@
-use leptos::*;
 use crate::builder::canvas::{CanvasComponent, SelectedComponent};
+use leptos::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct BreadcrumbItem {
@@ -19,7 +19,7 @@ impl BreadcrumbItem {
             _ => "📄",
         }
     }
-    
+
     pub fn display_name(&self) -> String {
         match &self.index {
             Some(idx) => format!("{} #{}", self.component_type, idx + 1),
@@ -31,7 +31,7 @@ impl BreadcrumbItem {
 fn component_type(component: &CanvasComponent) -> String {
     match component {
         CanvasComponent::Button { .. } => "Button".to_string(),
-        CanvasComponent::Text { .. } => "Text".to_string(), 
+        CanvasComponent::Text { .. } => "Text".to_string(),
         CanvasComponent::Input { .. } => "Input".to_string(),
         CanvasComponent::Container { .. } => "Container".to_string(),
         CanvasComponent::Custom { .. } => "Custom".to_string(),
@@ -54,13 +54,11 @@ pub fn BreadcrumbNavigation(
     selected: RwSignal<SelectedComponent>,
 ) -> impl IntoView {
     let breadcrumbs = create_memo(move |_| {
-        let mut items = vec![
-            BreadcrumbItem {
-                name: "Canvas".to_string(),
-                component_type: "Canvas".to_string(),
-                index: None,
-            }
-        ];
+        let mut items = vec![BreadcrumbItem {
+            name: "Canvas".to_string(),
+            component_type: "Canvas".to_string(),
+            index: None,
+        }];
 
         if let Some(idx) = selected.get().idx {
             if let Some(component) = components.get().get(idx) {
@@ -87,16 +85,16 @@ pub fn BreadcrumbNavigation(
                 children=move |(index, item)| {
                     let is_last = move || index == breadcrumbs.get().len() - 1;
                     let item_clone = item.clone();
-                    
+
                     view! {
                         <>
-                            {move || if index > 0 { 
+                            {move || if index > 0 {
                                 view! { <span class="breadcrumb-separator">"/"</span> }.into_view()
-                            } else { 
+                            } else {
                                 view! { <></> };
                                 ().into_view()
                             }}
-                            
+
                             <button
                                 class="breadcrumb-item"
                                 disabled=is_last()
