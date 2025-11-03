@@ -351,21 +351,24 @@ pub fn App() -> impl IntoView {
     #[cfg(not(debug_assertions))]
     let render_time = Rc::new(Cell::new(0f64));
 
+    // Create a memo for the style to avoid Send/Sync issues with signals in closures
+    let app_style = Memo::new(move |_| {
+        let bg = match theme.get() {
+            Theme::Light => "ffffff".to_string(),
+            Theme::Dark => "1a1a1a".to_string(),
+            Theme::Custom => custom_theme_color.get().trim_start_matches('#').to_string(),
+        };
+        let text = "333333";
+        if theme.get() == Theme::Dark {
+            format!("background: #{}; color: #ffffff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg)
+        } else {
+            format!("background: #{}; color: #{}; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg, text)
+        }
+    });
+
     view! {
         <DesignTokenProvider tokens=design_tokens>
-            <div class="leptos-studio" style=move || {
-                let bg = match theme.get() {
-                    Theme::Light => "ffffff".to_string(),
-                    Theme::Dark => "1a1a1a".to_string(),
-                    Theme::Custom => custom_theme_color.get().trim_start_matches('#').to_string(),
-                };
-                let text = "333333";
-                if theme.get() == Theme::Dark {
-                    format!("background: #{}; color: #ffffff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg)
-                } else {
-                    format!("background: #{}; color: #{}; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg, text)
-                }
-            } tabindex="0">
+            <div class="leptos-studio" style=move || app_style.get() tabindex="0">
                 // Global keyboard handler
                 <KeyboardHandler
                     shortcuts=get_default_shortcuts()
