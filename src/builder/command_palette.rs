@@ -169,7 +169,7 @@ where
         set_selected_index.set(0);
     });
 
-    // Handle keyboard navigation
+    // Clone on_action for use in multiple closures
     let on_action_clone = on_action.clone();
 
     view! {
