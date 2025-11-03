@@ -175,7 +175,7 @@ Kontribusi sangat diterima! Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk pandu
 
 ## 📝 Lisensi
 
-Proyek ini dilisensikan di bawah MIT License - lihat file [LICENSE](LICENSE) untuk detail.
+Proyek ini dilisensikan di bawah Apache 2.0 License - lihat file [LICENSE](LICENSE) untuk detail.
 
 ## 🏭 Production Readiness
 
