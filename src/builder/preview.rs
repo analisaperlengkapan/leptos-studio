@@ -2,7 +2,7 @@ use super::canvas::CanvasComponent;
 use super::component_library::ResponsiveMode;
 use super::component_library::Theme;
 use crate::builder::component_library::LibraryComponent;
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn Preview(
@@ -28,14 +28,14 @@ pub fn Preview(
                 key=|(idx, _)| *idx
                 children=move |(_idx, comp)| {
                     match comp {
-                        CanvasComponent::Button { label } => view! { <div><button style="margin:0.5rem;">{label.clone()}</button></div> },
-                        CanvasComponent::Text { content } => view! { <div><span style="margin:0.5rem;">{content.clone()}</span></div> },
-                        CanvasComponent::Input { placeholder } => view! { <div><input placeholder=placeholder.clone() style="margin:0.5rem;"/></div> },
+                        CanvasComponent::Button { label } => view! { <div><button style="margin:0.5rem;">{label.clone()}</button></div> }.into_any(),
+                        CanvasComponent::Text { content } => view! { <div><span style="margin:0.5rem;">{content.clone()}</span></div> }.into_any(),
+                        CanvasComponent::Input { placeholder } => view! { <div><input placeholder=placeholder.clone() style="margin:0.5rem;"/></div> }.into_any(),
                         CanvasComponent::Custom { name } => {
                             let template = custom_components.get().iter().find(|c| c.name == *name).and_then(|c| c.template.clone()).unwrap_or_else(|| "<i>Template not found</i>".to_string());
-                            view! { <div style="color:#7b1fa2;margin:0.5rem;">Custom: {name.clone()}<div inner_html=template.clone()></div></div> }
+                            view! { <div style="color:#7b1fa2;margin:0.5rem;">Custom: {name.clone()}<div inner_html=template.clone()></div></div> }.into_any()
                         },
-                        CanvasComponent::Container { .. } => view! { <div class="container" style="margin:0.5rem;">Container</div> },
+                        CanvasComponent::Container { .. } => view! { <div class="container" style="margin:0.5rem;">Container</div> }.into_any(),
                     }
                 }
             />

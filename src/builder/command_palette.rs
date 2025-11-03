@@ -4,7 +4,7 @@
 //! Features fuzzy search, keyboard navigation, and command execution.
 
 use crate::builder::keyboard::KeyboardAction;
-use leptos::*;
+use leptos::prelude::*;
 
 /// Represents a single command in the command palette
 #[derive(Clone, Debug, PartialEq)]
@@ -169,8 +169,7 @@ where
         set_selected_index.set(0);
     });
 
-    // Handle keyboard navigation with stored action
-    let stored_on_action = store_value(on_action);
+    // Handle keyboard navigation
 
     view! {
         <Show when=move || is_open.get()>
@@ -226,7 +225,7 @@ where
                                 ev.prevent_default();
                                 let commands = filtered_commands.get();
                                 if let Some(command) = commands.get(selected_index.get()) {
-                                    stored_on_action.with_value(|action| action(command.action.clone()));
+                                    on_action.clone()(command.action.clone());
                                     close.set(false);
                                 }
                             }
@@ -294,8 +293,9 @@ where
                                         )
                                         on:click={
                                             let command = command_clone.clone();
+                                            let on_action = on_action.clone();
                                             move |_| {
-                                                stored_on_action.with_value(|action| action(command.action.clone()));
+                                                on_action.clone()(command.action.clone());
                                                 close.set(false);
                                             }
                                         }

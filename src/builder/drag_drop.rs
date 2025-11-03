@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
 #[derive(Clone, Debug, PartialEq)]

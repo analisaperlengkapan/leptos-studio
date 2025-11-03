@@ -4,7 +4,7 @@ use web_sys::window;
 use super::component_library::{LibraryComponent, ResponsiveMode, Theme};
 use crate::builder::debug_panel::DebugPanel;
 use crate::builder::git_panel::GitPanel;
-use leptos::*;
+use leptos::prelude::*;
 // ...existing code...
 
 #[component]
@@ -254,8 +254,8 @@ pub fn sidebar(
                             <label for="custom-theme-color"><b>Sidebar Color:</b></label>
                             <input id="custom-theme-color" type="color" prop:value=custom_theme_color on:input=move |ev| set_custom_theme_color(event_target_value(&ev)) style="margin-left:8px;vertical-align:middle;" />
                         </div>
-                    }
-                } else { view! { <div></div> } }}
+                    }.into_any()
+                } else { view! { <div style="display:none;"></div> }.into_any() }}
             </div>
             <div style="margin-bottom:8px;">
                 <b>Responsive:</b> {format!("{:?}", responsive_mode.get())}
@@ -299,8 +299,8 @@ pub fn sidebar(
                                             <input placeholder="Nama Komponen" prop:value=edit_name on:input=move |ev| edit_name.set(event_target_value(&ev)) style="margin-bottom:4px;"/>
                                             <textarea placeholder="Template HTML" prop:value=edit_template on:input=move |ev| edit_template.set(event_target_value(&ev)) style="margin-bottom:4px;width:100%;"/>
                                             {move || if !error_msg.get().is_empty() {
-                                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }
-                                            } else { view! { <div></div> } }}
+                                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }.into_any()
+                                            } else { view! { <div style="display:none;"></div> }.into_any() }}
                                             <div style="display:flex;gap:8px;">
                                                 <button on:click=save_edit_custom_component>Simpan</button>
                                                 <button on:click=cancel_edit_custom_component style="color:red;">Batal</button>
@@ -352,8 +352,8 @@ pub fn sidebar(
                                                     drop_index.set(None);
                                                 }
                                             >{'\u{2630}'}</span>
-                                        }
-                                    } else { view! { <span></span> } };
+                                        }.into_any()
+                                    } else { view! { <span></span> }.into_any() };
                                     view! {
                                         <li style="display:flex;align-items:center;gap:8px;">
                                             {drag_handle}
@@ -374,8 +374,8 @@ pub fn sidebar(
                             <input placeholder="Nama Komponen" prop:value=new_name on:input=move |ev| new_name.set(event_target_value(&ev)) style="margin-bottom:4px;"/>
                             <textarea placeholder="Template HTML" prop:value=new_template on:input=move |ev| new_template.set(event_target_value(&ev)) style="margin-bottom:4px;width:100%;"/>
                             {move || if !error_msg.get().is_empty() {
-                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }
-                            } else { view! { <div></div> } }}
+                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }.into_any()
+                            } else { view! { <div></div> }.into_any() }}
                             <div style="display:flex;gap:8px;">
                                 <button on:click=add_custom_component>Tambah</button>
                                 <button on:click=move |_| { show_add_form.set(false); error_msg.set(String::new()); } style="color:red;">Batal</button>
@@ -411,7 +411,7 @@ pub fn sidebar(
                 }
                 notification.set(Some("✅ Kode Leptos berhasil diekspor & disalin ke clipboard!".to_string()));
             }>Export Project</button>
-            {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;font-weight:bold;margin-top:8px;">{msg}</div> })}
+            {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;font-weight:bold;margin-top:8px;">{msg.clone()}</div> })}
         </aside>
     }.into_view()
 }

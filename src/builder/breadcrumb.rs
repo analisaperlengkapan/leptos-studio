@@ -1,5 +1,5 @@
 use crate::builder::canvas::{CanvasComponent, SelectedComponent};
-use leptos::*;
+use leptos::prelude::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct BreadcrumbItem {
@@ -89,10 +89,9 @@ pub fn BreadcrumbNavigation(
                     view! {
                         <>
                             {move || if index > 0 {
-                                view! { <span class="breadcrumb-separator">"/"</span> }.into_view()
+                                view! { <span class="breadcrumb-separator">"/"</span> }.into_any()
                             } else {
-                                view! { <></> };
-                                ().into_view()
+                                view! { <span class="breadcrumb-separator" style="display:none;"></span> }.into_any()
                             }}
 
                             <button
@@ -126,10 +125,9 @@ pub fn BreadcrumbNavigation(
                                                 text-overflow: ellipsis;
                                                 white-space: nowrap;
                                             ">{item_name}</span>
-                                        }.into_view()
+                                        }.into_any()
                                     } else {
-                                        view! { <></> };
-                                        ().into_view()
+                                        view! { <span style="display:none;"></span> }.into_any()
                                     }
                                 }}
                             </button>

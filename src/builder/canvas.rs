@@ -1,5 +1,5 @@
-use super::component_library::{LibraryComponent, Theme};
-use leptos::*;
+use super::component_library::{LibraryComponent, ResponsiveMode, Theme};
+use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 use web_sys::wasm_bindgen::JsCast;
 
@@ -17,8 +17,6 @@ pub struct SelectedComponent {
     pub idx: Option<usize>,
 }
 
-#[component]
-use super::component_library::ResponsiveMode;
 #[component]
 pub fn canvas(
     selected: RwSignal<SelectedComponent>,
@@ -81,16 +79,16 @@ pub fn canvas(
         undo_stack: RwSignal<Vec<Vec<CanvasComponent>>>,
         redo_stack: RwSignal<Vec<Vec<CanvasComponent>>>,
         custom_components: RwSignal<Vec<LibraryComponent>>,
-    ) -> leptos::View {
+    ) -> AnyView {
         match comp {
             CanvasComponent::Button { label } => {
-                view! { <div><button>{label}</button></div> }.into_view()
+                view! { <div><button>{label}</button></div> }.into_any()
             }
             CanvasComponent::Text { content } => {
-                view! { <div><span>{content}</span></div> }.into_view()
+                view! { <div><span>{content}</span></div> }.into_any()
             }
             CanvasComponent::Input { placeholder } => {
-                view! { <div><input placeholder=placeholder /></div> }.into_view()
+                view! { <div><input placeholder=placeholder /></div> }.into_any()
             }
             CanvasComponent::Custom { name } => {
                 let template = custom_components
@@ -99,7 +97,7 @@ pub fn canvas(
                     .find(|c| c.name == *name)
                     .and_then(|c| c.template.clone())
                     .unwrap_or("<i>Template not found</i>".to_string());
-                view! { <div><span style="color:#7b1fa2;">Custom: {name.clone()}</span><div>{template}</div></div> }.into_view()
+                view! { <div><span style="color:#7b1fa2;">Custom: {name.clone()}</span><div>{template}</div></div> }.into_any()
             }
             CanvasComponent::Container { children } => {
                 let on_drag_over = move |ev: leptos::ev::DragEvent| {
@@ -166,7 +164,7 @@ pub fn canvas(
                             }
                         />
                     </div>
-                }.into_view()
+                }.into_any()
             }
         }
     }

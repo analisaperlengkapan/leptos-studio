@@ -5,7 +5,7 @@ use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::{DragPreview, DragState};
 use crate::builder::keyboard::{get_default_shortcuts, KeyboardAction, KeyboardHandler};
 use crate::builder::sidebar::{Sidebar, SidebarProps};
-use leptos::*;
+use leptos::prelude::*;
 
 use super::builder::canvas::{CanvasComponent, SelectedComponent};
 use super::builder::component_library::LibraryComponent;
@@ -484,7 +484,7 @@ pub fn App() -> impl IntoView {
                             <div style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:90vw;">
                                 <h3>{"Export Code"}</h3>
                                 <label for="export-template">{"Template: "}</label>
-                                <select id="export-template" value=export_template on:input=move |ev| export_template.set(event_target_value(&ev)) style="margin-bottom:1em;">
+                                <select id="export-template" prop:value=export_template on:input=move |ev| export_template.set(event_target_value(&ev)) style="margin-bottom:1em;">
                                     <option value="leptos">{"Leptos Component"}</option>
                                     <option value="html">{"HTML"}</option>
                                     <option value="markdown">{"Markdown"}</option>
