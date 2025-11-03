@@ -18,28 +18,28 @@ use std::rc::Rc;
 
 #[component]
 pub fn App() -> impl IntoView {
-    let responsive_mode = create_rw_signal(ResponsiveMode::Desktop);
-    let notification = create_rw_signal(None::<String>);
+    let responsive_mode = RwSignal::new(ResponsiveMode::Desktop);
+    let notification = RwSignal::new(None::<String>);
     // State global theme (light/dark)
-    let theme = create_rw_signal(Theme::Light);
+    let theme = RwSignal::new(Theme::Light);
     // State custom theme color (sinkron dengan sidebar)
-    let custom_theme_color = create_rw_signal(String::from("#888"));
+    let custom_theme_color = RwSignal::new(String::from("#888"));
 
     // Design tokens
-    let design_tokens = create_rw_signal(DesignTokens::default());
+    let design_tokens = RwSignal::new(DesignTokens::default());
 
     // Drag state for enhanced drag & drop
-    let drag_state = create_rw_signal(DragState::NotDragging);
+    let drag_state = RwSignal::new(DragState::NotDragging);
 
     // Command palette state
-    let show_command_palette = create_rw_signal(false);
-    let command_search = create_rw_signal(String::new());
+    let show_command_palette = RwSignal::new(false);
+    let command_search = RwSignal::new(String::new());
 
-    let selected = create_rw_signal(SelectedComponent { idx: None });
-    let components = create_rw_signal(Vec::<CanvasComponent>::new());
+    let selected = RwSignal::new(SelectedComponent { idx: None });
+    let components = RwSignal::new(Vec::<CanvasComponent>::new());
     // Undo/Redo stacks
-    let undo_stack = create_rw_signal(Vec::<Vec<CanvasComponent>>::new());
-    let redo_stack = create_rw_signal(Vec::<Vec<CanvasComponent>>::new());
+    let undo_stack = RwSignal::new(Vec::<Vec<CanvasComponent>>::new());
+    let redo_stack = RwSignal::new(Vec::<Vec<CanvasComponent>>::new());
     // Save/load handlers
     let save_layout = move |_| {
         if let Ok(json) = serde_json::to_string(&components.get()) {
@@ -105,14 +105,14 @@ pub fn App() -> impl IntoView {
         }
     };
     // State untuk export modal
-    let show_export = create_rw_signal(false);
-    let export_code = create_rw_signal(String::new());
+    let show_export = RwSignal::new(false);
+    let export_code = RwSignal::new(String::new());
     use crate::builder::export::ExportPreset;
-    let export_template = create_rw_signal("leptos".to_string());
+    let export_template = RwSignal::new("leptos".to_string());
 
     // Custom komponen tetap ada untuk form
     let custom_components =
-        create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
+        RwSignal::new(Vec::<crate::builder::component_library::LibraryComponent>::new());
 
     let do_export = move |_| {
         let preset = match export_template.get().as_str() {
@@ -312,7 +312,7 @@ pub fn App() -> impl IntoView {
             description: None,
         },
     ];
-    let component_library = create_rw_signal({
+    let component_library = RwSignal::new({
         // Coba load dari localStorage
         if let Ok(Some(json)) = web_sys::window()
             .unwrap()
@@ -331,7 +331,7 @@ pub fn App() -> impl IntoView {
         }
     });
     // Auto-save component_library ke localStorage setiap berubah
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Ok(json) = serde_json::to_string(&component_library.get()) {
             _ = web_sys::window()
                 .unwrap()
@@ -496,9 +496,9 @@ pub fn App() -> impl IntoView {
                                 </div>
                             </div>
                         </div>
-                    }
+                    }.into_any()
                 } else {
-                    view! { <div></div> }
+                    view! { <div></div> }.into_any()
                 }}
                 <Snackbar notification=notification />
             </div>

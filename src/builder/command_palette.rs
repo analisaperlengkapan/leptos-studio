@@ -141,13 +141,13 @@ pub fn CommandPalette<F>(
     on_action: F,
 ) -> impl IntoView
 where
-    F: Fn(KeyboardAction) + 'static + Clone,
+    F: Fn(KeyboardAction) + 'static + Clone + Send + Sync,
 {
-    let (filtered_commands, set_filtered_commands) = create_signal(get_commands());
-    let (selected_index, set_selected_index) = create_signal(0);
+    let (filtered_commands, set_filtered_commands) = signal(get_commands());
+    let (selected_index, set_selected_index) = signal(0);
 
     // Update filtered commands when search changes
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let search_term = search.get().to_lowercase();
         let commands = get_commands();
         let filtered = if search_term.is_empty() {
@@ -170,6 +170,7 @@ where
     });
 
     // Handle keyboard navigation
+    let on_action_clone = on_action.clone();
 
     view! {
         <Show when=move || is_open.get()>
@@ -225,7 +226,7 @@ where
                                 ev.prevent_default();
                                 let commands = filtered_commands.get();
                                 if let Some(command) = commands.get(selected_index.get()) {
-                                    on_action.clone()(command.action.clone());
+                                    on_action_clone.clone()(command.action.clone());
                                     close.set(false);
                                 }
                             }
@@ -269,9 +270,12 @@ where
                         <For
                             each=move || filtered_commands.get().into_iter().enumerate()
                             key=|(idx, cmd)| format!("{}-{}", idx, cmd.id)
-                            children=move |(idx, command)| {
+                            children={
+                                let on_action_for = on_action_clone.clone();
+                                move |(idx, command)| {
                                 let is_selected = move || selected_index.get() == idx;
                                 let command_clone = command.clone();
+                                let on_action_item = on_action_for.clone();
 
                                 view! {
                                     <div
@@ -293,9 +297,9 @@ where
                                         )
                                         on:click={
                                             let command = command_clone.clone();
-                                            let on_action = on_action.clone();
+                                            let on_action_inner = on_action_item.clone();
                                             move |_| {
-                                                on_action.clone()(command.action.clone());
+                                                on_action_inner.clone()(command.action.clone());
                                                 close.set(false);
                                             }
                                         }
@@ -314,7 +318,7 @@ where
                                         </div>
                                     </div>
                                 }
-                            }
+                            }}
                         />
 
                         <Show when=move || filtered_commands.get().is_empty()>

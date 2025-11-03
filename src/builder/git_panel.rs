@@ -3,10 +3,10 @@ use leptos::prelude::*;
 
 #[component]
 pub fn GitPanel() -> impl IntoView {
-    let (status, set_status) = create_signal(String::from("(loading...)"));
-    let (log, set_log) = create_signal(String::new());
-    let (commit_msg, set_commit_msg) = create_signal(String::new());
-    let (busy, set_busy) = create_signal(false);
+    let (status, set_status) = signal(String::from("(loading...)"));
+    let (log, set_log) = signal(String::new());
+    let (commit_msg, set_commit_msg) = signal(String::new());
+    let (busy, set_busy) = signal(false);
 
     // Fetch git status on mount
     wasm_bindgen_futures::spawn_local(async move {

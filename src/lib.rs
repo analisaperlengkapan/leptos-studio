@@ -2,7 +2,6 @@ pub mod app;
 pub mod builder;
 pub mod components;
 
-use leptos::prelude::*;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]

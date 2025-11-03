@@ -22,15 +22,15 @@ pub fn sidebar(
     component_library: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
     // State untuk custom theme color
-    let custom_theme_color = create_rw_signal(String::from("#888"));
+    let custom_theme_color = RwSignal::new(String::from("#888"));
     // State untuk preset ekspor kode
-    let export_preset = create_rw_signal(ExportPreset::Plain);
+    let export_preset = RwSignal::new(ExportPreset::Plain);
     // State untuk edit custom component
-    let editing_idx = create_rw_signal(None::<usize>);
-    let edit_name = create_rw_signal(String::new());
-    let edit_template = create_rw_signal(String::new());
+    let editing_idx = RwSignal::new(None::<usize>);
+    let edit_name = RwSignal::new(String::new());
+    let edit_template = RwSignal::new(String::new());
     // State untuk validasi props
-    let error_msg = create_rw_signal(String::new());
+    let error_msg = RwSignal::new(String::new());
     // Handler ganti responsive mode
     let set_responsive = move |m: ResponsiveMode| responsive_mode.set(m);
     // Handler ganti theme
@@ -38,11 +38,11 @@ pub fn sidebar(
     // Handler ganti warna custom theme
     let set_custom_theme_color = move |color: String| custom_theme_color.set(color);
     // State untuk form tambah komponen
-    let show_add_form = create_rw_signal(false);
-    let new_name = create_rw_signal(String::new());
-    let new_template = create_rw_signal(String::new());
+    let show_add_form = RwSignal::new(false);
+    let new_name = RwSignal::new(String::new());
+    let new_template = RwSignal::new(String::new());
     // State untuk search/filter komponen
-    let filter_query = create_rw_signal(String::new());
+    let filter_query = RwSignal::new(String::new());
     // Handler tambah komponen custom
     let add_custom_component = move |_| {
         let name = new_name.get().trim().to_string();
@@ -283,8 +283,8 @@ pub fn sidebar(
                         let query = filter_query.get().to_lowercase();
                         // Drag-and-drop reorder for custom components
                         use leptos::ev::DragEvent;
-                        let drag_index = create_rw_signal(None::<usize>);
-                        let drop_index = create_rw_signal(None::<usize>);
+                        let drag_index = RwSignal::new(None::<usize>);
+                        let drop_index = RwSignal::new(None::<usize>);
                         component_library.get()
                             .iter()
                             .enumerate()
@@ -306,7 +306,7 @@ pub fn sidebar(
                                                 <button on:click=cancel_edit_custom_component style="color:red;">Batal</button>
                                             </div>
                                         </li>
-                                    }
+                                    }.into_any()
                                 } else {
                                     let drag_handle = if is_custom {
                                         view! {
@@ -361,7 +361,7 @@ pub fn sidebar(
                                             {is_custom.then(|| view! { <button style="color:orange;" on:click=move |_| start_edit_custom_component(i)>Edit</button> })}
                                             {is_custom.then(|| view! { <button style="color:red;" on:click=move |_| delete_custom_component(i)>Hapus</button> })}
                                         </li>
-                                    }
+                                    }.into_any()
                                 }
                             })
                             .collect_view()
@@ -381,8 +381,8 @@ pub fn sidebar(
                                 <button on:click=move |_| { show_add_form.set(false); error_msg.set(String::new()); } style="color:red;">Batal</button>
                             </div>
                         </div>
-                    }
-                } else { view! { <div></div> } }}
+                    }.into_any()
+                } else { view! { <div></div> }.into_any() }}
             </div>
             <div><b>Components on Canvas:</b> {components.get().len()}</div>
             <div style="margin:12px 0;">

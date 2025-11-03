@@ -53,7 +53,7 @@ pub fn BreadcrumbNavigation(
     components: RwSignal<Vec<CanvasComponent>>,
     selected: RwSignal<SelectedComponent>,
 ) -> impl IntoView {
-    let breadcrumbs = create_memo(move |_| {
+    let breadcrumbs = Memo::new(move |_| {
         let mut items = vec![BreadcrumbItem {
             name: "Canvas".to_string(),
             component_type: "Canvas".to_string(),
