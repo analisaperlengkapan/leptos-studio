@@ -2,18 +2,18 @@
 [package]
 name = "leptos_studio"
 version = "0.2.3"
-edition = "2021"
+edition = "2024"
 description = "Visual UI builder for Leptos framework"
-license = "MIT"
+license = "Apache 2.0"
 repository = "https://gitlab.com/analisiskebutuhan/leptos-studio"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.6", features = ["csr"] }
-leptos_router = { version = "0.6", features = ["csr"] }
-leptos_dom = "0.6"
+leptos = { version = "0.8.5", features = ["csr"] }
+leptos_router = { version = "0.8.5", features = ["csr"] }
+leptos_dom = "0.8.5"
 web-sys = { version = "0.3", features = [
     "DragEvent", "DataTransfer", "Window", "Storage", "console", 
     "HtmlInputElement", "FileList", "File", "Clipboard", "Navigator",
