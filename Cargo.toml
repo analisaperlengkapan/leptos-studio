@@ -11,9 +11,9 @@ repository = "https://gitlab.com/analisiskebutuhan/leptos-studio"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.8.5", features = ["csr"] }
-leptos_router = { version = "0.8.5", features = ["csr"] }
-leptos_dom = "0.8.5"
+leptos = { version = "0.8.12", features = ["csr"] }
+leptos_router = "0.8.9"
+leptos_dom = "0.8.7"
 web-sys = { version = "0.3", features = [
     "DragEvent", "DataTransfer", "Window", "Storage", "console", 
     "HtmlInputElement", "FileList", "File", "Clipboard", "Navigator",

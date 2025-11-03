@@ -8,5 +8,5 @@ use wasm_bindgen::prelude::*;
 pub fn main() {
     console_error_panic_hook::set_once();
 
-    leptos::mount_to_body(app::App);
+    leptos::mount::mount_to_body(app::App);
 }

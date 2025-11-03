@@ -5,7 +5,7 @@ use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::{DragPreview, DragState};
 use crate::builder::keyboard::{get_default_shortcuts, KeyboardAction, KeyboardHandler};
 use crate::builder::sidebar::{Sidebar, SidebarProps};
-use leptos::*;
+use leptos::prelude::*;
 
 use super::builder::canvas::{CanvasComponent, SelectedComponent};
 use super::builder::component_library::LibraryComponent;
@@ -18,28 +18,28 @@ use std::rc::Rc;
 
 #[component]
 pub fn App() -> impl IntoView {
-    let responsive_mode = create_rw_signal(ResponsiveMode::Desktop);
-    let notification = create_rw_signal(None::<String>);
+    let responsive_mode = RwSignal::new(ResponsiveMode::Desktop);
+    let notification = RwSignal::new(None::<String>);
     // State global theme (light/dark)
-    let theme = create_rw_signal(Theme::Light);
+    let theme = RwSignal::new(Theme::Light);
     // State custom theme color (sinkron dengan sidebar)
-    let custom_theme_color = create_rw_signal(String::from("#888"));
+    let custom_theme_color = RwSignal::new(String::from("#888"));
 
     // Design tokens
-    let design_tokens = create_rw_signal(DesignTokens::default());
+    let design_tokens = RwSignal::new(DesignTokens::default());
 
     // Drag state for enhanced drag & drop
-    let drag_state = create_rw_signal(DragState::NotDragging);
+    let drag_state = RwSignal::new(DragState::NotDragging);
 
     // Command palette state
-    let show_command_palette = create_rw_signal(false);
-    let command_search = create_rw_signal(String::new());
+    let show_command_palette = RwSignal::new(false);
+    let command_search = RwSignal::new(String::new());
 
-    let selected = create_rw_signal(SelectedComponent { idx: None });
-    let components = create_rw_signal(Vec::<CanvasComponent>::new());
+    let selected = RwSignal::new(SelectedComponent { idx: None });
+    let components = RwSignal::new(Vec::<CanvasComponent>::new());
     // Undo/Redo stacks
-    let undo_stack = create_rw_signal(Vec::<Vec<CanvasComponent>>::new());
-    let redo_stack = create_rw_signal(Vec::<Vec<CanvasComponent>>::new());
+    let undo_stack = RwSignal::new(Vec::<Vec<CanvasComponent>>::new());
+    let redo_stack = RwSignal::new(Vec::<Vec<CanvasComponent>>::new());
     // Save/load handlers
     let save_layout = move |_| {
         if let Ok(json) = serde_json::to_string(&components.get()) {
@@ -105,14 +105,14 @@ pub fn App() -> impl IntoView {
         }
     };
     // State untuk export modal
-    let show_export = create_rw_signal(false);
-    let export_code = create_rw_signal(String::new());
+    let show_export = RwSignal::new(false);
+    let export_code = RwSignal::new(String::new());
     use crate::builder::export::ExportPreset;
-    let export_template = create_rw_signal("leptos".to_string());
+    let export_template = RwSignal::new("leptos".to_string());
 
     // Custom komponen tetap ada untuk form
     let custom_components =
-        create_rw_signal(Vec::<crate::builder::component_library::LibraryComponent>::new());
+        RwSignal::new(Vec::<crate::builder::component_library::LibraryComponent>::new());
 
     let do_export = move |_| {
         let preset = match export_template.get().as_str() {
@@ -312,7 +312,7 @@ pub fn App() -> impl IntoView {
             description: None,
         },
     ];
-    let component_library = create_rw_signal({
+    let component_library = RwSignal::new({
         // Coba load dari localStorage
         if let Ok(Some(json)) = web_sys::window()
             .unwrap()
@@ -331,7 +331,7 @@ pub fn App() -> impl IntoView {
         }
     });
     // Auto-save component_library ke localStorage setiap berubah
-    create_effect(move |_| {
+    Effect::new(move |_| {
         if let Ok(json) = serde_json::to_string(&component_library.get()) {
             _ = web_sys::window()
                 .unwrap()
@@ -351,21 +351,24 @@ pub fn App() -> impl IntoView {
     #[cfg(not(debug_assertions))]
     let render_time = Rc::new(Cell::new(0f64));
 
+    // Create a memo for the style to avoid Send/Sync issues with signals in closures
+    let app_style = Memo::new(move |_| {
+        let bg = match theme.get() {
+            Theme::Light => "ffffff".to_string(),
+            Theme::Dark => "1a1a1a".to_string(),
+            Theme::Custom => custom_theme_color.get().trim_start_matches('#').to_string(),
+        };
+        let text = "333333";
+        if theme.get() == Theme::Dark {
+            format!("background: #{}; color: #ffffff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg)
+        } else {
+            format!("background: #{}; color: #{}; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg, text)
+        }
+    });
+
     view! {
         <DesignTokenProvider tokens=design_tokens>
-            <div class="leptos-studio" style=move || {
-                let bg = match theme.get() {
-                    Theme::Light => "ffffff".to_string(),
-                    Theme::Dark => "1a1a1a".to_string(),
-                    Theme::Custom => custom_theme_color.get().trim_start_matches('#').to_string(),
-                };
-                let text = "333333";
-                if theme.get() == Theme::Dark {
-                    format!("background: #{}; color: #ffffff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg)
-                } else {
-                    format!("background: #{}; color: #{}; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", bg, text)
-                }
-            } tabindex="0">
+            <div class="leptos-studio" style=move || app_style.get() tabindex="0">
                 // Global keyboard handler
                 <KeyboardHandler
                     shortcuts=get_default_shortcuts()
@@ -484,7 +487,7 @@ pub fn App() -> impl IntoView {
                             <div style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:90vw;">
                                 <h3>{"Export Code"}</h3>
                                 <label for="export-template">{"Template: "}</label>
-                                <select id="export-template" value=export_template on:input=move |ev| export_template.set(event_target_value(&ev)) style="margin-bottom:1em;">
+                                <select id="export-template" prop:value=export_template on:input=move |ev| export_template.set(event_target_value(&ev)) style="margin-bottom:1em;">
                                     <option value="leptos">{"Leptos Component"}</option>
                                     <option value="html">{"HTML"}</option>
                                     <option value="markdown">{"Markdown"}</option>
@@ -496,9 +499,9 @@ pub fn App() -> impl IntoView {
                                 </div>
                             </div>
                         </div>
-                    }
+                    }.into_any()
                 } else {
-                    view! { <div></div> }
+                    view! { <div></div> }.into_any()
                 }}
                 <Snackbar notification=notification />
             </div>

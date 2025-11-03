@@ -1,15 +1,15 @@
 use gloo_net::http::Request;
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn GitPanel() -> impl IntoView {
-    let (status, set_status) = create_signal(String::from("(loading...)"));
-    let (log, set_log) = create_signal(String::new());
-    let (commit_msg, set_commit_msg) = create_signal(String::new());
-    let (busy, set_busy) = create_signal(false);
+    let (status, set_status) = signal(String::from("(loading...)"));
+    let (log, set_log) = signal(String::new());
+    let (commit_msg, set_commit_msg) = signal(String::new());
+    let (busy, set_busy) = signal(false);
 
     // Fetch git status on mount
-    leptos::spawn_local(async move {
+    wasm_bindgen_futures::spawn_local(async move {
         set_status.set("Memuat status...".to_string());
         match Request::get("/api/git/status").send().await {
             Ok(r) => match r.text().await {
@@ -25,7 +25,7 @@ pub fn GitPanel() -> impl IntoView {
         let msg = commit_msg.get();
         let set_status = set_status;
         let set_busy = set_busy;
-        leptos::spawn_local(async move {
+        wasm_bindgen_futures::spawn_local(async move {
             if let Ok(r) = Request::post("/api/git/commit")
                 .body(msg)
                 .expect("Failed to build request")
@@ -43,7 +43,7 @@ pub fn GitPanel() -> impl IntoView {
         set_busy.set(true);
         let set_log = set_log;
         let set_busy = set_busy;
-        leptos::spawn_local(async move {
+        wasm_bindgen_futures::spawn_local(async move {
             if let Ok(r) = Request::get("/api/git/log").send().await {
                 if let Ok(txt) = r.text().await {
                     set_log.set(txt)

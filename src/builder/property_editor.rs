@@ -1,6 +1,6 @@
 use super::canvas::{CanvasComponent, SelectedComponent};
 use super::component_library::LibraryComponent;
-use leptos::*;
+use leptos::prelude::*;
 
 #[component]
 pub fn PropertyEditor(
@@ -31,7 +31,7 @@ pub fn PropertyEditor(
                     }
                     view! {
                         <div>
-                            <label>Label: <input value=label on:input=move |ev| {
+                            <label>Label: <input prop:value=label on:input=move |ev| {
                                 let val = event_target_value(&ev);
                                 if let Some(i) = idx() {
                                     components.update(|c| {
@@ -45,7 +45,7 @@ pub fn PropertyEditor(
                                 {errors.into_iter().map(|e| view!{ <li>{e}</li> }).collect::<Vec<_>>()}
                             </ul>
                         </div>
-                    }
+                    }.into_any()
                 },
                 Some(CanvasComponent::Text { content }) => {
                     let schema = component_library.get().iter().find(|c| c.kind == "Text").and_then(|c| c.props_schema.clone());
@@ -61,7 +61,7 @@ pub fn PropertyEditor(
                     }
                     view! {
                         <div>
-                            <label>Content: <input value=content on:input=move |ev| {
+                            <label>Content: <input prop:value=content on:input=move |ev| {
                                 let val = event_target_value(&ev);
                                 if let Some(i) = idx() {
                                     components.update(|c| {
@@ -75,7 +75,7 @@ pub fn PropertyEditor(
                                 {errors.into_iter().map(|e| view!{ <li>{e}</li> }).collect::<Vec<_>>()}
                             </ul>
                         </div>
-                    }
+                    }.into_any()
                 },
                 Some(CanvasComponent::Input { placeholder }) => {
                     let schema = component_library.get().iter().find(|c| c.kind == "Input").and_then(|c| c.props_schema.clone());
@@ -91,7 +91,7 @@ pub fn PropertyEditor(
                     }
                     view! {
                         <div>
-                            <label>Placeholder: <input value=placeholder on:input=move |ev| {
+                            <label>Placeholder: <input prop:value=placeholder on:input=move |ev| {
                                 let val = event_target_value(&ev);
                                 if let Some(i) = idx() {
                                     components.update(|c| {
@@ -105,7 +105,7 @@ pub fn PropertyEditor(
                                 {errors.into_iter().map(|e| view!{ <li>{e}</li> }).collect::<Vec<_>>()}
                             </ul>
                         </div>
-                    }
+                    }.into_any()
                 },
                 Some(CanvasComponent::Custom { name }) => {
                     let template = custom_components.get().iter().find(|c| c.name == *name).and_then(|c| c.template.clone()).unwrap_or_default();
@@ -122,7 +122,7 @@ pub fn PropertyEditor(
                     }
                     view! {
                         <div>
-                            <label>Template: <textarea value=template.clone() on:input=move |ev| {
+                            <label>Template: <textarea prop:value=template.clone() on:input=move |ev| {
                                 let val = event_target_value(&ev);
                                 custom_components.update(|cc| {
                                     if let Some(comp) = cc.iter_mut().find(|c| c.name == *name) {
@@ -134,9 +134,9 @@ pub fn PropertyEditor(
                                 {errors.into_iter().map(|e| view!{ <li>{e}</li> }).collect::<Vec<_>>()}
                             </ul>
                         </div>
-                    }
+                    }.into_any()
                 },
-                _ => view! { <div><p>Pilih komponen untuk mengedit properti.</p></div> },
+                _ => view! { <div><p>Pilih komponen untuk mengedit properti.</p></div> }.into_any(),
             }}
         </section>
     }

@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -472,7 +472,7 @@ impl DesignTokens {
 #[component]
 pub fn DesignTokenProvider(tokens: RwSignal<DesignTokens>, children: Children) -> impl IntoView {
     // Apply tokens to document whenever they change
-    create_effect(move |_| {
+    Effect::new(move |_| {
         let tokens = tokens.get();
         tokens.apply_to_document();
     });

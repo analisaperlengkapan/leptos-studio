@@ -4,7 +4,7 @@ use web_sys::window;
 use super::component_library::{LibraryComponent, ResponsiveMode, Theme};
 use crate::builder::debug_panel::DebugPanel;
 use crate::builder::git_panel::GitPanel;
-use leptos::*;
+use leptos::prelude::*;
 // ...existing code...
 
 #[component]
@@ -22,15 +22,15 @@ pub fn sidebar(
     component_library: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
     // State untuk custom theme color
-    let custom_theme_color = create_rw_signal(String::from("#888"));
+    let custom_theme_color = RwSignal::new(String::from("#888"));
     // State untuk preset ekspor kode
-    let export_preset = create_rw_signal(ExportPreset::Plain);
+    let export_preset = RwSignal::new(ExportPreset::Plain);
     // State untuk edit custom component
-    let editing_idx = create_rw_signal(None::<usize>);
-    let edit_name = create_rw_signal(String::new());
-    let edit_template = create_rw_signal(String::new());
+    let editing_idx = RwSignal::new(None::<usize>);
+    let edit_name = RwSignal::new(String::new());
+    let edit_template = RwSignal::new(String::new());
     // State untuk validasi props
-    let error_msg = create_rw_signal(String::new());
+    let error_msg = RwSignal::new(String::new());
     // Handler ganti responsive mode
     let set_responsive = move |m: ResponsiveMode| responsive_mode.set(m);
     // Handler ganti theme
@@ -38,11 +38,11 @@ pub fn sidebar(
     // Handler ganti warna custom theme
     let set_custom_theme_color = move |color: String| custom_theme_color.set(color);
     // State untuk form tambah komponen
-    let show_add_form = create_rw_signal(false);
-    let new_name = create_rw_signal(String::new());
-    let new_template = create_rw_signal(String::new());
+    let show_add_form = RwSignal::new(false);
+    let new_name = RwSignal::new(String::new());
+    let new_template = RwSignal::new(String::new());
     // State untuk search/filter komponen
-    let filter_query = create_rw_signal(String::new());
+    let filter_query = RwSignal::new(String::new());
     // Handler tambah komponen custom
     let add_custom_component = move |_| {
         let name = new_name.get().trim().to_string();
@@ -254,8 +254,8 @@ pub fn sidebar(
                             <label for="custom-theme-color"><b>Sidebar Color:</b></label>
                             <input id="custom-theme-color" type="color" prop:value=custom_theme_color on:input=move |ev| set_custom_theme_color(event_target_value(&ev)) style="margin-left:8px;vertical-align:middle;" />
                         </div>
-                    }
-                } else { view! { <div></div> } }}
+                    }.into_any()
+                } else { view! { <div style="display:none;"></div> }.into_any() }}
             </div>
             <div style="margin-bottom:8px;">
                 <b>Responsive:</b> {format!("{:?}", responsive_mode.get())}
@@ -283,8 +283,8 @@ pub fn sidebar(
                         let query = filter_query.get().to_lowercase();
                         // Drag-and-drop reorder for custom components
                         use leptos::ev::DragEvent;
-                        let drag_index = create_rw_signal(None::<usize>);
-                        let drop_index = create_rw_signal(None::<usize>);
+                        let drag_index = RwSignal::new(None::<usize>);
+                        let drop_index = RwSignal::new(None::<usize>);
                         component_library.get()
                             .iter()
                             .enumerate()
@@ -299,14 +299,14 @@ pub fn sidebar(
                                             <input placeholder="Nama Komponen" prop:value=edit_name on:input=move |ev| edit_name.set(event_target_value(&ev)) style="margin-bottom:4px;"/>
                                             <textarea placeholder="Template HTML" prop:value=edit_template on:input=move |ev| edit_template.set(event_target_value(&ev)) style="margin-bottom:4px;width:100%;"/>
                                             {move || if !error_msg.get().is_empty() {
-                                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }
-                                            } else { view! { <div></div> } }}
+                                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }.into_any()
+                                            } else { view! { <div style="display:none;"></div> }.into_any() }}
                                             <div style="display:flex;gap:8px;">
                                                 <button on:click=save_edit_custom_component>Simpan</button>
                                                 <button on:click=cancel_edit_custom_component style="color:red;">Batal</button>
                                             </div>
                                         </li>
-                                    }
+                                    }.into_any()
                                 } else {
                                     let drag_handle = if is_custom {
                                         view! {
@@ -352,8 +352,8 @@ pub fn sidebar(
                                                     drop_index.set(None);
                                                 }
                                             >{'\u{2630}'}</span>
-                                        }
-                                    } else { view! { <span></span> } };
+                                        }.into_any()
+                                    } else { view! { <span></span> }.into_any() };
                                     view! {
                                         <li style="display:flex;align-items:center;gap:8px;">
                                             {drag_handle}
@@ -361,7 +361,7 @@ pub fn sidebar(
                                             {is_custom.then(|| view! { <button style="color:orange;" on:click=move |_| start_edit_custom_component(i)>Edit</button> })}
                                             {is_custom.then(|| view! { <button style="color:red;" on:click=move |_| delete_custom_component(i)>Hapus</button> })}
                                         </li>
-                                    }
+                                    }.into_any()
                                 }
                             })
                             .collect_view()
@@ -374,15 +374,15 @@ pub fn sidebar(
                             <input placeholder="Nama Komponen" prop:value=new_name on:input=move |ev| new_name.set(event_target_value(&ev)) style="margin-bottom:4px;"/>
                             <textarea placeholder="Template HTML" prop:value=new_template on:input=move |ev| new_template.set(event_target_value(&ev)) style="margin-bottom:4px;width:100%;"/>
                             {move || if !error_msg.get().is_empty() {
-                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }
-                            } else { view! { <div></div> } }}
+                                view! { <div style="color:red;margin-bottom:4px;">{error_msg.get()}</div> }.into_any()
+                            } else { view! { <div></div> }.into_any() }}
                             <div style="display:flex;gap:8px;">
                                 <button on:click=add_custom_component>Tambah</button>
                                 <button on:click=move |_| { show_add_form.set(false); error_msg.set(String::new()); } style="color:red;">Batal</button>
                             </div>
                         </div>
-                    }
-                } else { view! { <div></div> } }}
+                    }.into_any()
+                } else { view! { <div></div> }.into_any() }}
             </div>
             <div><b>Components on Canvas:</b> {components.get().len()}</div>
             <div style="margin:12px 0;">
@@ -411,7 +411,7 @@ pub fn sidebar(
                 }
                 notification.set(Some("✅ Kode Leptos berhasil diekspor & disalin ke clipboard!".to_string()));
             }>Export Project</button>
-            {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;font-weight:bold;margin-top:8px;">{msg}</div> })}
+            {move || notification.get().as_ref().map(|msg| view! { <div style="color:green;font-weight:bold;margin-top:8px;">{msg.clone()}</div> })}
         </aside>
     }.into_view()
 }

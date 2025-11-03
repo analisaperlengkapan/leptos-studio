@@ -10,7 +10,7 @@
 //! * Action-based dispatch system
 
 use leptos::ev::KeyboardEvent;
-use leptos::*;
+use leptos::prelude::*;
 use web_sys::wasm_bindgen::JsCast;
 
 /// Actions that can be triggered by keyboard shortcuts

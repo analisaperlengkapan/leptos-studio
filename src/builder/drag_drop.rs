@@ -1,4 +1,4 @@
-use leptos::*;
+use leptos::prelude::*;
 use wasm_bindgen::JsCast;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -265,7 +265,7 @@ where
     let (on_drag_enter, on_drag_over, on_drag_leave) =
         create_drop_zone_handlers(zone_name.clone(), drag_state, config);
 
-    let is_drag_over = create_memo(move |_| {
+    let is_drag_over = Memo::new(move |_| {
         matches!(
             drag_state.get(),
             DragState::DraggingOver { drop_zone, .. } if drop_zone == zone_name
