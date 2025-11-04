@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build errors with command palette and app.rs (closure trait issues)
 - Some UI components need refactoring for Leptos 0.8 compatibility
 
-## [0.2.3] - 2025-08-25
+## [0.1.0] - 2025-08-25
 
 ### Added
 - Export presets: Plain, thaw-ui, leptos-material, leptos-use
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Clipboard copy functionality
 - Export signature consistency
 
-## [0.2.0] - 2024-08-22
+## [0.0.9] - 2024-08-22
 
 ### Added
 - Component library management (add/remove custom components)
@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unused props and handler warnings
 - Build warnings related to component macros
 
-## [0.1.0] - 2024-08-20
+## [0.0.8] - 2024-08-20
 
 ### Added
 - Initial release
@@ -71,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reactive state management with signals
 - Drag and drop using web-sys APIs
 
-## [0.0.1] - 2024-08-15
+## [0.0.7] - 2024-08-15
 
 ### Added
 - Project initialization
