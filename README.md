@@ -1,237 +1,162 @@
 # Leptos Studio
 
-**Leptos Studio** adalah visual UI builder drag-and-drop untuk framework Rust Leptos, dengan fitur-fitur professional-grade yang mengikuti standar internasional dari visual builder terkenal seperti Figma, VS Code, dan Webflow. Memungkinkan pengembang untuk membangun antarmuka pengguna secara visual dengan mudah dan mengekspor kode Leptos yang siap digunakan.
+A visual UI builder for the [Leptos](https://leptos.dev/) Rust web framework. Drag and drop components onto a canvas, configure their properties, and export Leptos code.
 
-## ✨ Professional-Grade Features
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Rust](https://img.shields.io/badge/rust-1.90%2B-orange.svg)](https://www.rust-lang.org/)
 
-### 🎨 **VS Code-style Command Palette**
-- Global command palette dengan **Cmd+K** (atau Ctrl+K) shortcut
-- Fuzzy search untuk semua aksi dan command
-- Keyboard navigation untuk workflow yang efisien
+## Features
 
-### 🧭 **Figma-style Breadcrumb Navigation** 
-- Hierarchical navigation bar yang menampilkan struktur komponen
-- Click untuk navigate ke parent/child components
-- Visual indicator untuk komponen yang sedang dipilih
+- **Drag & Drop Interface**: Build UI by dragging components onto a canvas
+- **Component Library**: Button, Text, Input, Container, and custom components
+- **Property Editor**: Configure component properties in real-time
+- **Live Preview**: See changes immediately as you build
+- **Code Export**: Generate Leptos code with multiple presets (Plain, thaw-ui, leptos-material, leptos-use)
+- **Layout Persistence**: Save and load layouts using browser localStorage
+- **Nested Containers**: Create complex layouts with nested components
+- **Custom Components**: Define and reuse your own components
+- **Undo/Redo**: Full history management for all operations
+- **Keyboard Shortcuts**: Standard shortcuts for copy, paste, delete, undo, redo
+- **Responsive Preview**: Toggle between Desktop, Tablet, and Mobile views
+- **Theme Support**: Light, Dark, and Custom themes
 
-### ✨ **Enhanced Drag & Drop System**
-- Visual feedback dengan smooth animations
-- Drop zones dengan highlight dan preview
-- Professional drag indicators dan ghost elements
-
-### ⌨️ **Complete Keyboard Shortcuts**
-- **Undo**: `Ctrl+Z` - Undo last action
-- **Redo**: `Ctrl+Y` / `Ctrl+Shift+Z` - Redo last action
-- **Delete**: `Delete` / `Backspace` - Delete selected component
-- **Copy**: `Ctrl+C` - Copy selected component
-- **Paste**: `Ctrl+V` - Paste component from clipboard
-- **Duplicate**: `Ctrl+D` - Duplicate selected component
-- **Select All**: `Ctrl+A` - Select all components
-- **Deselect**: `Escape` - Clear selection
-- **Command Palette**: `Ctrl+K` - Open command palette
-- **Save**: `Ctrl+S` - Save project
-- **Export**: `Ctrl+E` - Export code
-- **New Component**: `Ctrl+N` - Add component helper
-
-### 🎭 **Design Token System**
-- CSS custom properties untuk consistent theming
-- Professional color palette dan typography
-- Responsive design dengan mobile-first approach
-
-## 🚀 Fitur Utama
-
-### ✅ Production-Ready Features
-- ♻️ **Hot reload custom component**: Edit template custom component, preview langsung update tanpa reload
-- 🧩 **Component library management**: Tambah/hapus custom component langsung dari sidebar
-- 🛡️ **Component props validation**: Form custom component memvalidasi nama (harus identifier Rust valid) & template (harus HTML snippet valid), error message tampil jika input tidak valid
-- 🗂️ **Version control (Git) UI**: Sidebar menampilkan status, commit, dan log Git secara langsung
-- 📤 **Flexible export & code generation templates**: Export desain ke format Leptos, HTML, Markdown, JSON, dan preset ekspor (Plain, thaw-ui, leptos-material, leptos-use)
-- ⌨️ **Complete keyboard shortcuts**: All major actions (Copy, Paste, Duplicate, Undo/Redo) fully implemented
-- 🎨 **Integrated command palette**: Fuzzy search all commands with full action execution
-- 📋 **Clipboard integration**: Copy/paste components between layouts using browser Clipboard API
-- 🔄 **Full undo/redo support**: Complete history management for all operations
-- 🔒 **Security hardened**: Input validation, CSP documentation, security best practices
-- 🚀 **CI/CD ready**: GitHub Actions workflow with automated testing and deployment
-- 📦 **Production build optimized**: Trunk configuration, WASM optimization, deployment guides
-- 📚 **Comprehensive documentation**: SECURITY.md, DEPLOYMENT.md, API docs, Rustdoc
-
-### 🔄 Roadmap Fitur
-
-## 🛠 Instalasi dan Penggunaan
+## Quick Start
 
 ### Prerequisites
-- [Rust](https://rustup.rs/) (latest stable)
-- [Trunk](https://trunkrs.dev/) untuk WASM build
-- Browser modern dengan support WebAssembly
 
-### Quick Start
+- [Rust](https://rustup.rs/) 1.90 or later
+- [Trunk](https://trunkrs.dev/) for building WASM applications
+
 ```bash
-# Clone repository
-git clone https://github.com/analisaperlengkapan/leptos-studio.git
-cd leptos-studio
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-# Install Trunk (if not installed)
+# Install Trunk
 cargo install trunk
 
 # Add WASM target
 rustup target add wasm32-unknown-unknown
+```
 
-# Run development server
+### Running Locally
+
+```bash
+# Clone the repository
+git clone https://github.com/analisaperlengkapan/leptos-studio.git
+cd leptos-studio
+
+# Start development server
 trunk serve
 
-# Build for production
-trunk build --release
-## Ekosistem & Best Practice Leptos
-
-Leptos Studio mengikuti praktik terbaik dari ekosistem [Leptos](https://github.com/leptos-rs/leptos):
-
-- **Fine-grained reactivity**: Semua komponen builder dan custom component menggunakan signals & context secara idiomatik.
-- **Komponen modular**: Arsitektur berbasis komponen reusable.
-- **Ekosistem library**: Mendukung ekspor/preset untuk [thaw-ui](https://github.com/thaw-ui/thaw), [leptos-material](https://github.com/jordi-star/leptos-material), [leptos-use](https://leptos-use.rs/), dsb.
-- **Autoformat**: Disarankan menggunakan [leptosfmt](https://github.com/bram209/leptosfmt) untuk format macro `view!` (instruksi di bawah).
-- **Linting**: Menggunakan [leptos-lints](https://github.com/leptos-rs/leptos-lints) untuk menjaga kualitas kode.
-
-# Install dependencies (otomatis via Cargo)
-
-### Build untuk Production
+# Open http://localhost:8080 in your browser
 ```
 
-## 🎯 Cara Penggunaan
+### Building for Production
 
-### 🖱️ **Basic Workflow**
-1. **Drag & Drop**: Drag komponen dari sidebar ke canvas
-2. **Edit Properties**: Klik komponen di canvas, edit di property panel
-3. **Nested Layout**: Drag komponen ke dalam Container untuk layout bersarang
-4. **Export Code**: Klik tombol "Export" untuk generate kode Leptos
-5. **Save/Load**: Gunakan tombol Save/Load untuk menyimpan layout
+```bash
+# Build optimized WASM bundle
+trunk build --release
 
-### ⌨️ **Professional Shortcuts**
-- **`Cmd+K`**: Buka Command Palette untuk akses cepat semua fitur
-- **`Cmd+Z/Y`**: Undo/Redo perubahan
-- **`Delete`**: Hapus komponen yang dipilih
-- **`Escape`**: Cancel action atau close modal
+# Output will be in the dist/ directory
+```
 
-### 🧭 **Navigation**
-- **Breadcrumbs**: Click pada breadcrumb bar untuk navigate ke parent/child
-- **Canvas**: Click komponen di canvas untuk select dan edit
-- **Sidebar**: Component library dan property editor yang reaktif
+## Usage
 
-## 🏗️ Arsitektur
+1. **Add Components**: Drag components from the sidebar onto the canvas
+2. **Configure Properties**: Click a component to edit its properties in the sidebar
+3. **Nest Components**: Drag components into Container components for complex layouts
+4. **Export Code**: Click the Export button to generate Leptos code
+5. **Save/Load**: Use Save/Load buttons to persist your layout to localStorage
 
-### 📁 **Project Structure**
+### Keyboard Shortcuts
+
+- `Ctrl+Z` - Undo
+- `Ctrl+Y` / `Ctrl+Shift+Z` - Redo
+- `Ctrl+C` - Copy selected component
+- `Ctrl+V` - Paste component
+- `Ctrl+D` - Duplicate selected component
+- `Delete` / `Backspace` - Delete selected component
+- `Ctrl+S` - Save layout
+- `Escape` - Deselect
+
+## Project Structure
+
 ```
 src/
-├── app.rs              # Main application dengan professional layout
-├── builder/            # Core builder modules
-│   ├── sidebar.rs      # Component palette & property editor
-│   ├── canvas.rs       # Interactive canvas dengan drag & drop
-│   ├── preview.rs      # Live preview panel
-│   ├── export.rs       # Code generation system
-│   ├── keyboard.rs     # Global keyboard shortcuts
-│   ├── command_palette.rs # VS Code-style command palette  
-│   ├── breadcrumb.rs   # Figma-style navigation
-│   ├── drag_drop.rs    # Enhanced drag & drop system
-│   └── design_tokens.rs # CSS design system
-├── components/         # Reusable UI components
-└── lib.rs             # Library root
+├── app.rs                 # Main application component
+├── lib.rs                 # Library entry point
+├── builder/               # Core builder modules
+│   ├── canvas.rs          # Canvas with drag & drop
+│   ├── sidebar.rs         # Component library and properties
+│   ├── preview.rs         # Live preview panel
+│   ├── export.rs          # Code generation
+│   ├── property_editor.rs # Property editing UI
+│   ├── component_library.rs # Component definitions
+│   ├── keyboard.rs        # Keyboard shortcut handling
+│   ├── command_palette.rs # Command palette UI
+│   ├── breadcrumb.rs      # Navigation breadcrumbs
+│   ├── git_panel.rs       # Git integration UI
+│   └── ...               # Other modules
+├── components/            # Reusable UI components
+│   ├── button.rs
+│   ├── text.rs
+│   ├── input.rs
+│   └── container.rs
+└── tests/                 # Test files
 ```
 
-### 🎨 **Design System**
-- **CSS Custom Properties**: Design tokens untuk consistent styling
-- **Flexbox Layout**: Responsive dan adaptive design
-- **Component-based Architecture**: Modular dan reusable components
-- **Professional Typography**: Optimized font hierarchy dan spacing
+## Technology Stack
 
-## 🤝 Kontribusi
+- **Leptos 0.8**: Reactive UI framework for Rust
+- **WASM**: Runs in the browser via WebAssembly
+- **Trunk**: Build tool for Rust WASM applications
+- **serde/serde_json**: Serialization for layout persistence
+- **web-sys**: Web API bindings
 
-Kontribusi sangat diterima! Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan detail.
+## Development
 
-## 📊 Status & Quality
+### Testing
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
-![Version](https://img.shields.io/badge/version-0.2.4-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Tests](https://img.shields.io/badge/tests-62%2F62%20passing-brightgreen)
-![Production Ready](https://img.shields.io/badge/status-production%20ready-success)
-![Warnings](https://img.shields.io/badge/warnings-0-brightgreen)
-![Security](https://img.shields.io/badge/security-hardened-blue)
+```bash
+# Run tests
+cargo test
 
-**Production Ready** ✅
-- Zero compilation warnings
-- All tests passing
-- Full CI/CD pipeline
-- Comprehensive documentation
-- Security hardened
-- Performance optimized
+# Run tests with output
+cargo test -- --nocapture
+```
 
-## 📚 Documentation
+### Linting
 
-- **[README.md](README.md)** - This file, overview and features
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide (10KB+)
-- **[SECURITY.md](SECURITY.md)** - Security best practices and policies
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
-- **[API.md](API.md)** - API reference documentation
+```bash
+# Run clippy
+cargo clippy --all-targets --all-features
 
-## 📝 Lisensi
+# Format code
+cargo fmt
+```
 
-Proyek ini dilisensikan di bawah Apache 2.0 License - lihat file [LICENSE](LICENSE) untuk detail.
+### Optional: Leptos-specific Tools
 
-## 🏭 Production Readiness
+```bash
+# Install leptosfmt for formatting view! macros
+cargo install leptosfmt
 
-### 🚀 **Deployment**
-- **CI/CD Pipeline**: Automated testing, building, and deployment via GitHub Actions
-- **Multiple Hosting Options**: GitHub Pages, Netlify, Vercel, Docker - all documented
-- **WASM Optimization**: Production builds optimized for size and performance
-- **Security Headers**: CSP and security configuration documented
-- **Monitoring Ready**: Error tracking and performance monitoring guides included
+# Format Leptos code
+leptosfmt src/
 
-See [DEPLOYMENT.md](DEPLOYMENT.md) for complete deployment instructions.
+# Install leptos-lints for additional linting
+cargo install cargo-dylint dylint-link
+cargo dylint --all
+```
 
-### 🔒 **Security**
-- **Input Validation**: All user inputs validated (component names, templates)
-- **XSS Prevention**: Framework-level protection via Leptos
-- **CSP Headers**: Content Security Policy configuration documented
-- **Dependency Auditing**: Automated security scanning in CI/CD
-- **OWASP Compliance**: Coverage for OWASP Top 10 vulnerabilities
+## Contributing
 
-See [SECURITY.md](SECURITY.md) for security best practices and reporting.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### 📊 **Performance**
-- **WASM Bundle**: Optimized with LTO and size optimizations
-- **Code Splitting**: Lazy loading support
-- **Caching Strategy**: Documented for CDN and static hosting
-- **LocalStorage**: Efficient persistence with validation
-- **Render Optimization**: Minimal re-renders with fine-grained reactivity
+## License
 
-### 🔧 **Code Quality**
-- **0 Compiler Warnings**: Clean build with all warnings resolved
-- **Clippy Compliant**: Passes all Clippy lints
-- **Well Documented**: Comprehensive Rustdoc on public APIs
-- **Type Safe**: Full Rust type safety throughout
-- **Error Handling**: Comprehensive error handling with user feedback
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
 
-## 🧪 Pengujian & Quality Assurance
+## Acknowledgments
 
-### ✅ **Comprehensive Test Coverage**
-- **62 tests passing** dengan 100% success rate
-- Integration tests untuk semua fitur professional-grade
-- Property-based testing untuk edge cases
-- Stress testing untuk large layouts dan complex scenarios
-
-### 🔧 **Automated Quality Checks**
-- **GitHub Actions**: Automated testing on every push/PR
-- **Clippy Linting**: Automated code quality checks
-- **Security Auditing**: Automated dependency vulnerability scanning
-- **Format Checking**: Automated code formatting validation
-
-### 🎯 **Testing Scenarios**
-- Drag & drop functionality dengan berbagai komponen
-- Keyboard shortcuts dan command palette
-- Export code generation untuk semua preset (Plain, thaw-ui, leptos-material, leptos-use)
-- Custom component management dan validation
-- Undo/redo system dengan complex state management
-- Unicode, emoji, dan special character handling
-- Deeply nested components dan large layout stress tests
-- Copy/paste functionality with clipboard API
-- All keyboard shortcuts (Ctrl+C/V/D/Z/Y/etc)
+Built with [Leptos](https://leptos.dev/) - A performant web framework for Rust.
