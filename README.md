@@ -24,9 +24,14 @@ A visual UI builder for the [Leptos](https://leptos.dev/) Rust web framework. Dr
 
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) 1.90 or later
+- [Rust](https://rustup.rs/) 1.90 or later (enforced in `Cargo.toml`)
 - [Trunk](https://trunkrs.dev/) for building WASM applications
 
+> **Note:** The minimum Rust version is enforced in `Cargo.toml`:
+> ```toml
+> [package]
+> rust-version = "1.90"
+> ```
 ```bash
 # Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
