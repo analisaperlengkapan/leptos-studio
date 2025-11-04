@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Build errors with command palette and app.rs (closure trait issues)
 - Some UI components need refactoring for Leptos 0.8 compatibility
 
-## [0.2.3] - 2024-08-25
+## [0.2.3] - 2025-08-25
 
 ### Added
 - Export presets: Plain, thaw-ui, leptos-material, leptos-use
