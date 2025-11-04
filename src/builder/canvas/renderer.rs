@@ -1,0 +1,187 @@
+use leptos::prelude::*;
+use crate::domain::{
+    CanvasComponent, ButtonComponent, TextComponent, InputComponent, 
+    ContainerComponent, CustomComponent
+};
+use crate::state::CanvasState;
+
+/// Component renderer for displaying canvas components
+#[component]
+pub fn ComponentRenderer(
+    /// The component to render
+    component: CanvasComponent,
+    /// Canvas state for selection tracking
+    canvas_state: CanvasState,
+) -> impl IntoView {
+    let component_id = component.id().clone();
+    let component_id_for_selected = component_id.clone();
+    let component_id_for_click = component_id.clone();
+    let component_id_for_attr = component_id.clone();
+    
+    let is_selected = Memo::new(move |_| {
+        canvas_state.selected.get()
+            .as_ref()
+            .map(|id| id == &component_id_for_selected)
+            .unwrap_or(false)
+    });
+    
+    let on_click = move |ev: leptos::ev::MouseEvent| {
+        ev.stop_propagation();
+        canvas_state.selected.set(Some(component_id_for_click.clone()));
+    };
+    
+    let class = move || {
+        if is_selected.get() {
+            "canvas-component selected"
+        } else {
+            "canvas-component"
+        }
+    };
+    
+    view! {
+        <div 
+            class=class
+            on:click=on_click
+            data-component-id=component_id_for_attr.to_string()
+        >
+            {match component {
+                CanvasComponent::Button(btn) => render_button(btn).into_any(),
+                CanvasComponent::Text(txt) => render_text(txt).into_any(),
+                CanvasComponent::Input(inp) => render_input(inp).into_any(),
+                CanvasComponent::Container(container) => render_container(container, canvas_state).into_any(),
+                CanvasComponent::Custom(custom) => render_custom(custom).into_any(),
+            }}
+        </div>
+    }
+}
+
+fn render_button(button: ButtonComponent) -> impl IntoView {
+    let variant_class = match button.variant {
+        crate::domain::ButtonVariant::Primary => "btn-primary",
+        crate::domain::ButtonVariant::Secondary => "btn-secondary",
+        crate::domain::ButtonVariant::Outline => "btn-outline",
+        crate::domain::ButtonVariant::Ghost => "btn-ghost",
+    };
+    
+    let size_class = match button.size {
+        crate::domain::ButtonSize::Small => "btn-sm",
+        crate::domain::ButtonSize::Medium => "btn-md",
+        crate::domain::ButtonSize::Large => "btn-lg",
+    };
+    
+    view! {
+        <button 
+            class=format!("canvas-button {} {}", variant_class, size_class)
+            disabled=button.disabled
+        >
+            {button.label}
+        </button>
+    }
+}
+
+fn render_text(text: TextComponent) -> impl IntoView {
+    let tag_class = match text.tag {
+        crate::domain::TextTag::H1 => "text-h1",
+        crate::domain::TextTag::H2 => "text-h2",
+        crate::domain::TextTag::H3 => "text-h3",
+        crate::domain::TextTag::P => "text-p",
+        crate::domain::TextTag::Span => "text-span",
+    };
+    
+    let style_class = match text.style {
+        crate::domain::TextStyle::Heading1 => "style-heading1",
+        crate::domain::TextStyle::Heading2 => "style-heading2",
+        crate::domain::TextStyle::Heading3 => "style-heading3",
+        crate::domain::TextStyle::Body => "style-body",
+        crate::domain::TextStyle::Caption => "style-caption",
+    };
+    
+    view! {
+        <span class=format!("canvas-text {} {}", tag_class, style_class)>
+            {text.content}
+        </span>
+    }
+}
+
+fn render_input(input: InputComponent) -> impl IntoView {
+    let input_type = match input.input_type {
+        crate::domain::InputType::Text => "text",
+        crate::domain::InputType::Password => "password",
+        crate::domain::InputType::Email => "email",
+        crate::domain::InputType::Number => "number",
+        crate::domain::InputType::Tel => "tel",
+    };
+    
+    view! {
+        <input 
+            class="canvas-input"
+            type=input_type
+            placeholder=input.placeholder
+            required=input.required
+            disabled=input.disabled
+        />
+    }
+}
+
+fn render_container(
+    container: ContainerComponent,
+    canvas_state: CanvasState,
+) -> impl IntoView {
+    let layout_class = match &container.layout {
+        crate::domain::LayoutType::Flex { direction, wrap } => {
+            let dir_class = match direction {
+                crate::domain::FlexDirection::Row => "flex-row",
+                crate::domain::FlexDirection::Column => "flex-col",
+            };
+            if *wrap {
+                format!("{} flex-wrap", dir_class)
+            } else {
+                dir_class.to_string()
+            }
+        }
+        crate::domain::LayoutType::Grid { columns, rows } => {
+            format!("grid grid-cols-{} grid-rows-{}", columns, rows)
+        }
+        crate::domain::LayoutType::Stack => "stack".to_string(),
+    };
+    
+    let style = format!(
+        "gap: {}px; padding: {}px {}px {}px {}px;",
+        container.gap,
+        container.padding.top,
+        container.padding.right,
+        container.padding.bottom,
+        container.padding.left
+    );
+    
+    view! {
+        <div 
+            class=format!("canvas-container {}", layout_class)
+            style=style
+        >
+            <For
+                each=move || container.children.clone()
+                key=|comp| comp.id().clone()
+                children=move |comp| {
+                    view! {
+                        <ComponentRenderer 
+                            component=comp
+                            canvas_state=canvas_state
+                        />
+                    }
+                }
+            />
+        </div>
+    }
+}
+
+fn render_custom(custom: CustomComponent) -> impl IntoView {
+    view! {
+        <div class="canvas-custom">
+            <div class="custom-header">
+                <span class="custom-name">{custom.name.clone()}</span>
+            </div>
+            <div class="custom-template" inner_html=custom.template></div>
+        </div>
+    }
+}

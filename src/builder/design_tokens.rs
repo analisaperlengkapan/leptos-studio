@@ -419,9 +419,9 @@ impl DesignTokens {
     }
 
     pub fn apply_to_document(&self) {
-        if let Some(window) = web_sys::window() {
-            if let Some(document) = window.document() {
-                if let Some(head) = document.head() {
+        if let Some(window) = web_sys::window()
+            && let Some(document) = window.document()
+                && let Some(head) = document.head() {
                     // Remove existing design token styles
                     if let Ok(Some(existing_element)) =
                         document.query_selector("#design-tokens-style")
@@ -436,8 +436,6 @@ impl DesignTokens {
                         _ = head.append_child(&style_element);
                     }
                 }
-            }
-        }
     }
 
     pub fn get_color(&self, name: &str) -> Option<&ColorToken> {

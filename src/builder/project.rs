@@ -1,5 +1,5 @@
 // ...existing code...
-use crate::builder::canvas::CanvasComponent;
+use crate::domain::CanvasComponent;
 use crate::builder::component_library::LibraryComponent;
 use serde::{Deserialize, Serialize};
 

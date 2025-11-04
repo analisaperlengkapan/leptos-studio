@@ -1,4 +1,5 @@
-use crate::builder::canvas::{CanvasComponent, SelectedComponent};
+use crate::domain::CanvasComponent;
+use crate::state::AppState;
 use leptos::prelude::*;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -30,29 +31,36 @@ impl BreadcrumbItem {
 
 fn component_type(component: &CanvasComponent) -> String {
     match component {
-        CanvasComponent::Button { .. } => "Button".to_string(),
-        CanvasComponent::Text { .. } => "Text".to_string(),
-        CanvasComponent::Input { .. } => "Input".to_string(),
-        CanvasComponent::Container { .. } => "Container".to_string(),
-        CanvasComponent::Custom { .. } => "Custom".to_string(),
+        CanvasComponent::Button(_) => "Button".to_string(),
+        CanvasComponent::Text(_) => "Text".to_string(),
+        CanvasComponent::Input(_) => "Input".to_string(),
+        CanvasComponent::Container(_) => "Container".to_string(),
+        CanvasComponent::Custom(_) => "Custom".to_string(),
     }
 }
 
 fn component_name(component: &CanvasComponent) -> String {
     match component {
-        CanvasComponent::Button { label } => label.clone(),
-        CanvasComponent::Text { content } => content.clone(),
-        CanvasComponent::Input { placeholder } => placeholder.clone(),
-        CanvasComponent::Container { .. } => "Container".to_string(),
-        CanvasComponent::Custom { name } => name.clone(),
+        CanvasComponent::Button(btn) => btn.label.clone(),
+        CanvasComponent::Text(txt) => txt.content.clone(),
+        CanvasComponent::Input(inp) => {
+            if inp.placeholder.is_empty() {
+                "Input".to_string()
+            } else {
+                inp.placeholder.clone()
+            }
+        },
+        CanvasComponent::Container(_) => "Container".to_string(),
+        CanvasComponent::Custom(custom) => custom.name.clone(),
     }
 }
 
 #[component]
-pub fn BreadcrumbNavigation(
-    components: RwSignal<Vec<CanvasComponent>>,
-    selected: RwSignal<SelectedComponent>,
-) -> impl IntoView {
+pub fn BreadcrumbNavigation() -> impl IntoView {
+    // Get app state from context - no prop drilling!
+    let app_state = AppState::use_context();
+    let canvas_state = app_state.canvas;
+    
     let breadcrumbs = Memo::new(move |_| {
         let mut items = vec![BreadcrumbItem {
             name: "Canvas".to_string(),
@@ -60,8 +68,9 @@ pub fn BreadcrumbNavigation(
             index: None,
         }];
 
-        if let Some(idx) = selected.get().idx {
-            if let Some(component) = components.get().get(idx) {
+        if let Some(selected_id) = canvas_state.selected.get() {
+            let components = canvas_state.components.get();
+            if let Some((idx, component)) = components.iter().enumerate().find(|(_, c)| c.id() == &selected_id) {
                 items.push(BreadcrumbItem {
                     name: component_name(component),
                     component_type: component_type(component),
@@ -74,7 +83,17 @@ pub fn BreadcrumbNavigation(
     });
 
     let navigate_to = move |item: BreadcrumbItem| {
-        selected.set(SelectedComponent { idx: item.index });
+        match item.index {
+            Some(idx) => {
+                let components = canvas_state.components.get();
+                if let Some(component) = components.get(idx) {
+                    canvas_state.selected.set(Some(component.id().clone()));
+                }
+            }
+            None => {
+                canvas_state.selected.set(None);
+            }
+        }
     };
 
     view! {

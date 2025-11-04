@@ -1,3 +1,8 @@
+use serde::{Deserialize, Serialize};
+
+// Re-export types from state module to avoid duplication
+pub use crate::state::app_state::{ResponsiveMode, Theme};
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PropSchema {
     pub name: String,
@@ -5,20 +10,8 @@ pub struct PropSchema {
     pub required: bool,
     pub description: Option<String>,
 }
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum ResponsiveMode {
-    Desktop,
-    Tablet,
-    Mobile,
-}
-#[derive(Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize, Debug)]
-pub enum Theme {
-    Light,
-    Dark,
-    Custom,
-}
+
 // Shared definition for LibraryComponent used in component library management
-use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LibraryComponent {

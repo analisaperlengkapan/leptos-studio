@@ -1,0 +1,392 @@
+use crate::domain::{AppError, AppResult, CanvasComponent};
+use crate::state::ExportPreset;
+
+/// Code generator trait
+pub trait CodeGenerator {
+    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String>;
+    fn file_extension(&self) -> &str;
+}
+
+/// Leptos code generator
+pub struct LeptosCodeGenerator {
+    preset: ExportPreset,
+}
+
+impl LeptosCodeGenerator {
+    pub fn new(preset: ExportPreset) -> Self {
+        Self { preset }
+    }
+    
+    fn generate_imports(&self) -> String {
+        match self.preset {
+            ExportPreset::Plain => {
+                "use leptos::*;\n".to_string()
+            }
+            ExportPreset::ThawUi => {
+                "use leptos::*;\nuse thaw::*;\n".to_string()
+            }
+            ExportPreset::LeptosMaterial => {
+                "use leptos::*;\nuse leptos_material::*;\n".to_string()
+            }
+            ExportPreset::LeptosUse => {
+                "use leptos::*;\nuse leptos_use::*;\n".to_string()
+            }
+        }
+    }
+    
+    fn generate_component(
+        &self,
+        component: &CanvasComponent,
+        output: &mut String,
+        indent_level: usize,
+    ) -> AppResult<()> {
+        let indent = "    ".repeat(indent_level);
+        
+        match component {
+            CanvasComponent::Button(btn) => {
+                let variant_class = match btn.variant {
+                    crate::domain::ButtonVariant::Primary => "btn-primary",
+                    crate::domain::ButtonVariant::Secondary => "btn-secondary",
+                    crate::domain::ButtonVariant::Outline => "btn-outline",
+                    crate::domain::ButtonVariant::Ghost => "btn-ghost",
+                };
+                
+                let size_class = match btn.size {
+                    crate::domain::ButtonSize::Small => "btn-sm",
+                    crate::domain::ButtonSize::Medium => "btn-md",
+                    crate::domain::ButtonSize::Large => "btn-lg",
+                };
+                
+                output.push_str(&format!(
+                    "{}        <button class=\"{} {}\" disabled={}>{}</button>\n",
+                    indent, variant_class, size_class, btn.disabled, btn.label
+                ));
+            }
+            CanvasComponent::Text(txt) => {
+                let tag = match txt.tag {
+                    crate::domain::TextTag::H1 => "h1",
+                    crate::domain::TextTag::H2 => "h2",
+                    crate::domain::TextTag::H3 => "h3",
+                    crate::domain::TextTag::P => "p",
+                    crate::domain::TextTag::Span => "span",
+                };
+                
+                output.push_str(&format!(
+                    "{}        <{} class=\"text-{}\">{}</{}>\n",
+                    indent,
+                    tag,
+                    match txt.style {
+                        crate::domain::TextStyle::Heading1 => "heading1",
+                        crate::domain::TextStyle::Heading2 => "heading2",
+                        crate::domain::TextStyle::Heading3 => "heading3",
+                        crate::domain::TextStyle::Body => "body",
+                        crate::domain::TextStyle::Caption => "caption",
+                    },
+                    txt.content,
+                    tag
+                ));
+            }
+            CanvasComponent::Input(inp) => {
+                let input_type = match inp.input_type {
+                    crate::domain::InputType::Text => "text",
+                    crate::domain::InputType::Password => "password",
+                    crate::domain::InputType::Email => "email",
+                    crate::domain::InputType::Number => "number",
+                    crate::domain::InputType::Tel => "tel",
+                };
+                
+                output.push_str(&format!(
+                    "{}        <input type=\"{}\" placeholder=\"{}\" required={} disabled={} />\n",
+                    indent, input_type, inp.placeholder, inp.required, inp.disabled
+                ));
+            }
+            CanvasComponent::Container(container) => {
+                let layout_class = match &container.layout {
+                    crate::domain::LayoutType::Flex { direction, wrap } => {
+                        let dir = match direction {
+                            crate::domain::FlexDirection::Row => "flex-row",
+                            crate::domain::FlexDirection::Column => "flex-col",
+                        };
+                        if *wrap {
+                            format!("{} flex-wrap", dir)
+                        } else {
+                            dir.to_string()
+                        }
+                    }
+                    crate::domain::LayoutType::Grid { columns, rows } => {
+                        format!("grid grid-cols-{} grid-rows-{}", columns, rows)
+                    }
+                    crate::domain::LayoutType::Stack => "stack".to_string(),
+                };
+                
+                output.push_str(&format!(
+                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px;\">\n",
+                    indent,
+                    layout_class,
+                    container.gap,
+                    container.padding.top,
+                    container.padding.right,
+                    container.padding.bottom,
+                    container.padding.left
+                ));
+                
+                // Recursively generate children
+                for child in &container.children {
+                    self.generate_component(child, output, indent_level + 1)?;
+                }
+                
+                output.push_str(&format!("{}        </div>\n", indent));
+            }
+            CanvasComponent::Custom(custom) => {
+                output.push_str(&format!(
+                    "{}        // Custom component: {}\n",
+                    indent, custom.name
+                ));
+                output.push_str(&format!("{}        {}\n", indent, custom.template));
+            }
+        }
+        
+        Ok(())
+    }
+}
+
+impl CodeGenerator for LeptosCodeGenerator {
+    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+        let mut output = String::new();
+        
+        // Add imports
+        output.push_str(&self.generate_imports());
+        output.push('\n');
+        
+        // Generate component function
+        output.push_str("#[component]\n");
+        output.push_str("pub fn App() -> impl IntoView {\n");
+        output.push_str("    view! {\n");
+        
+        // Generate components
+        for component in components {
+            self.generate_component(component, &mut output, 0)?;
+        }
+        
+        output.push_str("    }\n");
+        output.push_str("}\n");
+        
+        Ok(output)
+    }
+    
+    fn file_extension(&self) -> &str {
+        "rs"
+    }
+}
+
+/// HTML code generator
+pub struct HtmlCodeGenerator;
+
+impl CodeGenerator for HtmlCodeGenerator {
+    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+        let mut output = String::from("<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Generated Layout</title>\n</head>\n<body>\n");
+        
+        for component in components {
+            self.generate_html(component, &mut output, 1)?;
+        }
+        
+        output.push_str("</body>\n</html>");
+        Ok(output)
+    }
+    
+    fn file_extension(&self) -> &str {
+        "html"
+    }
+}
+
+impl HtmlCodeGenerator {
+    fn generate_html(
+        &self,
+        component: &CanvasComponent,
+        output: &mut String,
+        indent_level: usize,
+    ) -> AppResult<()> {
+        let indent = "    ".repeat(indent_level);
+        
+        match component {
+            CanvasComponent::Button(btn) => {
+                output.push_str(&format!(
+                    "{}<button{}>{}</button>\n",
+                    indent,
+                    if btn.disabled { " disabled" } else { "" },
+                    btn.label
+                ));
+            }
+            CanvasComponent::Text(txt) => {
+                let tag = match txt.tag {
+                    crate::domain::TextTag::H1 => "h1",
+                    crate::domain::TextTag::H2 => "h2",
+                    crate::domain::TextTag::H3 => "h3",
+                    crate::domain::TextTag::P => "p",
+                    crate::domain::TextTag::Span => "span",
+                };
+                output.push_str(&format!("{}<{}>{}</{}>\n", indent, tag, txt.content, tag));
+            }
+            CanvasComponent::Input(inp) => {
+                let input_type = match inp.input_type {
+                    crate::domain::InputType::Text => "text",
+                    crate::domain::InputType::Password => "password",
+                    crate::domain::InputType::Email => "email",
+                    crate::domain::InputType::Number => "number",
+                    crate::domain::InputType::Tel => "tel",
+                };
+                output.push_str(&format!(
+                    "{}<input type=\"{}\" placeholder=\"{}\"{}{}>\n",
+                    indent,
+                    input_type,
+                    inp.placeholder,
+                    if inp.required { " required" } else { "" },
+                    if inp.disabled { " disabled" } else { "" }
+                ));
+            }
+            CanvasComponent::Container(container) => {
+                output.push_str(&format!("{}<div>\n", indent));
+                for child in &container.children {
+                    self.generate_html(child, output, indent_level + 1)?;
+                }
+                output.push_str(&format!("{}</div>\n", indent));
+            }
+            CanvasComponent::Custom(custom) => {
+                output.push_str(&format!("{}<!-- {} -->\n", indent, custom.name));
+                output.push_str(&format!("{}{}\n", indent, custom.template));
+            }
+        }
+        
+        Ok(())
+    }
+}
+
+/// JSON code generator
+pub struct JsonCodeGenerator;
+
+impl CodeGenerator for JsonCodeGenerator {
+    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+        serde_json::to_string_pretty(components)
+            .map_err(|e| AppError::Export(format!("Failed to serialize to JSON: {}", e)))
+    }
+    
+    fn file_extension(&self) -> &str {
+        "json"
+    }
+}
+
+/// Markdown code generator (for documentation)
+pub struct MarkdownCodeGenerator;
+
+impl CodeGenerator for MarkdownCodeGenerator {
+    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+        let mut output = String::from("# Generated Layout Documentation\n\n");
+        
+        for (i, component) in components.iter().enumerate() {
+            output.push_str(&format!("## Component {}\n\n", i + 1));
+            self.generate_markdown(component, &mut output, 0)?;
+            output.push('\n');
+        }
+        
+        Ok(output)
+    }
+    
+    fn file_extension(&self) -> &str {
+        "md"
+    }
+}
+
+impl MarkdownCodeGenerator {
+    fn generate_markdown(
+        &self,
+        component: &CanvasComponent,
+        output: &mut String,
+        depth: usize,
+    ) -> AppResult<()> {
+        let indent = "  ".repeat(depth);
+        
+        match component {
+            CanvasComponent::Button(btn) => {
+                output.push_str(&format!("{}- **Button**: {}\n", indent, btn.label));
+                output.push_str(&format!("{}  - Variant: {:?}\n", indent, btn.variant));
+                output.push_str(&format!("{}  - Size: {:?}\n", indent, btn.size));
+                output.push_str(&format!("{}  - Disabled: {}\n", indent, btn.disabled));
+            }
+            CanvasComponent::Text(txt) => {
+                output.push_str(&format!("{}- **Text**: {}\n", indent, txt.content));
+                output.push_str(&format!("{}  - Style: {:?}\n", indent, txt.style));
+                output.push_str(&format!("{}  - Tag: {:?}\n", indent, txt.tag));
+            }
+            CanvasComponent::Input(inp) => {
+                output.push_str(&format!("{}- **Input**\n", indent));
+                output.push_str(&format!("{}  - Type: {:?}\n", indent, inp.input_type));
+                output.push_str(&format!("{}  - Placeholder: {}\n", indent, inp.placeholder));
+                output.push_str(&format!("{}  - Required: {}\n", indent, inp.required));
+            }
+            CanvasComponent::Container(container) => {
+                output.push_str(&format!("{}- **Container**\n", indent));
+                output.push_str(&format!("{}  - Layout: {:?}\n", indent, container.layout));
+                output.push_str(&format!("{}  - Children: {}\n", indent, container.children.len()));
+                for child in &container.children {
+                    self.generate_markdown(child, output, depth + 1)?;
+                }
+            }
+            CanvasComponent::Custom(custom) => {
+                output.push_str(&format!("{}- **Custom Component**: {}\n", indent, custom.name));
+                output.push_str(&format!("{}  - Template: {}\n", indent, custom.template));
+            }
+        }
+        
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::{ButtonComponent, TextComponent, CanvasComponent};
+
+    #[test]
+    fn test_leptos_generator() {
+        let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
+        let button = CanvasComponent::Button(ButtonComponent::new("Click me".to_string()));
+        let code = generator.generate(&[button]).unwrap();
+        
+        assert!(code.contains("use leptos::*;"));
+        assert!(code.contains("#[component]"));
+        assert!(code.contains("pub fn App()"));
+        assert!(code.contains("Click me"));
+    }
+
+    #[test]
+    fn test_html_generator() {
+        let generator = HtmlCodeGenerator;
+        let text = CanvasComponent::Text(TextComponent::new("Hello World".to_string()));
+        let code = generator.generate(&[text]).unwrap();
+        
+        assert!(code.contains("<!DOCTYPE html>"));
+        assert!(code.contains("<body>"));
+        assert!(code.contains("Hello World"));
+    }
+
+    #[test]
+    fn test_json_generator() {
+        let generator = JsonCodeGenerator;
+        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
+        let code = generator.generate(&[button]).unwrap();
+        
+        assert!(code.contains("Button"));
+        assert!(code.contains("Test"));
+    }
+
+    #[test]
+    fn test_markdown_generator() {
+        let generator = MarkdownCodeGenerator;
+        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
+        let code = generator.generate(&[button]).unwrap();
+        
+        assert!(code.contains("# Generated Layout Documentation"));
+        assert!(code.contains("**Button**"));
+        assert!(code.contains("Test"));
+    }
+}

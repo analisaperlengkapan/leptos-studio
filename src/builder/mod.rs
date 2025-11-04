@@ -1,10 +1,9 @@
 pub mod breadcrumb;
-pub mod canvas;
+pub mod canvas; // Modular canvas structure (canvas.rs + renderer.rs)
 pub mod command_palette;
 pub mod component_library;
 pub mod design_tokens;
 pub mod drag_drop;
-pub mod export;
 pub mod git_panel;
 pub mod keyboard;
 pub mod preview;
