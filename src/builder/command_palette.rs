@@ -205,36 +205,39 @@ where
                         flex-direction: column;
                     "
                     on:click=move |ev| ev.stop_propagation()
-                    on:keydown=move |ev: web_sys::KeyboardEvent| {
-                        let key = ev.key();
-                        match key.as_str() {
-                            "ArrowUp" => {
-                                ev.prevent_default();
-                                set_selected_index.update(|idx| {
-                                    let len = filtered_commands.get().len();
-                                    *idx = if *idx > 0 { *idx - 1 } else { len.saturating_sub(1) };
-                                });
-                            }
-                            "ArrowDown" => {
-                                ev.prevent_default();
-                                set_selected_index.update(|idx| {
-                                    let len = filtered_commands.get().len();
-                                    *idx = (*idx + 1) % len;
-                                });
-                            }
-                            "Enter" => {
-                                ev.prevent_default();
-                                let commands = filtered_commands.get();
-                                if let Some(command) = commands.get(selected_index.get()) {
-                                    on_action_clone.clone()(command.action.clone());
+                    on:keydown={
+                        let on_action_keydown = on_action_clone.clone();
+                        move |ev: web_sys::KeyboardEvent| {
+                            let key = ev.key();
+                            match key.as_str() {
+                                "ArrowUp" => {
+                                    ev.prevent_default();
+                                    set_selected_index.update(|idx| {
+                                        let len = filtered_commands.get().len();
+                                        *idx = if *idx > 0 { *idx - 1 } else { len.saturating_sub(1) };
+                                    });
+                                }
+                                "ArrowDown" => {
+                                    ev.prevent_default();
+                                    set_selected_index.update(|idx| {
+                                        let len = filtered_commands.get().len();
+                                        *idx = (*idx + 1) % len;
+                                    });
+                                }
+                                "Enter" => {
+                                    ev.prevent_default();
+                                    let commands = filtered_commands.get();
+                                    if let Some(command) = commands.get(selected_index.get()) {
+                                        on_action_keydown.clone()(command.action.clone());
+                                        close.set(false);
+                                    }
+                                }
+                                "Escape" => {
+                                    ev.prevent_default();
                                     close.set(false);
                                 }
+                                _ => {}
                             }
-                            "Escape" => {
-                                ev.prevent_default();
-                                close.set(false);
-                            }
-                            _ => {}
                         }
                     }
                 >
@@ -272,10 +275,10 @@ where
                             key=|(idx, cmd)| format!("{}-{}", idx, cmd.id)
                             children={
                                 let on_action_for = on_action_clone.clone();
-                                move |(idx, command)| {
+                                move |(idx, command): (usize, Command)| {
                                 let is_selected = move || selected_index.get() == idx;
                                 let command_clone = command.clone();
-                                let on_action_item = on_action_for.clone();
+                                let on_action_click = on_action_for.clone();
 
                                 view! {
                                     <div
@@ -297,9 +300,8 @@ where
                                         )
                                         on:click={
                                             let command = command_clone.clone();
-                                            let on_action_inner = on_action_item.clone();
                                             move |_| {
-                                                on_action_inner.clone()(command.action.clone());
+                                                on_action_click.clone()(command.action.clone());
                                                 close.set(false);
                                             }
                                         }

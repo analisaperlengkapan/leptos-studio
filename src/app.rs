@@ -13,8 +13,6 @@ use super::builder::component_library::{ResponsiveMode, Theme};
 use super::builder::preview::Preview;
 use super::builder::property_editor::PropertyEditor;
 use super::builder::snackbar::Snackbar;
-use std::cell::Cell;
-use std::rc::Rc;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -342,14 +340,8 @@ pub fn App() -> impl IntoView {
         }
     });
 
-    #[cfg(debug_assertions)]
-    let render_count = Rc::new(Cell::new(0));
-    #[cfg(debug_assertions)]
-    let render_time = Rc::new(Cell::new(0f64));
-    #[cfg(not(debug_assertions))]
-    let render_count = Rc::new(Cell::new(0));
-    #[cfg(not(debug_assertions))]
-    let render_time = Rc::new(Cell::new(0f64));
+    let render_count = RwSignal::new(0u32);
+    let render_time = RwSignal::new(0f64);
 
     // Create a memo for the style to avoid Send/Sync issues with signals in closures
     let app_style = Memo::new(move |_| {

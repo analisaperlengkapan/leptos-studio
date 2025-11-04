@@ -6,8 +6,8 @@ pub fn DebugPanel(
     custom_components: RwSignal<Vec<crate::builder::component_library::LibraryComponent>>,
     undo_stack: RwSignal<Vec<Vec<crate::builder::canvas::CanvasComponent>>>,
     redo_stack: RwSignal<Vec<Vec<crate::builder::canvas::CanvasComponent>>>,
-    render_count: std::rc::Rc<std::cell::Cell<u32>>,
-    render_time: std::rc::Rc<std::cell::Cell<f64>>,
+    render_count: RwSignal<u32>,
+    render_time: RwSignal<f64>,
 ) -> impl IntoView {
     view! {
         <div style="font-size:12px;background:#222;color:#fff;padding:8px;border-radius:6px;margin-bottom:12px;">

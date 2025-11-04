@@ -16,8 +16,8 @@ pub fn sidebar(
     undo_stack: RwSignal<Vec<Vec<crate::builder::canvas::CanvasComponent>>>,
     redo_stack: RwSignal<Vec<Vec<crate::builder::canvas::CanvasComponent>>>,
     components: RwSignal<Vec<crate::builder::canvas::CanvasComponent>>,
-    render_count: std::rc::Rc<std::cell::Cell<u32>>,
-    render_time: std::rc::Rc<std::cell::Cell<f64>>,
+    render_count: RwSignal<u32>,
+    render_time: RwSignal<f64>,
     notification: RwSignal<Option<String>>,
     component_library: RwSignal<Vec<LibraryComponent>>,
 ) -> impl IntoView {
