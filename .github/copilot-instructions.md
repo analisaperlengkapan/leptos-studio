@@ -8,15 +8,15 @@
 - [x] Development environment setup
 
 ## 🎨 Core UI Features
-- [x] Drag-and-drop komponen ke canvas
-- [x] Property editor interaktif untuk komponen di canvas
-- [x] Live preview hasil desain
-- [x] Dukungan nested/container (drag komponen ke dalam container)
-- [x] Custom komponen/user-defined component
+- [x] Drag-and-drop components to canvas
+- [x] Interactive property editor for canvas components
+- [x] Live preview of design
+- [x] Nested/container support (drag components into containers)
+- [x] Custom components/user-defined components
 
 ## 💾 Data Management
-- [x] Simpan dan load layout/desain (localStorage)
-- [x] Export/generate kode Leptos dari hasil desain
+- [x] Save and load layout/design (localStorage)
+- [x] Export/generate Leptos code from design
 - [x] Undo/redo system
 - [x] Import/export project files
 - [ ] Version control integration
@@ -35,11 +35,11 @@
 - [x] CONTRIBUTING guidelines
 - [x] Unit tests
 - [x] Integration tests
- - [x] API documentation (lihat API.md)
+ - [x] API documentation (see API.md)
 - [x] User manual/tutorials
  - [x] Linting with leptos-lints (cargo-dylint)
- - [x] Autoformat macro Leptos with leptosfmt
- - [x] Ekosistem & best practice Leptos (signals, context, modular, preset ekspor)
+ - [x] Autoformat Leptos macros with leptosfmt
+ - [x] Leptos ecosystem & best practices (signals, context, modular, export presets)
 
 ## 🔧 Developer Experience
 - [x] Build system optimization
@@ -59,8 +59,8 @@
 - Comprehensive unit & integration testing
 - Complete project documentation & user guide
 - Sidebar/canvas refactor: props now fully used, code clean, warning-free
-+- Linting Leptos (leptos-lints) terintegrasi, autoformat macro Leptos (leptosfmt) didokumentasikan
-+- API documentation internal tersedia di API.md
++- Leptos linting (leptos-lints) integrated, Leptos macro autoformat (leptosfmt) documented
++- Internal API documentation available in API.md
 
 🔄 **In Progress**
 - Advanced developer tooling
