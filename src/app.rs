@@ -13,6 +13,8 @@ use crate::builder::command_palette::CommandPalette;
 use crate::state::app_state::{AppState, Notification};
 use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator, HtmlCodeGenerator, MarkdownCodeGenerator};
 use crate::domain::component::CanvasComponent;
+use crate::utils::{copy_to_clipboard, read_from_clipboard};
+use js_sys::encode_uri_component;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -49,9 +51,15 @@ pub fn App() -> impl IntoView {
             }
             KeyboardAction::Save => {
                 if let Err(e) = app_state.save() {
-                    app_state.ui.notification.set(Some(Notification::error(format!("❌ Save failed: {}", e))));
+                    app_state
+                        .ui
+                        .notification
+                        .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
                 } else {
-                    app_state.ui.notification.set(Some(Notification::success("💾 Layout saved!".to_string())));
+                    app_state
+                        .ui
+                        .notification
+                        .set(Some(Notification::success("💾 Layout saved!".to_string())));
                 }
             }
             KeyboardAction::Delete => {
@@ -66,38 +74,72 @@ pub fn App() -> impl IntoView {
             }
             KeyboardAction::Copy => {
                 if let Some(selected_id) = app_state.canvas.selected.get() {
-                    if let Some(comp) = app_state.canvas.get_component(&selected_id)
-                        && let Ok(json) = serde_json::to_string(&comp)
-                            && let Some(window) = web_sys::window() {
-                                let clipboard = window.navigator().clipboard();
-                                let promise = clipboard.write_text(&json);
+                    if let Some(comp) = app_state.canvas.get_component(&selected_id) {
+                        match serde_json::to_string(&comp) {
+                            Ok(json) => {
+                                let app_state_clone = app_state;
                                 wasm_bindgen_futures::spawn_local(async move {
-                                    let _ = wasm_bindgen_futures::JsFuture::from(promise).await;
+                                    match copy_to_clipboard(&json).await {
+                                        Ok(()) => {
+                                            app_state_clone
+                                                .ui
+                                                .notification
+                                                .set(Some(Notification::success("📋 Component copied!".to_string())));
+                                        }
+                                        Err(e) => {
+                                            app_state_clone
+                                                .ui
+                                                .notification
+                                                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                                        }
+                                    }
                                 });
-                                app_state.ui.notification.set(Some(Notification::success("📋 Component copied!".to_string())));
                             }
+                            Err(_) => {
+                                app_state
+                                    .ui
+                                    .notification
+                                    .set(Some(Notification::error("❌ Failed to serialize component".to_string())));
+                            }
+                        }
+                    }
                 } else {
-                    app_state.ui.notification.set(Some(Notification::warning("⚠️ No component selected".to_string())));
+                    app_state
+                        .ui
+                        .notification
+                        .set(Some(Notification::warning("⚠️ No component selected".to_string())));
                 }
             }
             KeyboardAction::Paste => {
-                if let Some(window) = web_sys::window() {
-                    let clipboard = window.navigator().clipboard();
-                    let promise = clipboard.read_text();
-                    let app_state_clone = app_state;
-                    wasm_bindgen_futures::spawn_local(async move {
-                        if let Ok(result) = wasm_bindgen_futures::JsFuture::from(promise).await
-                            && let Some(text) = result.as_string() {
-                                if let Ok(comp) = serde_json::from_str::<CanvasComponent>(&text) {
+                let app_state_clone = app_state;
+                wasm_bindgen_futures::spawn_local(async move {
+                    match read_from_clipboard().await {
+                        Ok(text) => {
+                            match serde_json::from_str::<CanvasComponent>(&text) {
+                                Ok(comp) => {
                                     app_state_clone.canvas.record_snapshot();
                                     app_state_clone.canvas.add_component(comp);
-                                    app_state_clone.ui.notification.set(Some(Notification::success("📋 Component pasted!".to_string())));
-                                } else {
-                                    app_state_clone.ui.notification.set(Some(Notification::error("⚠️ Invalid clipboard content".to_string())));
+                                    app_state_clone
+                                        .ui
+                                        .notification
+                                        .set(Some(Notification::success("📋 Component pasted!".to_string())));
+                                }
+                                Err(_) => {
+                                    app_state_clone
+                                        .ui
+                                        .notification
+                                        .set(Some(Notification::error("⚠️ Invalid clipboard content".to_string())));
                                 }
                             }
-                    });
-                }
+                        }
+                        Err(e) => {
+                            app_state_clone
+                                .ui
+                                .notification
+                                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                        }
+                    }
+                });
             }
             KeyboardAction::Duplicate => {
                 if let Some(selected_id) = app_state.canvas.selected.get() {
@@ -122,9 +164,19 @@ pub fn App() -> impl IntoView {
             KeyboardAction::Export => {
                 let comps = app_state.canvas.components.get();
                 let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
-                let code = generator.generate(&comps).unwrap_or_else(|e| format!("Error: {}", e));
-                export_code.set(code);
-                show_export.set(true);
+
+                match generator.generate(&comps) {
+                    Ok(code) => {
+                        export_code.set(code);
+                        show_export.set(true);
+                    }
+                    Err(e) => {
+                        app_state
+                            .ui
+                            .notification
+                            .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                    }
+                }
             }
             _ => {}
         }
@@ -137,18 +189,19 @@ pub fn App() -> impl IntoView {
         let code = match export_template.get().as_str() {
             "leptos" => {
                 let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
-                generator.generate(&comps).unwrap_or_else(|e| format!("Error: {}", e))
+                generator.generate(&comps).unwrap_or_else(|e| e.user_message())
             }
             "html" => {
                 let generator = HtmlCodeGenerator;
-                generator.generate(&comps).unwrap_or_else(|e| format!("Error: {}", e))
+                generator.generate(&comps).unwrap_or_else(|e| e.user_message())
             }
             "markdown" => {
                 let generator = MarkdownCodeGenerator;
-                generator.generate(&comps).unwrap_or_else(|e| format!("Error: {}", e))
+                generator.generate(&comps).unwrap_or_else(|e| e.user_message())
             }
             "json" => {
-                serde_json::to_string_pretty(&comps).unwrap_or_else(|e| format!("Error: {}", e))
+                serde_json::to_string_pretty(&comps)
+                    .unwrap_or_else(|e| format!("Error serializing JSON: {}", e))
             }
             _ => "Unknown template".to_string(),
         };
@@ -160,17 +213,29 @@ pub fn App() -> impl IntoView {
     // Save/Load handlers
     let save_layout = move |_| {
         if let Err(e) = app_state.save() {
-            app_state.ui.notification.set(Some(Notification::error(format!("❌ Save failed: {}", e))));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
         } else {
-            app_state.ui.notification.set(Some(Notification::success("💾 Layout saved!".to_string())));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::success("💾 Layout saved!".to_string())));
         }
     };
 
     let load_layout = move |_| {
         if let Err(e) = app_state.load() {
-            app_state.ui.notification.set(Some(Notification::error(format!("❌ Load failed: {}", e))));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
         } else {
-            app_state.ui.notification.set(Some(Notification::success("📂 Layout loaded!".to_string())));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::success("📂 Layout loaded!".to_string())));
         }
     };
 
@@ -188,6 +253,59 @@ pub fn App() -> impl IntoView {
             app_state.canvas.components.set(snapshot.components);
             app_state.canvas.selected.set(snapshot.selected);
             app_state.ui.notification.set(Some(Notification::info("↪️ Redo".to_string())));
+        }
+    };
+    
+    // Export modal actions
+    let copy_export_code = {
+        let export_code = export_code;
+        let app_state = app_state;
+        move |_| {
+            let code = export_code.get();
+            let app_state_clone = app_state;
+            wasm_bindgen_futures::spawn_local(async move {
+                match copy_to_clipboard(&code).await {
+                    Ok(()) => {
+                        app_state_clone
+                            .ui
+                            .notification
+                            .set(Some(Notification::success("📋 Code copied to clipboard!".to_string())));
+                    }
+                    Err(e) => {
+                        app_state_clone
+                            .ui
+                            .notification
+                            .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                    }
+                }
+            });
+        }
+    };
+
+    let download_export_code = {
+        let export_code = export_code;
+        let export_template = export_template;
+        let app_state = app_state;
+        move |_| {
+            let code = export_code.get();
+            let mime = match export_template.get().as_str() {
+                "html" => "text/html",
+                "markdown" => "text/markdown",
+                "json" => "application/json",
+                _ => "text/plain",
+            };
+
+            let encoded = encode_uri_component(&code);
+            let url = format!("data:{};charset=utf-8,{}", mime, encoded);
+
+            if let Some(window) = web_sys::window() {
+                let _ = window.open_with_url_and_target(&url, "_blank");
+            } else {
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::error("❌ Unable to open download window".to_string())));
+            }
         }
     };
 
@@ -249,7 +367,7 @@ pub fn App() -> impl IntoView {
                 {move || if show_export.get() {
                     view! {
                         <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
-                            <div style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;">
+                            <div style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:800px;width:80vw;">
                                 <h3>{"Export Code"}</h3>
                                 <select
                                     prop:value=export_template
@@ -261,10 +379,14 @@ pub fn App() -> impl IntoView {
                                     <option value="markdown">{"Markdown"}</option>
                                     <option value="json">{"Raw JSON"}</option>
                                 </select>
-                                <textarea style="width:100%;height:300px;" readonly>
+                                <textarea style="width:100%;height:300px;margin-bottom:0.75rem;" readonly>
                                     {export_code.get()}
                                 </textarea>
-                                <button on:click=close_export>{"Close"}</button>
+                                <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
+                                    <button on:click=copy_export_code class="btn btn-secondary">{"Copy"}</button>
+                                    <button on:click=download_export_code class="btn btn-secondary">{"Download"}</button>
+                                    <button on:click=close_export class="btn btn-outline">{"Close"}</button>
+                                </div>
                             </div>
                         </div>
                     }.into_any()

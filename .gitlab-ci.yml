@@ -1,0 +1,23 @@
+image: rust:latest
+
+stages:
+  - test
+
+variables:
+  CARGO_TERM_COLOR: always
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - target
+
+# Basic CI pipeline for Leptos Studio
+# - Runs native tests
+# - Runs wasm tests on wasm32-unknown-unknown target
+
+test:
+  stage: test
+  script:
+    - rustup target add wasm32-unknown-unknown
+    - cargo test
+    - cargo test --target wasm32-unknown-unknown

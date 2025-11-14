@@ -5,10 +5,11 @@ use crate::state::app_state::{AppState, Notification, ExportPreset};
 use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
 use crate::domain::validation::{ComponentNameValidator, HtmlTemplateValidator, Validator};
 use crate::domain::error::ValidationError;
-use super::component_library::{LibraryComponent, ResponsiveMode, Theme};
+use super::component_library::{LibraryComponent, ResponsiveMode, Theme, ComponentRegistry};
 use super::drag_drop::DragState;
 use crate::builder::debug_panel::DebugPanel;
 use crate::builder::git_panel::GitPanel;
+use crate::builder::project::ProjectPanel;
 
 /// Convert ValidationError to user-friendly Indonesian message
 fn validation_error_to_message(error: ValidationError) -> String {
@@ -47,7 +48,7 @@ pub fn Sidebar() -> impl IntoView {
         }
         
         // Check for duplicate names
-        if app_state.ui.custom_components.get().iter().any(|c| c.name == name) {
+        if ComponentRegistry::exists_by_name(&app_state.ui.custom_components.get(), &name) {
             error_msg.set("Nama komponen sudah ada.".to_string());
             return;
         }
@@ -68,8 +69,11 @@ pub fn Sidebar() -> impl IntoView {
             description: None,
         };
         
-        app_state.ui.custom_components.update(|cc| cc.push(new_component.clone()));
-        app_state.ui.component_library.update(|lib| lib.push(new_component));
+        let mut custom = app_state.ui.custom_components.get();
+        let mut library = app_state.ui.component_library.get();
+        ComponentRegistry::add_custom(&mut custom, &mut library, new_component);
+        app_state.ui.custom_components.set(custom);
+        app_state.ui.component_library.set(library);
         
         new_name.set(String::new());
         new_template.set(String::new());
@@ -80,21 +84,11 @@ pub fn Sidebar() -> impl IntoView {
     };
     
     let delete_custom_component = move |idx: usize| {
-        let name = app_state.ui.custom_components.get().get(idx).map(|c| c.name.clone());
-        
-        app_state.ui.custom_components.update(|cc| {
-            if idx < cc.len() {
-                cc.remove(idx);
-            }
-        });
-        
-        if let Some(name) = name {
-            app_state.ui.component_library.update(|lib| {
-                if let Some(pos) = lib.iter().position(|c| c.name == name) {
-                    lib.remove(pos);
-                }
-            });
-        }
+        let mut custom = app_state.ui.custom_components.get();
+        let mut library = app_state.ui.component_library.get();
+        ComponentRegistry::delete_custom_by_index(&mut custom, &mut library, idx);
+        app_state.ui.custom_components.set(custom);
+        app_state.ui.component_library.set(library);
         
         app_state.ui.notification.set(Some(Notification::success("🗑️ Komponen dihapus".to_string())));
     };
@@ -126,7 +120,11 @@ pub fn Sidebar() -> impl IntoView {
         
         // Check for duplicate names (excluding current component)
         let existing_custom = app_state.ui.custom_components.get();
-        if existing_custom.iter().enumerate().any(|(i, c)| i != idx && c.name == name) {
+        let mut others = existing_custom.clone();
+        if idx < others.len() {
+            others.remove(idx);
+        }
+        if ComponentRegistry::exists_by_name(&others, &name) {
             error_msg.set("Nama komponen sudah ada.".to_string());
             return;
         }
@@ -138,23 +136,11 @@ pub fn Sidebar() -> impl IntoView {
             return;
         }
         
-        let old_name = existing_custom.get(idx).map(|c| c.name.clone());
-        
-        app_state.ui.custom_components.update(|cc| {
-            if let Some(item) = cc.get_mut(idx) {
-                item.name = name.clone();
-                item.template = Some(template.clone());
-            }
-        });
-        
-        if let Some(old_name) = old_name {
-            app_state.ui.component_library.update(|lib| {
-                if let Some(item) = lib.iter_mut().find(|c| c.name == old_name) {
-                    item.name = name.clone();
-                    item.template = Some(template.clone());
-                }
-            });
-        }
+        let mut custom = existing_custom;
+        let mut library = app_state.ui.component_library.get();
+        ComponentRegistry::update_custom_by_index(&mut custom, &mut library, idx, name.clone(), template.clone());
+        app_state.ui.custom_components.set(custom);
+        app_state.ui.component_library.set(library);
         
         editing_idx.set(None);
         edit_name.set(String::new());
@@ -196,6 +182,7 @@ pub fn Sidebar() -> impl IntoView {
                 <b>"Git Panel"</b>
                 <GitPanel />
             </div>
+            <ProjectPanel />
             
             <h2>"Sidebar"</h2>
             
@@ -280,14 +267,19 @@ pub fn Sidebar() -> impl IntoView {
                         app_state.ui.component_library.get()
                             .into_iter()
                             .map(|comp| {
-                                let comp_kind = comp.kind.clone();
+                                let comp_kind = if comp.kind == "Custom" {
+                                    format!("Custom::{}", comp.name)
+                                } else {
+                                    comp.kind.clone()
+                                };
                                 view! {
                                     <div 
-                                        style="padding:8px;border:1px solid #ddd;border-radius:4px;cursor:move;background:#f9f9f9;"
+                                        class="component-item"
                                         draggable="true"
                                         on:dragstart=move |ev| {
-                                            let data_transfer = ev.data_transfer().unwrap();
-                                            let _ = data_transfer.set_data("text/plain", &comp_kind);
+                                            if let Some(data_transfer) = ev.data_transfer() {
+                                                let _ = data_transfer.set_data("component", &comp_kind);
+                                            }
                                             app_state.canvas.drag_state.set(DragState::Dragging {
                                                 component_type: comp_kind.clone(),
                                                 ghost_x: ev.client_x() as f64,

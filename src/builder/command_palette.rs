@@ -282,7 +282,7 @@ where
 
                                 view! {
                                     <div
-                                        class="command-palette-item"
+                                        class="command-item"
                                         class:selected=is_selected
                                         style=move || format!(
                                             "

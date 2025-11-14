@@ -23,6 +23,15 @@
   --color-warning-500: #f59e0b;
   --color-error-500: #ef4444;
   
+  /* Semantic colors for UI surfaces */
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text: #111827;
+  --color-text-secondary: #6b7280;
+  --color-primary: #3b82f6;
+  --color-primary-subtle: #eff6ff;
+  
   /* Spacing */
   --spacing-1: 4px;
   --spacing-2: 8px;
@@ -651,7 +660,18 @@ button, .btn {
 }
 
 .command-item {
-    transition: all 0.1s ease;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--color-text);
+    border-left: 3px solid transparent;
+    transition: background 0.1s ease, border-color 0.1s ease;
+}
+
+.command-item:hover {
+    background: var(--color-gray-50);
 }
 
 .command-item.selected {

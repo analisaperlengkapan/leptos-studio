@@ -4,12 +4,14 @@ pub use renderer::ComponentRenderer;
 
 use leptos::prelude::*;
 use web_sys::DragEvent;
+use js_sys::Date;
 
 use crate::state::{AppState, CanvasState, Snapshot};
 use crate::domain::{
     CanvasComponent, ButtonComponent, TextComponent, InputComponent,
     ContainerComponent, CustomComponent
 };
+use crate::builder::drag_drop::DropZone;
 
 /// Main Canvas component for the UI builder
 /// 
@@ -22,12 +24,8 @@ pub fn Canvas() -> impl IntoView {
     let canvas_state = app_state.canvas;
     
     // Drag and drop handlers
-    let on_drop = move |ev: leptos::ev::DragEvent| {
-        handle_drop(ev.clone(), canvas_state);
-    };
-    
-    let on_drag_over = move |ev: leptos::ev::DragEvent| {
-        handle_drag_over(ev.clone());
+    let drop_zone_on_drop = move |ev: leptos::ev::DragEvent| {
+        handle_drop(ev, canvas_state);
     };
     
     // Clear selection when clicking on empty canvas area
@@ -36,40 +34,56 @@ pub fn Canvas() -> impl IntoView {
     };
     
     view! {
-        <div 
-            class="canvas"
-            on:drop=on_drop
-            on:dragover=on_drag_over
-            on:click=on_canvas_click
+        <DropZone
+            zone_name="canvas-root".to_string()
+            drag_state=app_state.canvas.drag_state
+            on_drop=drop_zone_on_drop
+            config=None
         >
-            <div class="canvas-content">
-                {move || {
-                    let components = canvas_state.components.get();
-                    if components.is_empty() {
-                        view! {
-                            <div class="canvas-empty-state">
-                                <p>"Drag components here to start building"</p>
-                            </div>
-                        }.into_any()
-                    } else {
-                        view! {
-                            <For
-                                each=move || canvas_state.components.get()
-                                key=|comp| comp.id().clone()
-                                children=move |comp| {
-                                    view! {
-                                        <ComponentRenderer 
-                                            component=comp
-                                            canvas_state=canvas_state
-                                        />
+            <div 
+                class="canvas"
+                on:click=on_canvas_click
+            >
+                <div class="canvas-content">
+                    {move || {
+                        let start = Date::now();
+
+                        let components = canvas_state.components.get();
+                        let view = if components.is_empty() {
+                            view! {
+                                <div class="canvas-empty-state">
+                                    <p>"Drag components here to start building"</p>
+                                </div>
+                            }.into_any()
+                        } else {
+                            view! {
+                                <For
+                                    each=move || canvas_state.components.get()
+                                    key=|comp| comp.id().clone()
+                                    children=move |comp| {
+                                        view! {
+                                            <ComponentRenderer 
+                                                component=comp
+                                                canvas_state=canvas_state
+                                            />
+                                        }
                                     }
-                                }
-                            />
-                        }.into_any()
-                    }
-                }}
+                                />
+                            }.into_any()
+                        };
+
+                        let end = Date::now();
+                        let duration = (end - start).max(0.0);
+                        app_state.ui.render_time.set(duration);
+                        app_state.ui.render_count.update(|count| {
+                            *count = count.saturating_add(1);
+                        });
+
+                        view
+                    }}
+                </div>
             </div>
-        </div>
+        </DropZone>
     }
 }
 
@@ -97,11 +111,6 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
                 canvas_state.add_component(component);
             }
         }
-}
-
-/// Handle drag over event (required to allow drop)
-fn handle_drag_over(ev: DragEvent) {
-    ev.prevent_default();
 }
 
 /// Create component from drag data type string

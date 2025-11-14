@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::domain::{CanvasComponent, ComponentId};
 use crate::builder::drag_drop::DragState;
-use crate::builder::component_library::LibraryComponent;
+use crate::builder::component_library::{LibraryComponent, PropSchema};
 use super::history::{History, Snapshot};
 use super::persistence::Persistable;
+use super::project::Project;
 
 /// Canvas-specific state
 #[derive(Clone, Copy)]
@@ -196,7 +197,32 @@ impl UiState {
                 kind: "Button".to_string(),
                 template: None,
                 category: "Basic".to_string(),
-                props_schema: None,
+                props_schema: Some(vec![
+                    PropSchema {
+                        name: "label".to_string(),
+                        prop_type: "string".to_string(),
+                        required: true,
+                        description: Some("Button label".to_string()),
+                    },
+                    PropSchema {
+                        name: "variant".to_string(),
+                        prop_type: "enum:Primary,Secondary,Outline,Ghost".to_string(),
+                        required: true,
+                        description: Some("Visual style variant".to_string()),
+                    },
+                    PropSchema {
+                        name: "size".to_string(),
+                        prop_type: "enum:Small,Medium,Large".to_string(),
+                        required: true,
+                        description: Some("Button size".to_string()),
+                    },
+                    PropSchema {
+                        name: "disabled".to_string(),
+                        prop_type: "bool".to_string(),
+                        required: false,
+                        description: Some("Disable interaction".to_string()),
+                    },
+                ]),
                 description: Some("Interactive button component".to_string()),
             },
             LibraryComponent {
@@ -204,7 +230,26 @@ impl UiState {
                 kind: "Text".to_string(),
                 template: None,
                 category: "Basic".to_string(),
-                props_schema: None,
+                props_schema: Some(vec![
+                    PropSchema {
+                        name: "content".to_string(),
+                        prop_type: "string".to_string(),
+                        required: false,
+                        description: Some("Text content".to_string()),
+                    },
+                    PropSchema {
+                        name: "style".to_string(),
+                        prop_type: "enum:Heading1,Heading2,Heading3,Body,Caption".to_string(),
+                        required: true,
+                        description: Some("Typographic style".to_string()),
+                    },
+                    PropSchema {
+                        name: "tag".to_string(),
+                        prop_type: "enum:H1,H2,H3,P,Span".to_string(),
+                        required: true,
+                        description: Some("HTML tag".to_string()),
+                    },
+                ]),
                 description: Some("Text label or paragraph".to_string()),
             },
             LibraryComponent {
@@ -212,7 +257,32 @@ impl UiState {
                 kind: "Input".to_string(),
                 template: None,
                 category: "Basic".to_string(),
-                props_schema: None,
+                props_schema: Some(vec![
+                    PropSchema {
+                        name: "placeholder".to_string(),
+                        prop_type: "string".to_string(),
+                        required: false,
+                        description: Some("Placeholder text".to_string()),
+                    },
+                    PropSchema {
+                        name: "input_type".to_string(),
+                        prop_type: "enum:Text,Password,Email,Number,Tel".to_string(),
+                        required: true,
+                        description: Some("Input type".to_string()),
+                    },
+                    PropSchema {
+                        name: "required".to_string(),
+                        prop_type: "bool".to_string(),
+                        required: false,
+                        description: Some("Field is required".to_string()),
+                    },
+                    PropSchema {
+                        name: "disabled".to_string(),
+                        prop_type: "bool".to_string(),
+                        required: false,
+                        description: Some("Disable input".to_string()),
+                    },
+                ]),
                 description: Some("Text input field".to_string()),
             },
             LibraryComponent {
@@ -220,7 +290,44 @@ impl UiState {
                 kind: "Container".to_string(),
                 template: None,
                 category: "Layout".to_string(),
-                props_schema: None,
+                props_schema: Some(vec![
+                    PropSchema {
+                        name: "layout".to_string(),
+                        prop_type: "enum:FlexRow,FlexColumn,Grid,Stack".to_string(),
+                        required: true,
+                        description: Some("Layout type".to_string()),
+                    },
+                    PropSchema {
+                        name: "gap".to_string(),
+                        prop_type: "number".to_string(),
+                        required: false,
+                        description: Some("Gap between children (px)".to_string()),
+                    },
+                    PropSchema {
+                        name: "padding_top".to_string(),
+                        prop_type: "number".to_string(),
+                        required: false,
+                        description: Some("Padding top (px)".to_string()),
+                    },
+                    PropSchema {
+                        name: "padding_right".to_string(),
+                        prop_type: "number".to_string(),
+                        required: false,
+                        description: Some("Padding right (px)".to_string()),
+                    },
+                    PropSchema {
+                        name: "padding_bottom".to_string(),
+                        prop_type: "number".to_string(),
+                        required: false,
+                        description: Some("Padding bottom (px)".to_string()),
+                    },
+                    PropSchema {
+                        name: "padding_left".to_string(),
+                        prop_type: "number".to_string(),
+                        required: false,
+                        description: Some("Padding left (px)".to_string()),
+                    },
+                ]),
                 description: Some("Container for other components".to_string()),
             },
             LibraryComponent {
@@ -339,6 +446,7 @@ pub struct AppState {
     pub canvas: CanvasState,
     pub ui: UiState,
     pub settings: RwSignal<SettingsState>,
+    pub project_name: RwSignal<String>,
 }
 
 impl AppState {
@@ -350,6 +458,7 @@ impl AppState {
             canvas: CanvasState::new(),
             ui: UiState::new(),
             settings: RwSignal::new(settings),
+            project_name: RwSignal::new("Untitled Project".to_string()),
         }
     }
     
@@ -386,6 +495,24 @@ impl AppState {
         self.canvas.components.set(data.components);
         self.canvas.selected.set(data.selected);
         Ok(())
+    }
+
+    /// Build a Project from current state
+    pub fn to_project(&self) -> Project {
+        Project::new(
+            self.project_name.get(),
+            self.canvas.components.get(),
+            self.settings.get(),
+        )
+    }
+
+    /// Apply a Project to the current state
+    pub fn apply_project(&self, project: Project) {
+        self.project_name.set(project.name);
+        self.canvas.components.set(project.layout);
+        self.canvas.selected.set(None);
+        self.canvas.history.update(|h| h.clear());
+        self.settings.set(project.settings);
     }
 }
 

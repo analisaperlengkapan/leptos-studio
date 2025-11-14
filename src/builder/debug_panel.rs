@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 use crate::state::app_state::AppState;
+use crate::builder::component_library::ComponentRegistry;
 
 #[component]
 pub fn DebugPanel() -> impl IntoView {
@@ -10,7 +11,11 @@ pub fn DebugPanel() -> impl IntoView {
         <div class="debug-panel">
             <b>"🐛 Debug Panel"</b>
             <div><b>"Components:"</b> {move || format!("{}", app_state.canvas.components.get().len())}</div>
-            <div><b>"Custom Components:"</b> {move || format!("{}", app_state.ui.custom_components.get().len())}</div>
+            <div><b>"Custom Components:"</b> {move || {
+                let lib = app_state.ui.component_library.get();
+                let count = ComponentRegistry::custom_from_library(&lib).len();
+                format!("{}", count)
+            }}</div>
             <div><b>"Can Undo:"</b> {move || format!("{}", app_state.canvas.history.with(|h| h.can_undo()))}</div>
             <div><b>"Can Redo:"</b> {move || format!("{}", app_state.canvas.history.with(|h| h.can_redo()))}</div>
             <div><b>"Render count:"</b> {move || app_state.ui.render_count.get()}</div>
