@@ -75,6 +75,11 @@
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 }
 
+.component-library-grid {
+    display: grid;
+    gap: 8px;
+}
+
 /* Global Styles */
 * {
     margin: 0;
@@ -185,6 +190,82 @@ body {
 
 .sidebar-section {
     margin-bottom: 16px;
+}
+
+.sidebar-section-divider {
+    margin-top: 16px;
+    border-top: 1px solid #e2e8f0;
+    padding-top: 12px;
+}
+
+.sidebar-notification {
+    margin-top: 8px;
+    color: var(--color-success-500);
+    font-size: var(--font-size-sm);
+}
+
+.sidebar-error {
+    color: var(--color-error-500);
+    font-size: var(--font-size-sm);
+    margin-bottom: 8px;
+}
+
+.sidebar-filter-input {
+    margin-bottom: 8px;
+}
+
+.custom-component-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.custom-component-form {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.custom-component-edit {
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid #dd0;
+    border-radius: 6px;
+    background: #fefce8;
+}
+
+.custom-component-textarea {
+    height: 60px;
+}
+
+.project-panel-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.project-label {
+    display: block;
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+
+.project-actions-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.project-import-textarea {
+    height: 80px;
+    font-size: 12px;
+}
+
+.project-apply-button {
+    margin-top: 4px;
 }
 
 .git-panel-wrapper {
@@ -651,12 +732,54 @@ button, .btn {
 
 /* Command Palette Styles */
 .command-palette-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 20vh;
     backdrop-filter: blur(8px);
     animation: fadeIn 0.2s ease;
 }
 
 .command-palette {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
+    width: min(640px, 90vw);
+    max-height: 60vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     animation: slideUp 0.2s ease;
+}
+
+.command-palette-search {
+    padding: 16px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.command-palette-search input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-size: 16px;
+    outline: none;
+}
+
+.command-palette-results {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 8px 0;
 }
 
 .command-item {
@@ -677,6 +800,23 @@ button, .btn {
 .command-item.selected {
     background: var(--color-primary-50) !important;
     border-left: 3px solid var(--color-primary-500) !important;
+}
+
+.command-item-title {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.command-item-meta {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.command-empty {
+    padding: 24px;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-style: italic;
 }
 
 @keyframes fadeIn {

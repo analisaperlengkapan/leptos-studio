@@ -29,302 +29,362 @@ pub fn PropertyEditor() -> impl IntoView {
                     if let Some(comp) = canvas_state.get_component(&selected_id) {
                         match comp {
                             CanvasComponent::Button(btn) => {
-                                let label_value = btn.label.clone();
-                                let variant_str = match btn.variant.clone() {
-                                    ButtonVariant::Primary => "Primary",
-                                    ButtonVariant::Secondary => "Secondary",
-                                    ButtonVariant::Outline => "Outline",
-                                    ButtonVariant::Ghost => "Ghost",
-                                };
-                                let size_str = match btn.size.clone() {
-                                    ButtonSize::Small => "Small",
-                                    ButtonSize::Medium => "Medium",
-                                    ButtonSize::Large => "Large",
-                                };
-                                let disabled_value = btn.disabled;
+                                // Read Button schema from component_library
+                                let button_schema = app_state
+                                    .ui
+                                    .component_library
+                                    .get()
+                                    .into_iter()
+                                    .find(|c| c.kind == "Button")
+                                    .and_then(|c| c.props_schema)
+                                    .unwrap_or_default();
 
                                 let comp_id = btn.id.clone();
-                                let btn_for_variant = btn.clone();
-                                let btn_for_size = btn.clone();
-                                let btn_for_disabled = btn.clone();
-                                let comp_id_for_variant = comp_id.clone();
-                                let comp_id_for_size = comp_id.clone();
-                                let comp_id_for_disabled = comp_id.clone();
 
                                 view! {
                                     <div>
-                                        <label>
-                                            {"Label: "}
-                                            <input 
-                                                type="text"
-                                                prop:value=label_value
-                                                on:input=move |ev| {
-                                                    let new_label = event_target_value(&ev);
-                                                    let updated_btn = update_button_prop(
-                                                        btn.clone(),
-                                                        "label",
-                                                        PropValue::String(new_label),
-                                                    );
-                                                    canvas_state.update_component(&comp_id, CanvasComponent::Button(updated_btn));
-                                                }
-                                            />
-                                        </label>
+                                        {button_schema
+                                            .into_iter()
+                                            .map(|prop| {
+                                                let prop_name = prop.name.clone();
+                                                let prop_type = prop.prop_type.clone();
+                                                let label_text = prop.name.clone();
 
-                                        <label>
-                                            {"Variant: "}
-                                            <select
-                                                on:change=move |ev| {
-                                                    let value = event_target_value(&ev);
-                                                    let updated_btn = update_button_prop(
-                                                        btn_for_variant.clone(),
-                                                        "variant",
-                                                        PropValue::String(value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_variant, CanvasComponent::Button(updated_btn));
-                                                }
-                                            >
-                                                <option
-                                                    value="Primary"
-                                                    selected={variant_str == "Primary"}
-                                                >{"Primary"}</option>
-                                                <option
-                                                    value="Secondary"
-                                                    selected={variant_str == "Secondary"}
-                                                >{"Secondary"}</option>
-                                                <option
-                                                    value="Outline"
-                                                    selected={variant_str == "Outline"}
-                                                >{"Outline"}</option>
-                                                <option
-                                                    value="Ghost"
-                                                    selected={variant_str == "Ghost"}
-                                                >{"Ghost"}</option>
-                                            </select>
-                                        </label>
+                                                // Capture current values for this field
+                                                let current_string = match prop_name.as_str() {
+                                                    "label" => Some(btn.label.clone()),
+                                                    "variant" => Some(match btn.variant.clone() {
+                                                        ButtonVariant::Primary => "Primary".to_string(),
+                                                        ButtonVariant::Secondary => "Secondary".to_string(),
+                                                        ButtonVariant::Outline => "Outline".to_string(),
+                                                        ButtonVariant::Ghost => "Ghost".to_string(),
+                                                    }),
+                                                    "size" => Some(match btn.size.clone() {
+                                                        ButtonSize::Small => "Small".to_string(),
+                                                        ButtonSize::Medium => "Medium".to_string(),
+                                                        ButtonSize::Large => "Large".to_string(),
+                                                    }),
+                                                    _ => None,
+                                                };
 
-                                        <label>
-                                            {"Size: "}
-                                            <select
-                                                on:change=move |ev| {
-                                                    let value = event_target_value(&ev);
-                                                    let updated_btn = update_button_prop(
-                                                        btn_for_size.clone(),
-                                                        "size",
-                                                        PropValue::String(value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_size, CanvasComponent::Button(updated_btn));
-                                                }
-                                            >
-                                                <option
-                                                    value="Small"
-                                                    selected={size_str == "Small"}
-                                                >{"Small"}</option>
-                                                <option
-                                                    value="Medium"
-                                                    selected={size_str == "Medium"}
-                                                >{"Medium"}</option>
-                                                <option
-                                                    value="Large"
-                                                    selected={size_str == "Large"}
-                                                >{"Large"}</option>
-                                            </select>
-                                        </label>
+                                                let current_bool = match prop_name.as_str() {
+                                                    "disabled" => Some(btn.disabled),
+                                                    _ => None,
+                                                };
 
-                                        <label>
-                                            {"Disabled: "}
-                                            <input
-                                                type="checkbox"
-                                                prop:checked=disabled_value
-                                                on:change=move |_| {
-                                                    let updated_btn = update_button_prop(
-                                                        btn_for_disabled.clone(),
-                                                        "disabled",
-                                                        PropValue::Boolean(!disabled_value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_disabled, CanvasComponent::Button(updated_btn));
-                                                }
-                                            />
-                                        </label>
+                                                let comp_id_field = comp_id.clone();
+                                                let btn_for_field = btn.clone();
+
+                                                view! {
+                                                    <div class="property-field">
+                                                        <label>
+                                                            {label_text.clone()}
+                                                            {match prop_type.as_str() {
+                                                                "string" => {
+                                                                    let value = current_string.unwrap_or_default();
+                                                                    view! {
+                                                                        <input
+                                                                            type="text"
+                                                                            prop:value=value.clone()
+                                                                            on:input=move |ev| {
+                                                                                let new_value = event_target_value(&ev);
+                                                                                let updated_btn = update_button_prop(
+                                                                                    btn_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(new_value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Button(updated_btn));
+                                                                            }
+                                                                        />
+                                                                    }.into_any()
+                                                                },
+                                                                "bool" => {
+                                                                    let checked = current_bool.unwrap_or(false);
+                                                                    view! {
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            prop:checked=checked
+                                                                            on:change=move |_| {
+                                                                                let updated_btn = update_button_prop(
+                                                                                    btn_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::Boolean(!checked),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Button(updated_btn));
+                                                                            }
+                                                                        />
+                                                                    }.into_any()
+                                                                },
+                                                                ty if ty.starts_with("enum:") => {
+                                                                    let options_str = &ty[5..];
+                                                                    let options: Vec<String> = options_str
+                                                                        .split(',')
+                                                                        .map(|s| s.trim().to_string())
+                                                                        .collect();
+                                                                    let selected_value = current_string.unwrap_or_default();
+                                                                    view! {
+                                                                        <select
+                                                                            on:change=move |ev| {
+                                                                                let value = event_target_value(&ev);
+                                                                                let updated_btn = update_button_prop(
+                                                                                    btn_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Button(updated_btn));
+                                                                            }
+                                                                        >
+                                                                            {options.into_iter().map(|opt| {
+                                                                                let opt_clone = opt.clone();
+                                                                                let is_selected = opt_clone == selected_value;
+                                                                                view! {
+                                                                                    <option value=opt_clone selected=is_selected>{opt}</option>
+                                                                                }
+                                                                            }).collect::<Vec<_>>()}
+                                                                        </select>
+                                                                    }.into_any()
+                                                                },
+                                                                _ => {
+                                                                    view! { }.into_any()
+                                                                }
+                                                            }}
+                                                        </label>
+                                                    </div>
+                                                }.into_any()
+                                            })
+                                            .collect::<Vec<_>>()}
                                     </div>
                                 }.into_any()
                             },
                             CanvasComponent::Text(txt) => {
-                                let content_value = txt.content.clone();
-                                let style_str = match txt.style.clone() {
-                                    TextStyle::Heading1 => "Heading1",
-                                    TextStyle::Heading2 => "Heading2",
-                                    TextStyle::Heading3 => "Heading3",
-                                    TextStyle::Body => "Body",
-                                    TextStyle::Caption => "Caption",
-                                };
-                                let tag_str = match txt.tag.clone() {
-                                    TextTag::H1 => "H1",
-                                    TextTag::H2 => "H2",
-                                    TextTag::H3 => "H3",
-                                    TextTag::P => "P",
-                                    TextTag::Span => "Span",
-                                };
+                                // Read Text schema from component_library
+                                let text_schema = app_state
+                                    .ui
+                                    .component_library
+                                    .get()
+                                    .into_iter()
+                                    .find(|c| c.kind == "Text")
+                                    .and_then(|c| c.props_schema)
+                                    .unwrap_or_default();
 
                                 let comp_id = txt.id.clone();
-                                let txt_for_style = txt.clone();
-                                let txt_for_tag = txt.clone();
-                                let comp_id_for_style = comp_id.clone();
-                                let comp_id_for_tag = comp_id.clone();
 
                                 view! {
                                     <div>
-                                        <label>
-                                            {"Content: "}
-                                            <input 
-                                                type="text"
-                                                prop:value=content_value
-                                                on:input=move |ev| {
-                                                    let new_content = event_target_value(&ev);
-                                                    let updated_txt = update_text_prop(
-                                                        txt.clone(),
-                                                        "content",
-                                                        PropValue::String(new_content),
-                                                    );
-                                                    canvas_state.update_component(&comp_id, CanvasComponent::Text(updated_txt));
-                                                }
-                                            />
-                                        </label>
+                                        {text_schema
+                                            .into_iter()
+                                            .map(|prop| {
+                                                let prop_name = prop.name.clone();
+                                                let prop_type = prop.prop_type.clone();
+                                                let label_text = prop.name.clone();
 
-                                        <label>
-                                            {"Style: "}
-                                            <select
-                                                on:change=move |ev| {
-                                                    let value = event_target_value(&ev);
-                                                    let updated_txt = update_text_prop(
-                                                        txt_for_style.clone(),
-                                                        "style",
-                                                        PropValue::String(value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_style, CanvasComponent::Text(updated_txt));
-                                                }
-                                            >
-                                                <option value="Heading1" selected={style_str == "Heading1"}>{"Heading 1"}</option>
-                                                <option value="Heading2" selected={style_str == "Heading2"}>{"Heading 2"}</option>
-                                                <option value="Heading3" selected={style_str == "Heading3"}>{"Heading 3"}</option>
-                                                <option value="Body" selected={style_str == "Body"}>{"Body"}</option>
-                                                <option value="Caption" selected={style_str == "Caption"}>{"Caption"}</option>
-                                            </select>
-                                        </label>
+                                                let current_string = match prop_name.as_str() {
+                                                    "content" => Some(txt.content.clone()),
+                                                    "style" => Some(match txt.style.clone() {
+                                                        TextStyle::Heading1 => "Heading1".to_string(),
+                                                        TextStyle::Heading2 => "Heading2".to_string(),
+                                                        TextStyle::Heading3 => "Heading3".to_string(),
+                                                        TextStyle::Body => "Body".to_string(),
+                                                        TextStyle::Caption => "Caption".to_string(),
+                                                    }),
+                                                    "tag" => Some(match txt.tag.clone() {
+                                                        TextTag::H1 => "H1".to_string(),
+                                                        TextTag::H2 => "H2".to_string(),
+                                                        TextTag::H3 => "H3".to_string(),
+                                                        TextTag::P => "P".to_string(),
+                                                        TextTag::Span => "Span".to_string(),
+                                                    }),
+                                                    _ => None,
+                                                };
 
-                                        <label>
-                                            {"Tag: "}
-                                            <select
-                                                on:change=move |ev| {
-                                                    let value = event_target_value(&ev);
-                                                    let updated_txt = update_text_prop(
-                                                        txt_for_tag.clone(),
-                                                        "tag",
-                                                        PropValue::String(value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_tag, CanvasComponent::Text(updated_txt));
-                                                }
-                                            >
-                                                <option value="H1" selected={tag_str == "H1"}>{"H1"}</option>
-                                                <option value="H2" selected={tag_str == "H2"}>{"H2"}</option>
-                                                <option value="H3" selected={tag_str == "H3"}>{"H3"}</option>
-                                                <option value="P" selected={tag_str == "P"}>{"P"}</option>
-                                                <option value="Span" selected={tag_str == "Span"}>{"Span"}</option>
-                                            </select>
-                                        </label>
+                                                let comp_id_field = comp_id.clone();
+                                                let txt_for_field = txt.clone();
+
+                                                view! {
+                                                    <div class="property-field">
+                                                        <label>
+                                                            {label_text.clone()}
+                                                            {match prop_type.as_str() {
+                                                                "string" => {
+                                                                    let value = current_string.unwrap_or_default();
+                                                                    view! {
+                                                                        <input
+                                                                            type="text"
+                                                                            prop:value=value.clone()
+                                                                            on:input=move |ev| {
+                                                                                let new_value = event_target_value(&ev);
+                                                                                let updated_txt = update_text_prop(
+                                                                                    txt_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(new_value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Text(updated_txt));
+                                                                            }
+                                                                        />
+                                                                    }.into_any()
+                                                                },
+                                                                ty if ty.starts_with("enum:") => {
+                                                                    let options_str = &ty[5..];
+                                                                    let options: Vec<String> = options_str
+                                                                        .split(',')
+                                                                        .map(|s| s.trim().to_string())
+                                                                        .collect();
+                                                                    let selected_value = current_string.unwrap_or_default();
+                                                                    view! {
+                                                                        <select
+                                                                            on:change=move |ev| {
+                                                                                let value = event_target_value(&ev);
+                                                                                let updated_txt = update_text_prop(
+                                                                                    txt_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Text(updated_txt));
+                                                                            }
+                                                                        >
+                                                                            {options.into_iter().map(|opt| {
+                                                                                let opt_clone = opt.clone();
+                                                                                let is_selected = opt_clone == selected_value;
+                                                                                view! {
+                                                                                    <option value=opt_clone selected=is_selected>{opt}</option>
+                                                                                }
+                                                                            }).collect::<Vec<_>>()}
+                                                                        </select>
+                                                                    }.into_any()
+                                                                },
+                                                                _ => {
+                                                                    view! { }.into_any()
+                                                                }
+                                                            }}
+                                                        </label>
+                                                    </div>
+                                                }.into_any()
+                                            })
+                                            .collect::<Vec<_>>()}
                                     </div>
                                 }.into_any()
                             },
                             CanvasComponent::Input(inp) => {
-                                let placeholder_value = inp.placeholder.clone();
-                                let type_str = match inp.input_type.clone() {
-                                    InputType::Text => "Text",
-                                    InputType::Password => "Password",
-                                    InputType::Email => "Email",
-                                    InputType::Number => "Number",
-                                    InputType::Tel => "Tel",
-                                };
-                                let required_value = inp.required;
-                                let disabled_value = inp.disabled;
+                                // Read Input schema from component_library
+                                let input_schema = app_state
+                                    .ui
+                                    .component_library
+                                    .get()
+                                    .into_iter()
+                                    .find(|c| c.kind == "Input")
+                                    .and_then(|c| c.props_schema)
+                                    .unwrap_or_default();
 
                                 let comp_id = inp.id.clone();
-                                let inp_for_type = inp.clone();
-                                let inp_for_required = inp.clone();
-                                let inp_for_disabled = inp.clone();
-                                let comp_id_for_type = comp_id.clone();
-                                let comp_id_for_required = comp_id.clone();
-                                let comp_id_for_disabled = comp_id.clone();
 
                                 view! {
                                     <div>
-                                        <label>
-                                            {"Placeholder: "}
-                                            <input 
-                                                type="text"
-                                                prop:value=placeholder_value
-                                                on:input=move |ev| {
-                                                    let new_placeholder = event_target_value(&ev);
-                                                    let updated_inp = update_input_prop(
-                                                        inp.clone(),
-                                                        "placeholder",
-                                                        PropValue::String(new_placeholder),
-                                                    );
-                                                    canvas_state.update_component(&comp_id, CanvasComponent::Input(updated_inp));
-                                                }
-                                            />
-                                        </label>
+                                        {input_schema
+                                            .into_iter()
+                                            .map(|prop| {
+                                                let prop_name = prop.name.clone();
+                                                let prop_type = prop.prop_type.clone();
+                                                let label_text = prop.name.clone();
 
-                                        <label>
-                                            {"Type: "}
-                                            <select
-                                                on:change=move |ev| {
-                                                    let value = event_target_value(&ev);
-                                                    let updated_inp = update_input_prop(
-                                                        inp_for_type.clone(),
-                                                        "input_type",
-                                                        PropValue::String(value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_type, CanvasComponent::Input(updated_inp));
-                                                }
-                                            >
-                                                <option value="Text" selected={type_str == "Text"}>{"Text"}</option>
-                                                <option value="Password" selected={type_str == "Password"}>{"Password"}</option>
-                                                <option value="Email" selected={type_str == "Email"}>{"Email"}</option>
-                                                <option value="Number" selected={type_str == "Number"}>{"Number"}</option>
-                                                <option value="Tel" selected={type_str == "Tel"}>{"Tel"}</option>
-                                            </select>
-                                        </label>
+                                                let current_string = match prop_name.as_str() {
+                                                    "placeholder" => Some(inp.placeholder.clone()),
+                                                    "input_type" => Some(match inp.input_type.clone() {
+                                                        InputType::Text => "Text".to_string(),
+                                                        InputType::Password => "Password".to_string(),
+                                                        InputType::Email => "Email".to_string(),
+                                                        InputType::Number => "Number".to_string(),
+                                                        InputType::Tel => "Tel".to_string(),
+                                                    }),
+                                                    _ => None,
+                                                };
 
-                                        <label>
-                                            {"Required: "}
-                                            <input
-                                                type="checkbox"
-                                                prop:checked=required_value
-                                                on:change=move |_| {
-                                                    let updated_inp = update_input_prop(
-                                                        inp_for_required.clone(),
-                                                        "required",
-                                                        PropValue::Boolean(!required_value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_required, CanvasComponent::Input(updated_inp));
-                                                }
-                                            />
-                                        </label>
+                                                let current_bool = match prop_name.as_str() {
+                                                    "required" => Some(inp.required),
+                                                    "disabled" => Some(inp.disabled),
+                                                    _ => None,
+                                                };
 
-                                        <label>
-                                            {"Disabled: "}
-                                            <input
-                                                type="checkbox"
-                                                prop:checked=disabled_value
-                                                on:change=move |_| {
-                                                    let updated_inp = update_input_prop(
-                                                        inp_for_disabled.clone(),
-                                                        "disabled",
-                                                        PropValue::Boolean(!disabled_value),
-                                                    );
-                                                    canvas_state.update_component(&comp_id_for_disabled, CanvasComponent::Input(updated_inp));
-                                                }
-                                            />
-                                        </label>
+                                                let comp_id_field = comp_id.clone();
+                                                let inp_for_field = inp.clone();
+
+                                                view! {
+                                                    <div class="property-field">
+                                                        <label>
+                                                            {label_text.clone()}
+                                                            {match prop_type.as_str() {
+                                                                "string" => {
+                                                                    let value = current_string.unwrap_or_default();
+                                                                    view! {
+                                                                        <input
+                                                                            type="text"
+                                                                            prop:value=value.clone()
+                                                                            on:input=move |ev| {
+                                                                                let new_value = event_target_value(&ev);
+                                                                                let updated_inp = update_input_prop(
+                                                                                    inp_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(new_value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Input(updated_inp));
+                                                                            }
+                                                                        />
+                                                                    }.into_any()
+                                                                },
+                                                                "bool" => {
+                                                                    let checked = current_bool.unwrap_or(false);
+                                                                    view! {
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            prop:checked=checked
+                                                                            on:change=move |_| {
+                                                                                let updated_inp = update_input_prop(
+                                                                                    inp_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::Boolean(!checked),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Input(updated_inp));
+                                                                            }
+                                                                        />
+                                                                    }.into_any()
+                                                                },
+                                                                ty if ty.starts_with("enum:") => {
+                                                                    let options_str = &ty[5..];
+                                                                    let options: Vec<String> = options_str
+                                                                        .split(',')
+                                                                        .map(|s| s.trim().to_string())
+                                                                        .collect();
+                                                                    let selected_value = current_string.unwrap_or_default();
+                                                                    view! {
+                                                                        <select
+                                                                            on:change=move |ev| {
+                                                                                let value = event_target_value(&ev);
+                                                                                let updated_inp = update_input_prop(
+                                                                                    inp_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Input(updated_inp));
+                                                                            }
+                                                                        >
+                                                                            {options.into_iter().map(|opt| {
+                                                                                let opt_clone = opt.clone();
+                                                                                let is_selected = opt_clone == selected_value;
+                                                                                view! {
+                                                                                    <option value=opt_clone selected=is_selected>{opt}</option>
+                                                                                }
+                                                                            }).collect::<Vec<_>>()}
+                                                                        </select>
+                                                                    }.into_any()
+                                                                },
+                                                                _ => {
+                                                                    view! { }.into_any()
+                                                                }
+                                                            }}
+                                                        </label>
+                                                    </div>
+                                                }.into_any()
+                                            })
+                                            .collect::<Vec<_>>()}
                                     </div>
                                 }.into_any()
                             },

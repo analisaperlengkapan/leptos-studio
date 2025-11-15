@@ -130,30 +130,30 @@ pub fn ProjectPanel() -> impl IntoView {
     };
 
     view! {
-        <div class="sidebar-section" style="margin-top:16px;border-top:1px solid #e2e8f0;padding-top:12px;">
+        <div class="sidebar-section sidebar-section-divider">
             <h3>"Project"</h3>
-            <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="project-panel-layout">
                 <div>
-                    <label style="display:block;font-size:12px;color:#64748b;margin-bottom:4px;">"Name"</label>
+                    <label class="project-label">"Name"</label>
                     <input
                         type="text"
                         prop:value=move || app_state.project_name.get()
                         on:input=move |ev| app_state.project_name.set(event_target_value(&ev))
                     />
                 </div>
-                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <div class="project-actions-row">
                     <button on:click=new_project class="btn btn-secondary">"New"</button>
                     <button on:click=export_project_copy class="btn btn-secondary">"Copy JSON"</button>
                     <button on:click=export_project_download class="btn btn-secondary">"Download JSON"</button>
                 </div>
                 <div>
-                    <label style="display:block;font-size:12px;color:#64748b;margin-bottom:4px;">"Import JSON"</label>
+                    <label class="project-label">"Import JSON"</label>
                     <textarea
-                        style="width:100%;height:80px;font-size:12px;"
+                        class="project-import-textarea"
                         prop:value=move || import_text.get()
                         on:input=move |ev| import_text.set(event_target_value(&ev))
                     />
-                    <button on:click=import_project class="btn btn-outline" style="margin-top:4px;">"Apply"</button>
+                    <button on:click=import_project class="btn btn-outline project-apply-button">"Apply"</button>
                 </div>
             </div>
         </div>

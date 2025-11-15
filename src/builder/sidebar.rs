@@ -6,7 +6,7 @@ use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
 use crate::domain::validation::{ComponentNameValidator, HtmlTemplateValidator, Validator};
 use crate::domain::error::ValidationError;
 use super::component_library::{LibraryComponent, ResponsiveMode, Theme, ComponentRegistry};
-use super::drag_drop::DragState;
+use super::drag_drop::{create_drag_handlers, DragDropConfig};
 use crate::builder::debug_panel::DebugPanel;
 use crate::builder::git_panel::GitPanel;
 use crate::builder::project::ProjectPanel;
@@ -256,15 +256,18 @@ pub fn Sidebar() -> impl IntoView {
             
             {move || {
                 app_state.ui.notification.get().as_ref().map(|notif| {
-                    view! { <div style="color:green;margin-top:8px;">{notif.message.clone()}</div> }
+                    view! { <div class="sidebar-notification">{notif.message.clone()}</div> }
                 })
             }}
             
-            <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:12px;">
+            <div class="sidebar-section-divider">
                 <h3>"Component Library"</h3>
-                <div style="display:grid;gap:8px;">
+                <div class="component-library-grid">
                     {move || {
-                        app_state.ui.component_library.get()
+                        app_state
+                            .ui
+                            .component_library
+                            .get()
                             .into_iter()
                             .map(|comp| {
                                 let comp_kind = if comp.kind == "Custom" {
@@ -272,23 +275,20 @@ pub fn Sidebar() -> impl IntoView {
                                 } else {
                                     comp.kind.clone()
                                 };
+
+                                let (on_drag_start, on_drag, on_drag_end) = create_drag_handlers(
+                                    comp_kind.clone(),
+                                    app_state.canvas.drag_state,
+                                    DragDropConfig::default(),
+                                );
+
                                 view! {
                                     <div 
                                         class="component-item"
                                         draggable="true"
-                                        on:dragstart=move |ev| {
-                                            if let Some(data_transfer) = ev.data_transfer() {
-                                                let _ = data_transfer.set_data("component", &comp_kind);
-                                            }
-                                            app_state.canvas.drag_state.set(DragState::Dragging {
-                                                component_type: comp_kind.clone(),
-                                                ghost_x: ev.client_x() as f64,
-                                                ghost_y: ev.client_y() as f64,
-                                            });
-                                        }
-                                        on:dragend=move |_| {
-                                            app_state.canvas.drag_state.set(DragState::NotDragging);
-                                        }
+                                        on:dragstart=on_drag_start
+                                        on:drag=on_drag
+                                        on:dragend=on_drag_end
                                     >
                                         <div style="font-weight:bold;">{comp.name.clone()}</div>
                                         <div style="font-size:11px;color:#666;">
@@ -310,7 +310,7 @@ pub fn Sidebar() -> impl IntoView {
                 
                 {move || {
                     if !error_msg.get().is_empty() {
-                        view! { <div style="color:red;">{error_msg.get()}</div> }.into_any()
+                        view! { <div class="sidebar-error">{error_msg.get()}</div> }.into_any()
                     } else {
                         let _: () = view! {};
                         ().into_any()
@@ -320,7 +320,7 @@ pub fn Sidebar() -> impl IntoView {
                 <input
                     type="text"
                     placeholder="Filter..."
-                    style="width:100%;margin-bottom:8px;"
+                    class="sidebar-filter-input"
                     prop:value=move || filter_query.get()
                     on:input=move |ev| filter_query.set(event_target_value(&ev))
                 />
@@ -334,7 +334,7 @@ pub fn Sidebar() -> impl IntoView {
                             .filter(|(_, c)| query.is_empty() || c.name.to_lowercase().contains(&query))
                             .map(|(idx, comp)| {
                                 view! {
-                                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                                    <div class="custom-component-row">
                                         <span>{comp.name.clone()}</span>
                                         <div>
                                             <button on:click=move |_| start_edit_custom_component(idx)>"Edit"</button>
@@ -354,7 +354,7 @@ pub fn Sidebar() -> impl IntoView {
                 {move || {
                     if show_add_form.get() {
                         view! {
-                            <div style="margin-top:8px;padding:8px;border:1px solid #ddd;">
+                            <div class="custom-component-form">
                                 <input
                                     type="text"
                                     placeholder="Name"
@@ -364,7 +364,7 @@ pub fn Sidebar() -> impl IntoView {
                                 />
                                 <textarea
                                     placeholder="Template"
-                                    style="width:100%;height:60px;"
+                                    class="custom-component-textarea"
                                     prop:value=move || new_template.get()
                                     on:input=move |ev| new_template.set(event_target_value(&ev))
                                 />
@@ -380,7 +380,7 @@ pub fn Sidebar() -> impl IntoView {
                 {move || {
                     if editing_idx.get().is_some() {
                         view! {
-                            <div style="margin-top:8px;padding:8px;border:1px solid #dd0;">
+                            <div class="custom-component-edit">
                                 <h4>"Edit"</h4>
                                 <input
                                     type="text"
@@ -389,7 +389,7 @@ pub fn Sidebar() -> impl IntoView {
                                     on:input=move |ev| edit_name.set(event_target_value(&ev))
                                 />
                                 <textarea
-                                    style="width:100%;height:60px;"
+                                    class="custom-component-textarea"
                                     prop:value=move || edit_template.get()
                                     on:input=move |ev| edit_template.set(event_target_value(&ev))
                                 />

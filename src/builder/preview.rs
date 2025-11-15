@@ -34,24 +34,24 @@ pub fn Preview() -> impl IntoView {
                 children=move |comp| {
                     match comp {
                         CanvasComponent::Button(btn) => view! { 
-                            <div><button style="margin:0.5rem;">{btn.label.clone()}</button></div> 
+                            <div><button class="preview-inline-margin">{btn.label.clone()}</button></div> 
                         }.into_any(),
                         CanvasComponent::Text(txt) => view! { 
-                            <div><span style="margin:0.5rem;">{txt.content.clone()}</span></div> 
+                            <div><span class="preview-inline-margin">{txt.content.clone()}</span></div> 
                         }.into_any(),
                         CanvasComponent::Input(inp) => view! { 
-                            <div><input placeholder=inp.placeholder.clone() style="margin:0.5rem;"/></div> 
+                            <div><input placeholder=inp.placeholder.clone() class="preview-inline-margin"/></div> 
                         }.into_any(),
                         CanvasComponent::Custom(custom) => {
                             view! { 
-                                <div style="color:#7b1fa2;margin:0.5rem;">
+                                <div class="preview-custom">
                                     {"Custom: "}{custom.name.clone()}
                                     <div inner_html=custom.template.clone()></div>
                                 </div> 
                             }.into_any()
                         },
                         CanvasComponent::Container(_) => view! { 
-                            <div class="container" style="margin:0.5rem;">{"Container"}</div> 
+                            <div class="container preview-inline-margin">{"Container"}</div> 
                         }.into_any(),
                     }
                 }

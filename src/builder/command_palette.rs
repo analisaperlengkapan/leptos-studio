@@ -176,34 +176,10 @@ where
         <Show when=move || is_open.get()>
             <div
                 class="command-palette-backdrop"
-                style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100vw;
-                    height: 100vh;
-                    background: rgba(0, 0, 0, 0.5);
-                    z-index: 1000;
-                    display: flex;
-                    align-items: flex-start;
-                    justify-content: center;
-                    padding-top: 20vh;
-                "
                 on:click=move |_| close.set(false)
             >
                 <div
                     class="command-palette"
-                    style="
-                        background: var(--color-surface);
-                        border: 1px solid var(--color-border);
-                        border-radius: 8px;
-                        box-shadow: 0 16px 32px rgba(0, 0, 0, 0.24);
-                        width: min(640px, 90vw);
-                        max-height: 60vh;
-                        overflow: hidden;
-                        display: flex;
-                        flex-direction: column;
-                    "
                     on:click=move |ev| ev.stop_propagation()
                     on:keydown={
                         let on_action_keydown = on_action_clone.clone();
@@ -241,10 +217,7 @@ where
                         }
                     }
                 >
-                    <div class="command-palette-search" style="
-                        padding: 16px;
-                        border-bottom: 1px solid var(--color-border);
-                    ">
+                    <div class="command-palette-search">
                         <input
                             type="text"
                             placeholder="Search commands..."
@@ -252,24 +225,10 @@ where
                             on:input=move |ev| {
                                 search.set(event_target_value(&ev));
                             }
-                            style="
-                                width: 100%;
-                                padding: 12px;
-                                border: 1px solid var(--color-border);
-                                border-radius: 6px;
-                                background: var(--color-background);
-                                color: var(--color-text);
-                                font-size: 16px;
-                                outline: none;
-                            "
                         />
                     </div>
 
-                    <div class="command-palette-results" style="
-                        max-height: 400px;
-                        overflow-y: auto;
-                        padding: 8px 0;
-                    ">
+                    <div class="command-palette-results">
                         <For
                             each=move || filtered_commands.get().into_iter().enumerate()
                             key=|(idx, cmd)| format!("{}-{}", idx, cmd.id)
@@ -284,20 +243,6 @@ where
                                     <div
                                         class="command-item"
                                         class:selected=is_selected
-                                        style=move || format!(
-                                            "
-                                            padding: 12px 16px;
-                                            cursor: pointer;
-                                            border-left: 3px solid {};
-                                            background: {};
-                                            color: var(--color-text);
-                                            display: flex;
-                                            justify-content: space-between;
-                                            align-items: center;
-                                            ",
-                                            if is_selected() { "var(--color-primary)" } else { "transparent" },
-                                            if is_selected() { "var(--color-primary-subtle)" } else { "transparent" }
-                                        )
                                         on:click={
                                             let command = command_clone.clone();
                                             move |_| {
@@ -308,13 +253,10 @@ where
                                         on:mouseenter=move |_| set_selected_index.set(idx)
                                     >
                                         <div>
-                                            <div style="font-weight: 500; margin-bottom: 2px;">
+                                            <div class="command-item-title">
                                                 {command.title}
                                             </div>
-                                            <div style="
-                                                font-size: 12px; 
-                                                color: var(--color-text-secondary);
-                                            ">
+                                            <div class="command-item-meta">
                                                 {command.category}
                                             </div>
                                         </div>
@@ -324,12 +266,7 @@ where
                         />
 
                         <Show when=move || filtered_commands.get().is_empty()>
-                            <div style="
-                                padding: 24px;
-                                text-align: center;
-                                color: var(--color-text-secondary);
-                                font-style: italic;
-                            ">
+                            <div class="command-empty">
                                 No commands found
                             </div>
                         </Show>
