@@ -18,7 +18,7 @@ export default {
                 'revert',   // Reverts a previous commit
             ],
         ],
-        'subject-case': [2, 'always', 'sentence-case'],
+        'subject-case': [0],  // Disabled: Allow any case (controlled by conventional-changelog)
         'subject-full-stop': [0],  // Disabled: Allow periods in commit messages
         'body-max-line-length': [0],  // Disabled: Allow longer lines in body
         'header-max-length': [2, 'always', 150],
