@@ -4,7 +4,7 @@ name = "leptos_studio"
 version = "0.1.0"
 edition = "2024"
 description = "Visual UI builder for Leptos framework"
-license = "Apache 2.0"
+license = "Apache-2.0"
 repository = "https://gitlab.com/analisiskebutuhan/leptos-studio"
 
 [lib]
