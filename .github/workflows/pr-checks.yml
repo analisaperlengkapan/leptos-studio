@@ -36,7 +36,7 @@ jobs:
           fi
 
       - name: Add label
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const label = '${{ steps.size.outputs.label }}';
@@ -130,7 +130,7 @@ jobs:
 
       - name: Comment TODOs
         if: steps.todos.outputs.found == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const todos = `${{ steps.todos.outputs.todos }}`;
