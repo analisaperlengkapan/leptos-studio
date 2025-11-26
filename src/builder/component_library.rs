@@ -1,12 +1,8 @@
-use serde::{Deserialize, Serialize};
 use crate::domain::{
-    CanvasComponent,
-    ButtonComponent,
+    ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
     TextComponent,
-    InputComponent,
-    ContainerComponent,
-    CustomComponent,
 };
+use serde::{Deserialize, Serialize};
 
 // Re-export types from state module to avoid duplication
 pub use crate::state::app_state::{ResponsiveMode, Theme};
@@ -87,8 +83,9 @@ impl ComponentRegistry {
         }
     }
 
+    #[allow(clippy::ptr_arg)]
     pub fn update_custom_by_index(
-        custom_components: &mut Vec<LibraryComponent>,
+        custom_components: &mut [LibraryComponent],
         component_library: &mut Vec<LibraryComponent>,
         idx: usize,
         new_name: String,
@@ -319,10 +316,8 @@ pub fn create_canvas_component(component_type: &str) -> Option<CanvasComponent> 
         }
         data if data.starts_with("Custom::") => {
             let name = data.strip_prefix("Custom::").unwrap_or("Custom");
-            let custom = CustomComponent::new(
-                name.to_string(),
-                "<div>Custom Component</div>".to_string(),
-            );
+            let custom =
+                CustomComponent::new(name.to_string(), "<div>Custom Component</div>".to_string());
             Some(CanvasComponent::Custom(custom))
         }
         _ => None,

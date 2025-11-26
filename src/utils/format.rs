@@ -4,7 +4,7 @@ pub fn format_timestamp(timestamp: f64) -> String {
     let hours = date.get_hours();
     let minutes = date.get_minutes();
     let seconds = date.get_seconds();
-    
+
     format!("{:02}:{:02}:{:02}", hours, minutes, seconds)
 }
 
@@ -13,12 +13,12 @@ pub fn format_file_size(bytes: usize) -> String {
     const UNITS: &[&str] = &["B", "KB", "MB", "GB"];
     let mut size = bytes as f64;
     let mut unit_index = 0;
-    
+
     while size >= 1024.0 && unit_index < UNITS.len() - 1 {
         size /= 1024.0;
         unit_index += 1;
     }
-    
+
     format!("{:.2} {}", size, UNITS[unit_index])
 }
 
@@ -35,7 +35,7 @@ pub fn truncate_string(s: &str, max_length: usize) -> String {
 pub fn snake_to_camel(s: &str) -> String {
     let mut result = String::new();
     let mut capitalize_next = false;
-    
+
     for ch in s.chars() {
         if ch == '_' {
             capitalize_next = true;
@@ -46,14 +46,14 @@ pub fn snake_to_camel(s: &str) -> String {
             result.push(ch);
         }
     }
-    
+
     result
 }
 
 /// Convert camelCase to snake_case
 pub fn camel_to_snake(s: &str) -> String {
     let mut result = String::new();
-    
+
     for (i, ch) in s.chars().enumerate() {
         if ch.is_ascii_uppercase() && i > 0 {
             result.push('_');
@@ -62,7 +62,7 @@ pub fn camel_to_snake(s: &str) -> String {
             result.push(ch);
         }
     }
-    
+
     result
 }
 

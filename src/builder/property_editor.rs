@@ -1,18 +1,9 @@
-use crate::domain::{
-    ButtonSize,
-    ButtonVariant,
-    CanvasComponent,
-    InputType,
-    PropValue,
-    TextStyle,
-    TextTag,
-};
 use crate::builder::component_library::PropType;
+use crate::domain::{
+    ButtonSize, ButtonVariant, CanvasComponent, InputType, PropValue, TextStyle, TextTag,
+};
 use crate::services::{
-    update_button_prop,
-    update_input_prop,
-    update_text_prop,
-    update_container_prop,
+    update_button_prop, update_container_prop, update_input_prop, update_text_prop,
 };
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -473,7 +464,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    ().into_any()
                                                                 }
                                                             }}
                                                         </label>
@@ -492,12 +483,12 @@ pub fn PropertyEditor() -> impl IntoView {
                                 let custom_for_template = custom.clone();
                                 let comp_id_for_name = comp_id.clone();
                                 let comp_id_for_template = comp_id.clone();
-                                
+
                                 view! {
                                     <div>
                                         <label>
                                             {"Name: "}
-                                            <input 
+                                            <input
                                                 type="text"
                                                 prop:value=name_value
                                                 on:input=move |ev| {

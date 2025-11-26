@@ -12,57 +12,44 @@ pub fn GitPanel() -> impl IntoView {
     let log_text = RwSignal::new(String::new());
     let commit_message = RwSignal::new(String::new());
 
-    let load_status = {
-        let status_text = status_text;
-        move |_| {
-            let backend = NoopGitBackend;
-            match backend.status() {
-                Ok(text) => status_text.set(text),
-                Err(e) => status_text.set(e.user_message()),
-            }
+    let load_status = move |_| {
+        let backend = NoopGitBackend;
+        match backend.status() {
+            Ok(text) => status_text.set(text),
+            Err(e) => status_text.set(e.user_message()),
         }
     };
 
-    let load_log = {
-        let log_text = log_text;
-        move |_| {
-            let backend = NoopGitBackend;
-            match backend.log() {
-                Ok(text) => log_text.set(text),
-                Err(e) => log_text.set(e.user_message()),
-            }
+    let load_log = move |_| {
+        let backend = NoopGitBackend;
+        match backend.log() {
+            Ok(text) => log_text.set(text),
+            Err(e) => log_text.set(e.user_message()),
         }
     };
 
-    let do_commit = {
-        let status_text = status_text;
-        let commit_message = commit_message;
-        move |_| {
-            let message = commit_message.get().trim().to_string();
-            if message.is_empty() {
-                status_text.set("⚠️ Commit message is empty".to_string());
-                return;
-            }
+    let do_commit = move |_| {
+        let message = commit_message.get().trim().to_string();
+        if message.is_empty() {
+            status_text.set("⚠️ Commit message is empty".to_string());
+            return;
+        }
 
-            let backend = NoopGitBackend;
-            match backend.commit(&message) {
-                Ok(()) => {
-                    status_text.set(format!("✅ Commit recorded: {}", message));
-                    commit_message.set(String::new());
-                }
-                Err(e) => status_text.set(format!("❌ {}", e.user_message())),
+        let backend = NoopGitBackend;
+        match backend.commit(&message) {
+            Ok(()) => {
+                status_text.set(format!("✅ Commit recorded: {}", message));
+                commit_message.set(String::new());
             }
+            Err(e) => status_text.set(format!("❌ {}", e.user_message())),
         }
     };
 
-    let do_push = {
-        let status_text = status_text;
-        move |_| {
-            let backend = NoopGitBackend;
-            match backend.push() {
-                Ok(()) => status_text.set("✅ Push completed (or simulated)".to_string()),
-                Err(e) => status_text.set(format!("❌ {}", e.user_message())),
-            }
+    let do_push = move |_| {
+        let backend = NoopGitBackend;
+        match backend.push() {
+            Ok(()) => status_text.set("✅ Push completed (or simulated)".to_string()),
+            Err(e) => status_text.set(format!("❌ {}", e.user_message())),
         }
     };
 

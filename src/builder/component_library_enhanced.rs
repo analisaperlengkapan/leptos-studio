@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::builder::component_library::LibraryComponent;
+use leptos::prelude::*;
 
 /// Component category for organization
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -22,7 +22,7 @@ impl ComponentCategory {
         }
     }
 
-    pub fn from_str(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         match s {
             "Input" => ComponentCategory::Input,
             "Container" => ComponentCategory::Container,
@@ -67,7 +67,7 @@ pub fn get_categories(components: &[LibraryComponent]) -> Vec<ComponentCategory>
     let mut categories = vec![ComponentCategory::All];
 
     for comp in components {
-        let cat = ComponentCategory::from_str(&comp.category);
+        let cat = ComponentCategory::parse(&comp.category);
         if !categories.contains(&cat) {
             categories.push(cat);
         }
@@ -105,9 +105,7 @@ pub fn ComponentCard(
 
 /// Enhanced search bar for library
 #[component]
-pub fn LibrarySearchBar(
-    #[prop(into)] on_search: Callback<String>,
-) -> impl IntoView {
+pub fn LibrarySearchBar(#[prop(into)] on_search: Callback<String>) -> impl IntoView {
     let search_input = RwSignal::new(String::new());
 
     let handle_input = move |ev: leptos::ev::Event| {
@@ -165,9 +163,7 @@ pub fn CategoryFilter(
 
 /// Favorites indicator (for future implementation)
 #[component]
-pub fn ComponentFavorite(
-    #[prop(into)] is_favorite: RwSignal<bool>,
-) -> impl IntoView {
+pub fn ComponentFavorite(#[prop(into)] is_favorite: RwSignal<bool>) -> impl IntoView {
     view! {
         <button
             class={move || {

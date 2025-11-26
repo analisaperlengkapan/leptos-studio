@@ -1,21 +1,23 @@
 use leptos::prelude::*;
 use web_sys::window;
 
-use crate::state::app_state::{AppState, Notification, ExportPreset};
-use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
-use crate::domain::validation::{ComponentNameValidator, HtmlTemplateValidator, Validator};
-use crate::domain::error::ValidationError;
-use super::component_library::{LibraryComponent, ResponsiveMode, Theme, ComponentRegistry};
-use super::drag_drop::{create_drag_handlers, DragDropConfig};
+use super::component_library::{ComponentRegistry, LibraryComponent, ResponsiveMode, Theme};
+use super::drag_drop::{DragDropConfig, create_drag_handlers};
 use crate::builder::debug_panel::DebugPanel;
 use crate::builder::git_panel::GitPanel;
 use crate::builder::project::ProjectPanel;
+use crate::domain::error::ValidationError;
+use crate::domain::validation::{ComponentNameValidator, HtmlTemplateValidator, Validator};
+use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
+use crate::state::app_state::{AppState, ExportPreset, Notification};
 
 /// Convert ValidationError to user-friendly Indonesian message
 fn validation_error_to_message(error: ValidationError) -> String {
     match error {
         ValidationError::EmptyName => "Nama komponen wajib diisi.".to_string(),
-        ValidationError::InvalidName(_) => "Nama komponen hanya boleh huruf, angka, dan underscore.".to_string(),
+        ValidationError::InvalidName(_) => {
+            "Nama komponen hanya boleh huruf, angka, dan underscore.".to_string()
+        }
         ValidationError::EmptyTemplate => "Template wajib diisi.".to_string(),
         ValidationError::InvalidTemplate(msg) => format!("Template tidak valid: {}", msg),
         _ => "Input tidak valid.".to_string(),
@@ -25,7 +27,7 @@ fn validation_error_to_message(error: ValidationError) -> String {
 #[component]
 pub fn Sidebar() -> impl IntoView {
     let app_state = AppState::use_context();
-    
+
     let custom_theme_color = RwSignal::new(String::from("#888"));
     let show_add_form = RwSignal::new(false);
     let new_name = RwSignal::new(String::new());
@@ -35,31 +37,31 @@ pub fn Sidebar() -> impl IntoView {
     let editing_idx = RwSignal::new(None::<usize>);
     let edit_name = RwSignal::new(String::new());
     let edit_template = RwSignal::new(String::new());
-    
+
     let add_custom_component = move |_| {
         let name = new_name.get().trim().to_string();
         let template = new_template.get().trim().to_string();
-        
+
         // Validate component name using domain validator
         let name_validator = ComponentNameValidator;
         if let Err(e) = name_validator.validate(&name) {
             error_msg.set(validation_error_to_message(e));
             return;
         }
-        
+
         // Check for duplicate names
         if ComponentRegistry::exists_by_name(&app_state.ui.custom_components.get(), &name) {
             error_msg.set("Nama komponen sudah ada.".to_string());
             return;
         }
-        
+
         // Validate template using domain validator
         let template_validator = HtmlTemplateValidator;
         if let Err(e) = template_validator.validate(&template) {
             error_msg.set(validation_error_to_message(e));
             return;
         }
-        
+
         let new_component = LibraryComponent {
             name: name.clone(),
             kind: "Custom".to_string(),
@@ -68,31 +70,35 @@ pub fn Sidebar() -> impl IntoView {
             props_schema: None,
             description: None,
         };
-        
+
         let mut custom = app_state.ui.custom_components.get();
         let mut library = app_state.ui.component_library.get();
         ComponentRegistry::add_custom(&mut custom, &mut library, new_component);
         app_state.ui.custom_components.set(custom);
         app_state.ui.component_library.set(library);
-        
+
         new_name.set(String::new());
         new_template.set(String::new());
         error_msg.set(String::new());
         show_add_form.set(false);
-        
-        app_state.ui.notification.set(Some(Notification::success("✅ Komponen berhasil ditambahkan".to_string())));
+
+        app_state.ui.notification.set(Some(Notification::success(
+            "✅ Komponen berhasil ditambahkan".to_string(),
+        )));
     };
-    
+
     let delete_custom_component = move |idx: usize| {
         let mut custom = app_state.ui.custom_components.get();
         let mut library = app_state.ui.component_library.get();
         ComponentRegistry::delete_custom_by_index(&mut custom, &mut library, idx);
         app_state.ui.custom_components.set(custom);
         app_state.ui.component_library.set(library);
-        
-        app_state.ui.notification.set(Some(Notification::success("🗑️ Komponen dihapus".to_string())));
+
+        app_state.ui.notification.set(Some(Notification::success(
+            "🗑️ Komponen dihapus".to_string(),
+        )));
     };
-    
+
     let start_edit_custom_component = move |idx: usize| {
         if let Some(c) = app_state.ui.custom_components.get().get(idx) {
             edit_name.set(c.name.clone());
@@ -101,23 +107,23 @@ pub fn Sidebar() -> impl IntoView {
             error_msg.set(String::new());
         }
     };
-    
+
     let save_edit_custom_component = move |_| {
         let idx = match editing_idx.get() {
             Some(i) => i,
             None => return,
         };
-        
+
         let name = edit_name.get().trim().to_string();
         let template = edit_template.get().trim().to_string();
-        
+
         // Validate component name using domain validator
         let name_validator = ComponentNameValidator;
         if let Err(e) = name_validator.validate(&name) {
             error_msg.set(validation_error_to_message(e));
             return;
         }
-        
+
         // Check for duplicate names (excluding current component)
         let existing_custom = app_state.ui.custom_components.get();
         let mut others = existing_custom.clone();
@@ -128,64 +134,78 @@ pub fn Sidebar() -> impl IntoView {
             error_msg.set("Nama komponen sudah ada.".to_string());
             return;
         }
-        
+
         // Validate template using domain validator
         let template_validator = HtmlTemplateValidator;
         if let Err(e) = template_validator.validate(&template) {
             error_msg.set(validation_error_to_message(e));
             return;
         }
-        
+
         let mut custom = existing_custom;
         let mut library = app_state.ui.component_library.get();
-        ComponentRegistry::update_custom_by_index(&mut custom, &mut library, idx, name.clone(), template.clone());
+        ComponentRegistry::update_custom_by_index(
+            &mut custom,
+            &mut library,
+            idx,
+            name.clone(),
+            template.clone(),
+        );
         app_state.ui.custom_components.set(custom);
         app_state.ui.component_library.set(library);
-        
+
         editing_idx.set(None);
         edit_name.set(String::new());
         edit_template.set(String::new());
         error_msg.set(String::new());
-        
-        app_state.ui.notification.set(Some(Notification::success("✅ Komponen diperbarui".to_string())));
+
+        app_state.ui.notification.set(Some(Notification::success(
+            "✅ Komponen diperbarui".to_string(),
+        )));
     };
-    
+
     let cancel_edit_custom_component = move |_| {
         editing_idx.set(None);
         error_msg.set(String::new());
     };
-    
+
     let export_code = move |_| {
         let components = app_state.canvas.components.get();
         let preset = app_state.settings.with(|s| s.export_preset.clone());
         let generator = LeptosCodeGenerator::new(preset);
-        
+
         match generator.generate(&components) {
             Ok(code) => {
                 if let Some(win) = window() {
                     let clipboard = win.navigator().clipboard();
                     let _ = clipboard.write_text(&code);
                 }
-                app_state.ui.notification.set(Some(Notification::success("✅ Kode diekspor!".to_string())));
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::success("✅ Kode diekspor!".to_string())));
             }
             Err(e) => {
-                app_state.ui.notification.set(Some(Notification::error(format!("❌ Error: {}", e))));
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::error(format!("❌ Error: {}", e))));
             }
         }
     };
-    
+
     view! {
         <aside class="sidebar-content">
             <DebugPanel />
-            
+
             <div class="sidebar-section git-panel-wrapper">
                 <b>"Git Panel"</b>
                 <GitPanel />
             </div>
             <ProjectPanel />
-            
+
             <h2>"Sidebar"</h2>
-            
+
             <div class="sidebar-section">
                 <b>"Theme:"</b>
                 <div class="theme-buttons">
@@ -212,12 +232,11 @@ pub fn Sidebar() -> impl IntoView {
                             />
                         }.into_any()
                     } else {
-                        let _: () = view! {};
                         ().into_any()
                     }
                 }}
             </div>
-            
+
             <div class="sidebar-section">
                 <b>"Responsive:"</b>
                 <select on:change=move |ev| {
@@ -233,7 +252,7 @@ pub fn Sidebar() -> impl IntoView {
                     <option selected=move || app_state.ui.responsive_mode.get() == ResponsiveMode::Mobile>"Mobile"</option>
                 </select>
             </div>
-            
+
             <div class="sidebar-section">
                 <label>"Export Preset:"</label>
                 <select on:change=move |ev| {
@@ -251,15 +270,15 @@ pub fn Sidebar() -> impl IntoView {
                     <option value="LeptosUse">"leptos-use"</option>
                 </select>
             </div>
-            
+
             <button on:click=export_code>"Export Project"</button>
-            
+
             {move || {
                 app_state.ui.notification.get().as_ref().map(|notif| {
                     view! { <div class="sidebar-notification">{notif.message.clone()}</div> }
                 })
             }}
-            
+
             <div class="sidebar-section-divider">
                 <h3>"Component Library"</h3>
                 <div class="component-library-grid">
@@ -283,7 +302,7 @@ pub fn Sidebar() -> impl IntoView {
                                 );
 
                                 view! {
-                                    <div 
+                                    <div
                                         class="component-item"
                                         draggable="true"
                                         on:dragstart=on_drag_start
@@ -304,19 +323,18 @@ pub fn Sidebar() -> impl IntoView {
                     }}
                 </div>
             </div>
-            
+
             <div style="margin-top:16px;border-top:1px solid #ccc;padding-top:12px;">
                 <h3>"Custom Components"</h3>
-                
+
                 {move || {
                     if !error_msg.get().is_empty() {
                         view! { <div class="sidebar-error">{error_msg.get()}</div> }.into_any()
                     } else {
-                        let _: () = view! {};
                         ().into_any()
                     }
                 }}
-                
+
                 <input
                     type="text"
                     placeholder="Filter..."
@@ -324,7 +342,7 @@ pub fn Sidebar() -> impl IntoView {
                     prop:value=move || filter_query.get()
                     on:input=move |ev| filter_query.set(event_target_value(&ev))
                 />
-                
+
                 <div>
                     {move || {
                         let query = filter_query.get().to_lowercase();
@@ -346,11 +364,11 @@ pub fn Sidebar() -> impl IntoView {
                             .collect::<Vec<_>>()
                     }}
                 </div>
-                
+
                 <button on:click=move |_| show_add_form.update(|v| *v = !*v)>
                     {move || if show_add_form.get() { "Cancel" } else { "+ Add" }}
                 </button>
-                
+
                 {move || {
                     if show_add_form.get() {
                         view! {
@@ -372,11 +390,10 @@ pub fn Sidebar() -> impl IntoView {
                             </div>
                         }.into_any()
                     } else {
-                        let _: () = view! {};
                         ().into_any()
                     }
                 }}
-                
+
                 {move || {
                     if editing_idx.get().is_some() {
                         view! {
@@ -398,7 +415,6 @@ pub fn Sidebar() -> impl IntoView {
                             </div>
                         }.into_any()
                     } else {
-                        let _: () = view! {};
                         ().into_any()
                     }
                 }}

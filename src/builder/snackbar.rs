@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::state::app_state::Notification;
+use leptos::prelude::*;
 
 #[component]
 pub fn Snackbar(notification: RwSignal<Option<Notification>>) -> impl IntoView {

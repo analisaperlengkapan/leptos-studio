@@ -17,13 +17,13 @@ impl Validator<String> for ComponentNameValidator {
         if name.trim().is_empty() {
             return Err(ValidationError::EmptyName);
         }
-        
+
         // Check if it's a valid Rust identifier
         let re = Regex::new(r"^[a-zA-Z_][a-zA-Z0-9_]*$").unwrap();
         if !re.is_match(name) {
             return Err(ValidationError::InvalidName(name.clone()));
         }
-        
+
         Ok(())
     }
 }
@@ -40,21 +40,21 @@ impl Validator<String> for HtmlTemplateValidator {
         if template.trim().is_empty() {
             return Err(ValidationError::EmptyTemplate);
         }
-        
+
         if template.len() < 3 {
             return Err(ValidationError::InvalidTemplate(
-                "Template too short".to_string()
+                "Template too short".to_string(),
             ));
         }
-        
+
         // Check if contains HTML tags
         let tag_re = Regex::new(r"<[^>]+>").unwrap();
         if !tag_re.is_match(template) {
             return Err(ValidationError::InvalidTemplate(
-                "Template must contain at least one HTML tag".to_string()
+                "Template must contain at least one HTML tag".to_string(),
             ));
         }
-        
+
         Ok(())
     }
 }
@@ -109,7 +109,11 @@ mod tests {
         let validator = HtmlTemplateValidator;
         assert!(validator.validate(&"<div>Hello</div>".to_string()).is_ok());
         assert!(validator.validate(&"<p>Text</p>".to_string()).is_ok());
-        assert!(validator.validate(&"<button>Click</button>".to_string()).is_ok());
+        assert!(
+            validator
+                .validate(&"<button>Click</button>".to_string())
+                .is_ok()
+        );
     }
 
     #[test]

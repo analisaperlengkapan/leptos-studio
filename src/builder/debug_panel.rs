@@ -1,12 +1,12 @@
-use leptos::prelude::*;
-use crate::state::app_state::AppState;
 use crate::builder::component_library::ComponentRegistry;
+use crate::state::app_state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn DebugPanel() -> impl IntoView {
     // Get AppState from context (no props!)
     let app_state = AppState::use_context();
-    
+
     view! {
         <div class="debug-panel">
             <b>"🐛 Debug Panel"</b>

@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::state::{AppState, ResponsiveMode};
+use leptos::prelude::*;
 
 /// Viewport dimensions for different device types
 #[derive(Clone, Debug)]

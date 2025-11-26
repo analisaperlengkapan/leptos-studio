@@ -1,39 +1,41 @@
 use serde::{Deserialize, Serialize};
 
 /// Component size constraints
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct SizeConstraints {
-    pub min_width: Option<u32>,  // in pixels
+    pub min_width: Option<u32>, // in pixels
     pub max_width: Option<u32>,
     pub min_height: Option<u32>,
     pub max_height: Option<u32>,
     pub aspect_ratio: Option<f32>, // width/height ratio
 }
 
-
 impl SizeConstraints {
     /// Validate dimensions against constraints
     pub fn validate(&self, width: u32, height: u32) -> Result<(), String> {
         if let Some(min_w) = self.min_width
-            && width < min_w {
-                return Err(format!("Width must be at least {}px", min_w));
-            }
+            && width < min_w
+        {
+            return Err(format!("Width must be at least {}px", min_w));
+        }
 
         if let Some(max_w) = self.max_width
-            && width > max_w {
-                return Err(format!("Width cannot exceed {}px", max_w));
-            }
+            && width > max_w
+        {
+            return Err(format!("Width cannot exceed {}px", max_w));
+        }
 
         if let Some(min_h) = self.min_height
-            && height < min_h {
-                return Err(format!("Height must be at least {}px", min_h));
-            }
+            && height < min_h
+        {
+            return Err(format!("Height must be at least {}px", min_h));
+        }
 
         if let Some(max_h) = self.max_height
-            && height > max_h {
-                return Err(format!("Height cannot exceed {}px", max_h));
-            }
+            && height > max_h
+        {
+            return Err(format!("Height cannot exceed {}px", max_h));
+        }
 
         if let Some(ratio) = self.aspect_ratio {
             let current_ratio = width as f32 / height as f32;
@@ -122,7 +124,7 @@ pub struct DesignGuideline {
     pub name: &'static str,
     pub description: &'static str,
     pub recommended_size: Option<(u32, u32)>, // width, height
-    pub spacing: Option<u32>,  // recommended spacing in pixels
+    pub spacing: Option<u32>,                 // recommended spacing in pixels
 }
 
 impl DesignGuideline {

@@ -301,15 +301,16 @@ where
         move |ev: KeyboardEvent| {
             // Don't handle shortcuts when typing in inputs
             if let Some(target) = ev.target()
-                && let Ok(element) = target.dyn_into::<web_sys::HtmlElement>() {
-                    let tag_name = element.tag_name().to_lowercase();
-                    if tag_name == "input" || tag_name == "textarea" || tag_name == "select" {
-                        return;
-                    }
-                    if element.is_content_editable() {
-                        return;
-                    }
+                && let Ok(element) = target.dyn_into::<web_sys::HtmlElement>()
+            {
+                let tag_name = element.tag_name().to_lowercase();
+                if tag_name == "input" || tag_name == "textarea" || tag_name == "select" {
+                    return;
                 }
+                if element.is_content_editable() {
+                    return;
+                }
+            }
 
             for shortcut in &shortcuts {
                 if shortcut.matches(&ev) {

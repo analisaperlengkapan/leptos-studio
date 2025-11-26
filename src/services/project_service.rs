@@ -1,5 +1,5 @@
-use crate::state::Project;
 use crate::domain::{AppError, AppResult};
+use crate::state::Project;
 
 /// Serialize a Project to a JSON string
 pub fn project_to_json(project: &Project) -> AppResult<String> {
@@ -16,12 +16,14 @@ pub fn project_from_json(json: &str) -> AppResult<Project> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::SettingsState;
     use crate::domain::{ButtonComponent, CanvasComponent};
+    use crate::state::SettingsState;
 
     #[test]
     fn project_roundtrip_json() {
-        let layout = vec![CanvasComponent::Button(ButtonComponent::new("Test".to_string()))];
+        let layout = vec![CanvasComponent::Button(ButtonComponent::new(
+            "Test".to_string(),
+        ))];
         let settings = SettingsState::default();
         let project = Project::new("My Project".to_string(), layout, settings);
 

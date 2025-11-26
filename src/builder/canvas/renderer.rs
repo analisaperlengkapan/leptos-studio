@@ -1,9 +1,9 @@
-use leptos::prelude::*;
 use crate::domain::{
-    CanvasComponent, ButtonComponent, TextComponent, InputComponent, 
-    ContainerComponent, CustomComponent
+    ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
+    TextComponent,
 };
 use crate::state::CanvasState;
+use leptos::prelude::*;
 
 /// Component renderer for displaying canvas components
 #[component]
@@ -17,19 +17,23 @@ pub fn ComponentRenderer(
     let component_id_for_selected = component_id.clone();
     let component_id_for_click = component_id.clone();
     let component_id_for_attr = component_id.clone();
-    
+
     let is_selected = Memo::new(move |_| {
-        canvas_state.selected.get()
+        canvas_state
+            .selected
+            .get()
             .as_ref()
             .map(|id| id == &component_id_for_selected)
             .unwrap_or(false)
     });
-    
+
     let on_click = move |ev: leptos::ev::MouseEvent| {
         ev.stop_propagation();
-        canvas_state.selected.set(Some(component_id_for_click.clone()));
+        canvas_state
+            .selected
+            .set(Some(component_id_for_click.clone()));
     };
-    
+
     let class = move || {
         if is_selected.get() {
             "canvas-component selected"
@@ -37,9 +41,9 @@ pub fn ComponentRenderer(
             "canvas-component"
         }
     };
-    
+
     view! {
-        <div 
+        <div
             class=class
             on:click=on_click
             data-component-id=component_id_for_attr.to_string()
@@ -62,15 +66,15 @@ fn render_button(button: ButtonComponent) -> impl IntoView {
         crate::domain::ButtonVariant::Outline => "btn-outline",
         crate::domain::ButtonVariant::Ghost => "btn-ghost",
     };
-    
+
     let size_class = match button.size {
         crate::domain::ButtonSize::Small => "btn-sm",
         crate::domain::ButtonSize::Medium => "btn-md",
         crate::domain::ButtonSize::Large => "btn-lg",
     };
-    
+
     view! {
-        <button 
+        <button
             class=format!("canvas-button {} {}", variant_class, size_class)
             disabled=button.disabled
         >
@@ -87,7 +91,7 @@ fn render_text(text: TextComponent) -> impl IntoView {
         crate::domain::TextTag::P => "text-p",
         crate::domain::TextTag::Span => "text-span",
     };
-    
+
     let style_class = match text.style {
         crate::domain::TextStyle::Heading1 => "style-heading1",
         crate::domain::TextStyle::Heading2 => "style-heading2",
@@ -95,7 +99,7 @@ fn render_text(text: TextComponent) -> impl IntoView {
         crate::domain::TextStyle::Body => "style-body",
         crate::domain::TextStyle::Caption => "style-caption",
     };
-    
+
     view! {
         <span class=format!("canvas-text {} {}", tag_class, style_class)>
             {text.content}
@@ -111,9 +115,9 @@ fn render_input(input: InputComponent) -> impl IntoView {
         crate::domain::InputType::Number => "number",
         crate::domain::InputType::Tel => "tel",
     };
-    
+
     view! {
-        <input 
+        <input
             class="canvas-input"
             type=input_type
             placeholder=input.placeholder
@@ -123,10 +127,7 @@ fn render_input(input: InputComponent) -> impl IntoView {
     }
 }
 
-fn render_container(
-    container: ContainerComponent,
-    canvas_state: CanvasState,
-) -> impl IntoView {
+fn render_container(container: ContainerComponent, canvas_state: CanvasState) -> impl IntoView {
     let layout_class = match &container.layout {
         crate::domain::LayoutType::Flex { direction, wrap } => {
             let dir_class = match direction {
@@ -144,7 +145,7 @@ fn render_container(
         }
         crate::domain::LayoutType::Stack => "stack".to_string(),
     };
-    
+
     let style = format!(
         "gap: {}px; padding: {}px {}px {}px {}px;",
         container.gap,
@@ -153,9 +154,9 @@ fn render_container(
         container.padding.bottom,
         container.padding.left
     );
-    
+
     view! {
-        <div 
+        <div
             class=format!("canvas-container {}", layout_class)
             style=style
         >
@@ -164,7 +165,7 @@ fn render_container(
                 key=|comp| comp.id().clone()
                 children=move |comp| {
                     view! {
-                        <ComponentRenderer 
+                        <ComponentRenderer
                             component=comp
                             canvas_state=canvas_state
                         />

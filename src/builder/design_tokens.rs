@@ -421,21 +421,20 @@ impl DesignTokens {
     pub fn apply_to_document(&self) {
         if let Some(window) = web_sys::window()
             && let Some(document) = window.document()
-                && let Some(head) = document.head() {
-                    // Remove existing design token styles
-                    if let Ok(Some(existing_element)) =
-                        document.query_selector("#design-tokens-style")
-                    {
-                        existing_element.remove();
-                    }
+            && let Some(head) = document.head()
+        {
+            // Remove existing design token styles
+            if let Ok(Some(existing_element)) = document.query_selector("#design-tokens-style") {
+                existing_element.remove();
+            }
 
-                    // Create new style element
-                    if let Ok(style_element) = document.create_element("style") {
-                        style_element.set_id("design-tokens-style");
-                        style_element.set_inner_html(&self.to_css_variables());
-                        _ = head.append_child(&style_element);
-                    }
-                }
+            // Create new style element
+            if let Ok(style_element) = document.create_element("style") {
+                style_element.set_id("design-tokens-style");
+                style_element.set_inner_html(&self.to_css_variables());
+                _ = head.append_child(&style_element);
+            }
+        }
     }
 
     pub fn get_color(&self, name: &str) -> Option<&ColorToken> {

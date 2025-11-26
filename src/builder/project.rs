@@ -2,10 +2,10 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::domain::CanvasComponent;
 use crate::builder::component_library::LibraryComponent;
+use crate::domain::CanvasComponent;
+use crate::services::{project_from_json, project_to_json};
 use crate::state::app_state::{AppState, Notification};
-use crate::services::{project_to_json, project_from_json};
 use crate::utils::copy_to_clipboard;
 use js_sys::encode_uri_component;
 
@@ -30,101 +30,99 @@ pub fn ProjectPanel() -> impl IntoView {
 
     let import_text = RwSignal::new(String::new());
 
-    let new_project = {
-        let app_state = app_state;
-        move |_| {
-            app_state.project_name.set("Untitled Project".to_string());
-            app_state.canvas.components.set(Vec::new());
-            app_state.canvas.selected.set(None);
-            app_state.canvas.history.update(|h| h.clear());
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::info("🆕 New project created".to_string())));
-        }
+    let new_project = move |_| {
+        app_state.project_name.set("Untitled Project".to_string());
+        app_state.canvas.components.set(Vec::new());
+        app_state.canvas.selected.set(None);
+        app_state.canvas.history.update(|h| h.clear());
+        app_state.ui.notification.set(Some(Notification::info(
+            "🆕 New project created".to_string(),
+        )));
     };
 
-    let export_project_copy = {
-        let app_state = app_state;
-        move |_| {
-            let project = app_state.to_project();
-            match project_to_json(&project) {
-                Ok(json) => {
-                    let app_state_clone = app_state;
-                    wasm_bindgen_futures::spawn_local(async move {
-                        match copy_to_clipboard(&json).await {
-                            Ok(()) => {
-                                app_state_clone
-                                    .ui
-                                    .notification
-                                    .set(Some(Notification::success("📋 Project JSON copied to clipboard".to_string())));
-                            }
-                            Err(e) => {
-                                app_state_clone
-                                    .ui
-                                    .notification
-                                    .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                            }
+    let export_project_copy = move |_| {
+        let project = app_state.to_project();
+        match project_to_json(&project) {
+            Ok(json) => {
+                let app_state_clone = app_state;
+                wasm_bindgen_futures::spawn_local(async move {
+                    match copy_to_clipboard(&json).await {
+                        Ok(()) => {
+                            app_state_clone
+                                .ui
+                                .notification
+                                .set(Some(Notification::success(
+                                    "📋 Project JSON copied to clipboard".to_string(),
+                                )));
                         }
-                    });
-                }
-                Err(e) => {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                }
-            }
-        }
-    };
-
-    let export_project_download = {
-        let app_state = app_state;
-        move |_| {
-            let project = app_state.to_project();
-            match project_to_json(&project) {
-                Ok(json) => {
-                    let encoded = encode_uri_component(&json);
-                    let url = format!("data:application/json;charset=utf-8,{}", encoded);
-
-                    if let Some(window) = web_sys::window() {
-                        let _ = window.open_with_url_and_target(&url, "_blank");
-                    } else {
-                        app_state
-                            .ui
-                            .notification
-                            .set(Some(Notification::error("❌ Unable to open download window".to_string())));
+                        Err(e) => {
+                            app_state_clone
+                                .ui
+                                .notification
+                                .set(Some(Notification::error(format!(
+                                    "❌ {}",
+                                    e.user_message()
+                                ))));
+                        }
                     }
-                }
-                Err(e) => {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                }
+                });
+            }
+            Err(e) => {
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::error(format!(
+                        "❌ {}",
+                        e.user_message()
+                    ))));
             }
         }
     };
 
-    let import_project = {
-        let app_state = app_state;
-        let import_text = import_text;
-        move |_| {
-            let json = import_text.get();
-            match project_from_json(&json) {
-                Ok(project) => {
-                    app_state.apply_project(project);
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::success("📂 Project imported".to_string())));
+    let export_project_download = move |_| {
+        let project = app_state.to_project();
+        match project_to_json(&project) {
+            Ok(json) => {
+                let encoded = encode_uri_component(&json);
+                let url = format!("data:application/json;charset=utf-8,{}", encoded);
+
+                if let Some(window) = web_sys::window() {
+                    let _ = window.open_with_url_and_target(&url, "_blank");
+                } else {
+                    app_state.ui.notification.set(Some(Notification::error(
+                        "❌ Unable to open download window".to_string(),
+                    )));
                 }
-                Err(e) => {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                }
+            }
+            Err(e) => {
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::error(format!(
+                        "❌ {}",
+                        e.user_message()
+                    ))));
+            }
+        }
+    };
+
+    let import_project = move |_| {
+        let json = import_text.get();
+        match project_from_json(&json) {
+            Ok(project) => {
+                app_state.apply_project(project);
+                app_state.ui.notification.set(Some(Notification::success(
+                    "📂 Project imported".to_string(),
+                )));
+            }
+            Err(e) => {
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::error(format!(
+                        "❌ {}",
+                        e.user_message()
+                    ))));
             }
         }
     };

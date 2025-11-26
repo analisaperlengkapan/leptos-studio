@@ -2,26 +2,24 @@ use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Style properties for components
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct ComponentStyle {
-    pub padding: Option<String>,      // e.g., "8px" or "8px 16px"
-    pub margin: Option<String>,       // e.g., "8px" or "0 auto"
-    pub width: Option<String>,        // e.g., "100px" or "50%"
-    pub height: Option<String>,       // e.g., "40px" or "auto"
+    pub padding: Option<String>, // e.g., "8px" or "8px 16px"
+    pub margin: Option<String>,  // e.g., "8px" or "0 auto"
+    pub width: Option<String>,   // e.g., "100px" or "50%"
+    pub height: Option<String>,  // e.g., "40px" or "auto"
     pub background_color: Option<String>,
     pub border_color: Option<String>,
-    pub border_width: Option<u32>,    // in pixels
-    pub border_radius: Option<u32>,   // in pixels
-    pub font_size: Option<u32>,       // in pixels
-    pub font_weight: Option<String>,  // "normal", "bold", "600", etc.
-    pub text_align: Option<String>,   // "left", "center", "right"
-    pub display: Option<String>,      // "flex", "grid", "block"
+    pub border_width: Option<u32>,      // in pixels
+    pub border_radius: Option<u32>,     // in pixels
+    pub font_size: Option<u32>,         // in pixels
+    pub font_weight: Option<String>,    // "normal", "bold", "600", etc.
+    pub text_align: Option<String>,     // "left", "center", "right"
+    pub display: Option<String>,        // "flex", "grid", "block"
     pub flex_direction: Option<String>, // "row", "column"
-    pub gap: Option<String>,          // e.g., "8px"
-    pub custom_css: Option<String>,   // Custom CSS class or inline styles
+    pub gap: Option<String>,            // e.g., "8px"
+    pub custom_css: Option<String>,     // Custom CSS class or inline styles
 }
-
 
 impl ComponentStyle {
     /// Generate inline CSS string from style properties
@@ -44,9 +42,10 @@ impl ComponentStyle {
             css.push_str(&format!("background-color: {};", val));
         }
         if let Some(ref val) = self.border_color
-            && let Some(width) = self.border_width {
-                css.push_str(&format!("border: {}px solid {};", width, val));
-            }
+            && let Some(width) = self.border_width
+        {
+            css.push_str(&format!("border: {}px solid {};", width, val));
+        }
         if let Some(radius) = self.border_radius {
             css.push_str(&format!("border-radius: {}px;", radius));
         }
@@ -200,14 +199,14 @@ pub fn StyleEditor(
     #[prop(into)] current_style: RwSignal<ComponentStyle>,
     #[prop(into)] on_style_change: Callback<ComponentStyle>,
 ) -> impl IntoView {
-    let bg_color = RwSignal::new(
-        current_style.get().background_color.unwrap_or_default(),
-    );
-    let padding = RwSignal::new(
-        current_style.get().padding.unwrap_or_default(),
-    );
+    let bg_color = RwSignal::new(current_style.get().background_color.unwrap_or_default());
+    let padding = RwSignal::new(current_style.get().padding.unwrap_or_default());
     let border_radius = RwSignal::new(
-        current_style.get().border_radius.map(|v| v.to_string()).unwrap_or_default(),
+        current_style
+            .get()
+            .border_radius
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
     );
 
     let update_bg_color = move |ev: leptos::ev::Event| {
@@ -237,7 +236,7 @@ pub fn StyleEditor(
     view! {
         <div class="style-editor">
             <h4>{"Styling"}</h4>
-            
+
             <div class="style-control">
                 <label>{"Background Color"}</label>
                 <input
@@ -276,9 +275,7 @@ pub fn StyleEditor(
 
 /// Theme Selector Component
 #[component]
-pub fn ThemeSelector(
-    #[prop(into)] on_theme_select: Callback<ThemePreset>,
-) -> impl IntoView {
+pub fn ThemeSelector(#[prop(into)] on_theme_select: Callback<ThemePreset>) -> impl IntoView {
     let themes = vec![
         ThemePreset::Light,
         ThemePreset::Dark,

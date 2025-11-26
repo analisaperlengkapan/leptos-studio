@@ -1,5 +1,5 @@
 use crate::domain::CanvasComponent;
-use crate::state::app_state::{AppState, Theme, ResponsiveMode};
+use crate::state::app_state::{AppState, ResponsiveMode, Theme};
 use leptos::prelude::*;
 
 #[component]
@@ -8,11 +8,11 @@ pub fn Preview() -> impl IntoView {
     let app_state = AppState::use_context();
     let canvas_state = app_state.canvas;
     let ui_state = app_state.ui;
-    
+
     let preview_style = Memo::new(move |_| {
         let theme = app_state.settings.with(|s| s.theme.clone());
         let responsive_mode = ui_state.responsive_mode.get();
-        
+
         let (bg, fg) = match theme {
             Theme::Light => ("#fff", "#222"),
             Theme::Dark => ("#222", "#eee"),
@@ -23,8 +23,11 @@ pub fn Preview() -> impl IntoView {
             ResponsiveMode::Tablet => "768px",
             ResponsiveMode::Mobile => "375px",
         };
-        
-        format!("background:{};color:{};padding:1rem;border:1px solid #eee;width:{};margin:auto;", bg, fg, width)
+
+        format!(
+            "background:{};color:{};padding:1rem;border:1px solid #eee;width:{};margin:auto;",
+            bg, fg, width
+        )
     });
     view! {
         <div class="preview-area" style=move || preview_style.get()>
@@ -33,25 +36,25 @@ pub fn Preview() -> impl IntoView {
                 key=|comp| comp.id().clone()
                 children=move |comp| {
                     match comp {
-                        CanvasComponent::Button(btn) => view! { 
-                            <div><button class="preview-inline-margin">{btn.label.clone()}</button></div> 
+                        CanvasComponent::Button(btn) => view! {
+                            <div><button class="preview-inline-margin">{btn.label.clone()}</button></div>
                         }.into_any(),
-                        CanvasComponent::Text(txt) => view! { 
-                            <div><span class="preview-inline-margin">{txt.content.clone()}</span></div> 
+                        CanvasComponent::Text(txt) => view! {
+                            <div><span class="preview-inline-margin">{txt.content.clone()}</span></div>
                         }.into_any(),
-                        CanvasComponent::Input(inp) => view! { 
-                            <div><input placeholder=inp.placeholder.clone() class="preview-inline-margin"/></div> 
+                        CanvasComponent::Input(inp) => view! {
+                            <div><input placeholder=inp.placeholder.clone() class="preview-inline-margin"/></div>
                         }.into_any(),
                         CanvasComponent::Custom(custom) => {
-                            view! { 
+                            view! {
                                 <div class="preview-custom">
                                     {"Custom: "}{custom.name.clone()}
                                     <div inner_html=custom.template.clone()></div>
-                                </div> 
+                                </div>
                             }.into_any()
                         },
-                        CanvasComponent::Container(_) => view! { 
-                            <div class="container preview-inline-margin">{"Container"}</div> 
+                        CanvasComponent::Container(_) => view! {
+                            <div class="container preview-inline-margin">{"Container"}</div>
                         }.into_any(),
                     }
                 }

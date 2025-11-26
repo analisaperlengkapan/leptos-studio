@@ -1,16 +1,6 @@
 use crate::domain::{
-    ButtonComponent,
-    ButtonVariant,
-    ButtonSize,
-    ContainerComponent,
-    FlexDirection,
-    InputComponent,
-    InputType,
-    LayoutType,
-    PropValue,
-    TextComponent,
-    TextStyle,
-    TextTag,
+    ButtonComponent, ButtonSize, ButtonVariant, ContainerComponent, FlexDirection, InputComponent,
+    InputType, LayoutType, PropValue, TextComponent, TextStyle, TextTag,
 };
 
 /// Update a ButtonComponent based on a property name and value.
@@ -18,7 +8,11 @@ use crate::domain::{
 /// This is a small, focused helper that allows PropertyEditor (or other
 /// callers) to update button properties in a centralized place, while the UI
 /// remains declarative.
-pub fn update_button_prop(mut button: ButtonComponent, name: &str, value: PropValue) -> ButtonComponent {
+pub fn update_button_prop(
+    mut button: ButtonComponent,
+    name: &str,
+    value: PropValue,
+) -> ButtonComponent {
     match (name, value) {
         ("label", PropValue::String(s)) => {
             button.label = s;
@@ -83,7 +77,11 @@ pub fn update_text_prop(mut text: TextComponent, name: &str, value: PropValue) -
 }
 
 /// Update an InputComponent based on a property name and value.
-pub fn update_input_prop(mut input: InputComponent, name: &str, value: PropValue) -> InputComponent {
+pub fn update_input_prop(
+    mut input: InputComponent,
+    name: &str,
+    value: PropValue,
+) -> InputComponent {
     match (name, value) {
         ("placeholder", PropValue::String(s)) => {
             input.placeholder = s;
@@ -111,35 +109,52 @@ pub fn update_input_prop(mut input: InputComponent, name: &str, value: PropValue
 }
 
 /// Update a ContainerComponent based on a property name and value.
-pub fn update_container_prop(mut container: ContainerComponent, name: &str, value: PropValue) -> ContainerComponent {
+pub fn update_container_prop(
+    mut container: ContainerComponent,
+    name: &str,
+    value: PropValue,
+) -> ContainerComponent {
     match (name, value) {
         ("layout", PropValue::String(s)) => {
             let current_layout = container.layout.clone();
             container.layout = match s.as_str() {
-                "FlexRow" => {
-                    match current_layout {
-                        LayoutType::Flex { wrap, .. } => LayoutType::Flex { direction: FlexDirection::Row, wrap },
-                        _ => LayoutType::Flex { direction: FlexDirection::Row, wrap: false },
-                    }
-                }
-                "FlexColumn" => {
-                    match current_layout {
-                        LayoutType::Flex { wrap, .. } => LayoutType::Flex { direction: FlexDirection::Column, wrap },
-                        _ => LayoutType::Flex { direction: FlexDirection::Column, wrap: false },
-                    }
-                }
-                "Grid" => {
-                    match current_layout {
-                        LayoutType::Grid { columns, rows } => LayoutType::Grid { columns, rows },
-                        _ => LayoutType::Grid { columns: 2, rows: 2 },
-                    }
-                }
+                "FlexRow" => match current_layout {
+                    LayoutType::Flex { wrap, .. } => LayoutType::Flex {
+                        direction: FlexDirection::Row,
+                        wrap,
+                    },
+                    _ => LayoutType::Flex {
+                        direction: FlexDirection::Row,
+                        wrap: false,
+                    },
+                },
+                "FlexColumn" => match current_layout {
+                    LayoutType::Flex { wrap, .. } => LayoutType::Flex {
+                        direction: FlexDirection::Column,
+                        wrap,
+                    },
+                    _ => LayoutType::Flex {
+                        direction: FlexDirection::Column,
+                        wrap: false,
+                    },
+                },
+                "Grid" => match current_layout {
+                    LayoutType::Grid { columns, rows } => LayoutType::Grid { columns, rows },
+                    _ => LayoutType::Grid {
+                        columns: 2,
+                        rows: 2,
+                    },
+                },
                 "Stack" => LayoutType::Stack,
                 _ => current_layout,
             };
         }
         ("gap", PropValue::Number(n)) => {
-            let value = if n.is_finite() && n >= 0.0 { n.round() as u32 } else { container.gap };
+            let value = if n.is_finite() && n >= 0.0 {
+                n.round() as u32
+            } else {
+                container.gap
+            };
             container.gap = value;
         }
         ("padding_top", PropValue::Number(n)) => {

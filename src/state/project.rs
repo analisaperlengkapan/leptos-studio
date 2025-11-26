@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-use crate::domain::CanvasComponent;
 use super::app_state::SettingsState;
+use crate::domain::CanvasComponent;
 
 /// Persistable project representation combining layout and settings
 #[derive(Clone, Debug, Serialize, Deserialize)]

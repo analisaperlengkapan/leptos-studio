@@ -1,19 +1,21 @@
 use leptos::prelude::*;
 
-use crate::builder::canvas::Canvas;
-use crate::builder::sidebar::Sidebar;
-use crate::builder::property_editor::PropertyEditor;
-use crate::builder::preview::Preview;
-use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
-use crate::builder::snackbar::Snackbar;
 use crate::builder::breadcrumb::BreadcrumbNavigation;
-use crate::builder::drag_drop::DragPreview;
-use crate::builder::keyboard::{KeyboardHandler, KeyboardAction, get_default_shortcuts};
+use crate::builder::canvas::Canvas;
 use crate::builder::command_palette::CommandPalette;
-use crate::builder::responsive_preview::{ResponsivePreviewControls, CanvasViewport};
-use crate::state::app_state::{AppState, Notification};
-use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator, HtmlCodeGenerator, MarkdownCodeGenerator};
+use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
+use crate::builder::drag_drop::DragPreview;
+use crate::builder::keyboard::{KeyboardAction, KeyboardHandler, get_default_shortcuts};
+use crate::builder::preview::Preview;
+use crate::builder::property_editor::PropertyEditor;
+use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
+use crate::builder::sidebar::Sidebar;
+use crate::builder::snackbar::Snackbar;
 use crate::domain::component::CanvasComponent;
+use crate::services::export_service::{
+    CodeGenerator, HtmlCodeGenerator, LeptosCodeGenerator, MarkdownCodeGenerator,
+};
+use crate::state::app_state::{AppState, Notification};
 use crate::utils::{copy_to_clipboard, read_from_clipboard};
 use js_sys::encode_uri_component;
 
@@ -32,181 +34,212 @@ pub fn App() -> impl IntoView {
     let export_template = RwSignal::new("leptos".to_string());
 
     // Keyboard action handler
-    let keyboard_action_handler = move |action: KeyboardAction| {
-        match action {
-            KeyboardAction::Undo => {
-                if let Some(snapshot) = app_state.canvas.history.write().undo() {
-                    app_state.canvas.apply_snapshot(&snapshot);
-                    app_state.ui.notification.set(Some(Notification::info("↩️ Undo".to_string())));
-                } else {
-                    app_state.ui.notification.set(Some(Notification::warning("⚠️ Nothing to undo".to_string())));
-                }
+    let keyboard_action_handler = move |action: KeyboardAction| match action {
+        KeyboardAction::Undo => {
+            if let Some(snapshot) = app_state.canvas.history.write().undo() {
+                app_state.canvas.apply_snapshot(&snapshot);
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::info("↩️ Undo".to_string())));
+            } else {
+                app_state.ui.notification.set(Some(Notification::warning(
+                    "⚠️ Nothing to undo".to_string(),
+                )));
             }
-            KeyboardAction::Redo => {
-                if let Some(snapshot) = app_state.canvas.history.write().redo() {
-                    app_state.canvas.apply_snapshot(&snapshot);
-                    app_state.ui.notification.set(Some(Notification::info("↪️ Redo".to_string())));
-                } else {
-                    app_state.ui.notification.set(Some(Notification::warning("⚠️ Nothing to redo".to_string())));
-                }
+        }
+        KeyboardAction::Redo => {
+            if let Some(snapshot) = app_state.canvas.history.write().redo() {
+                app_state.canvas.apply_snapshot(&snapshot);
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::info("↪️ Redo".to_string())));
+            } else {
+                app_state.ui.notification.set(Some(Notification::warning(
+                    "⚠️ Nothing to redo".to_string(),
+                )));
             }
-            KeyboardAction::Save => {
-                if let Err(e) = app_state.save() {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                } else {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::success("💾 Layout saved!".to_string())));
-                }
+        }
+        KeyboardAction::Save => {
+            if let Err(e) = app_state.save() {
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::error(format!(
+                        "❌ {}",
+                        e.user_message()
+                    ))));
+            } else {
+                app_state
+                    .ui
+                    .notification
+                    .set(Some(Notification::success("💾 Layout saved!".to_string())));
             }
-            KeyboardAction::Delete => {
-                if let Some(selected_id) = app_state.canvas.selected.get() {
-                    app_state.canvas.record_snapshot();
-                    app_state.canvas.remove_component(&selected_id);
-                    app_state.canvas.selected.set(None);
-                    app_state.ui.notification.set(Some(Notification::success("🗑️ Component deleted".to_string())));
-                } else {
-                    app_state.ui.notification.set(Some(Notification::warning("⚠️ No component selected".to_string())));
-                }
+        }
+        KeyboardAction::Delete => {
+            if let Some(selected_id) = app_state.canvas.selected.get() {
+                app_state.canvas.record_snapshot();
+                app_state.canvas.remove_component(&selected_id);
+                app_state.canvas.selected.set(None);
+                app_state.ui.notification.set(Some(Notification::success(
+                    "🗑️ Component deleted".to_string(),
+                )));
+            } else {
+                app_state.ui.notification.set(Some(Notification::warning(
+                    "⚠️ No component selected".to_string(),
+                )));
             }
-            KeyboardAction::Copy => {
-                if let Some(selected_id) = app_state.canvas.selected.get() {
-                    if let Some(comp) = app_state.canvas.get_component(&selected_id) {
-                        match serde_json::to_string(&comp) {
-                            Ok(json) => {
-                                let app_state_clone = app_state;
-                                wasm_bindgen_futures::spawn_local(async move {
-                                    match copy_to_clipboard(&json).await {
-                                        Ok(()) => {
-                                            app_state_clone
-                                                .ui
-                                                .notification
-                                                .set(Some(Notification::success("📋 Component copied!".to_string())));
-                                        }
-                                        Err(e) => {
-                                            app_state_clone
-                                                .ui
-                                                .notification
-                                                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                                        }
+        }
+        KeyboardAction::Copy => {
+            if let Some(selected_id) = app_state.canvas.selected.get() {
+                if let Some(comp) = app_state.canvas.get_component(&selected_id) {
+                    match serde_json::to_string(&comp) {
+                        Ok(json) => {
+                            let app_state_clone = app_state;
+                            wasm_bindgen_futures::spawn_local(async move {
+                                match copy_to_clipboard(&json).await {
+                                    Ok(()) => {
+                                        app_state_clone.ui.notification.set(Some(
+                                            Notification::success(
+                                                "📋 Component copied!".to_string(),
+                                            ),
+                                        ));
                                     }
-                                });
-                            }
-                            Err(_) => {
-                                app_state
-                                    .ui
-                                    .notification
-                                    .set(Some(Notification::error("❌ Failed to serialize component".to_string())));
-                            }
+                                    Err(e) => {
+                                        app_state_clone.ui.notification.set(Some(
+                                            Notification::error(format!("❌ {}", e.user_message())),
+                                        ));
+                                    }
+                                }
+                            });
+                        }
+                        Err(_) => {
+                            app_state.ui.notification.set(Some(Notification::error(
+                                "❌ Failed to serialize component".to_string(),
+                            )));
                         }
                     }
-                } else {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::warning("⚠️ No component selected".to_string())));
                 }
+            } else {
+                app_state.ui.notification.set(Some(Notification::warning(
+                    "⚠️ No component selected".to_string(),
+                )));
             }
-            KeyboardAction::Paste => {
-                let app_state_clone = app_state;
-                wasm_bindgen_futures::spawn_local(async move {
-                    match read_from_clipboard().await {
-                        Ok(text) => {
-                            match serde_json::from_str::<CanvasComponent>(&text) {
-                                Ok(comp) => {
-                                    app_state_clone.canvas.record_snapshot();
-                                    app_state_clone.canvas.add_component(comp);
-                                    app_state_clone
-                                        .ui
-                                        .notification
-                                        .set(Some(Notification::success("📋 Component pasted!".to_string())));
-                                }
-                                Err(_) => {
-                                    app_state_clone
-                                        .ui
-                                        .notification
-                                        .set(Some(Notification::error("⚠️ Invalid clipboard content".to_string())));
-                                }
-                            }
-                        }
-                        Err(e) => {
+        }
+        KeyboardAction::Paste => {
+            let app_state_clone = app_state;
+            wasm_bindgen_futures::spawn_local(async move {
+                match read_from_clipboard().await {
+                    Ok(text) => match serde_json::from_str::<CanvasComponent>(&text) {
+                        Ok(comp) => {
+                            app_state_clone.canvas.record_snapshot();
+                            app_state_clone.canvas.add_component(comp);
                             app_state_clone
                                 .ui
                                 .notification
-                                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                                .set(Some(Notification::success(
+                                    "📋 Component pasted!".to_string(),
+                                )));
                         }
-                    }
-                });
-            }
-            KeyboardAction::Duplicate => {
-                if let Some(selected_id) = app_state.canvas.selected.get() {
-                    if let Some(comp) = app_state.canvas.get_component(&selected_id) {
-                        app_state.canvas.record_snapshot();
-                        app_state.canvas.add_component(comp);
-                        app_state.ui.notification.set(Some(Notification::success("🔄 Component duplicated!".to_string())));
-                    }
-                } else {
-                    app_state.ui.notification.set(Some(Notification::warning("⚠️ No component selected".to_string())));
-                }
-            }
-            KeyboardAction::NewComponent => {
-                app_state.ui.notification.set(Some(Notification::info("ℹ️ Drag component from sidebar to add".to_string())));
-            }
-            KeyboardAction::OpenCommandPalette => {
-                app_state.ui.show_command_palette.set(true);
-            }
-            KeyboardAction::Deselect => {
-                app_state.canvas.selected.set(None);
-            }
-            KeyboardAction::Export => {
-                let comps = app_state.canvas.components.get();
-                let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
-
-                match generator.generate(&comps) {
-                    Ok(code) => {
-                        export_code.set(code);
-                        show_export.set(true);
-                    }
+                        Err(_) => {
+                            app_state_clone
+                                .ui
+                                .notification
+                                .set(Some(Notification::error(
+                                    "⚠️ Invalid clipboard content".to_string(),
+                                )));
+                        }
+                    },
                     Err(e) => {
-                        app_state
+                        app_state_clone
                             .ui
                             .notification
-                            .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                            .set(Some(Notification::error(format!(
+                                "❌ {}",
+                                e.user_message()
+                            ))));
                     }
                 }
-            }
-            _ => {}
+            });
         }
+        KeyboardAction::Duplicate => {
+            if let Some(selected_id) = app_state.canvas.selected.get() {
+                if let Some(comp) = app_state.canvas.get_component(&selected_id) {
+                    app_state.canvas.record_snapshot();
+                    app_state.canvas.add_component(comp);
+                    app_state.ui.notification.set(Some(Notification::success(
+                        "🔄 Component duplicated!".to_string(),
+                    )));
+                }
+            } else {
+                app_state.ui.notification.set(Some(Notification::warning(
+                    "⚠️ No component selected".to_string(),
+                )));
+            }
+        }
+        KeyboardAction::NewComponent => {
+            app_state.ui.notification.set(Some(Notification::info(
+                "ℹ️ Drag component from sidebar to add".to_string(),
+            )));
+        }
+        KeyboardAction::OpenCommandPalette => {
+            app_state.ui.show_command_palette.set(true);
+        }
+        KeyboardAction::Deselect => {
+            app_state.canvas.selected.set(None);
+        }
+        KeyboardAction::Export => {
+            let comps = app_state.canvas.components.get();
+            let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
+
+            match generator.generate(&comps) {
+                Ok(code) => {
+                    export_code.set(code);
+                    show_export.set(true);
+                }
+                Err(e) => {
+                    app_state
+                        .ui
+                        .notification
+                        .set(Some(Notification::error(format!(
+                            "❌ {}",
+                            e.user_message()
+                        ))));
+                }
+            }
+        }
+        _ => {}
     };
 
     // Export handler
     let do_export = move |_| {
         let comps = app_state.canvas.components.get();
-        
+
         let code = match export_template.get().as_str() {
             "leptos" => {
                 let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
-                generator.generate(&comps).unwrap_or_else(|e| e.user_message())
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
             }
             "html" => {
                 let generator = HtmlCodeGenerator;
-                generator.generate(&comps).unwrap_or_else(|e| e.user_message())
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
             }
             "markdown" => {
                 let generator = MarkdownCodeGenerator;
-                generator.generate(&comps).unwrap_or_else(|e| e.user_message())
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
             }
-            "json" => {
-                serde_json::to_string_pretty(&comps)
-                    .unwrap_or_else(|e| format!("Error serializing JSON: {}", e))
-            }
+            "json" => serde_json::to_string_pretty(&comps)
+                .unwrap_or_else(|e| format!("Error serializing JSON: {}", e)),
             _ => "Unknown template".to_string(),
         };
-        
+
         export_code.set(code);
         show_export.set(true);
     };
@@ -217,7 +250,10 @@ pub fn App() -> impl IntoView {
             app_state
                 .ui
                 .notification
-                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                .set(Some(Notification::error(format!(
+                    "❌ {}",
+                    e.user_message()
+                ))));
         } else {
             app_state
                 .ui
@@ -231,7 +267,10 @@ pub fn App() -> impl IntoView {
             app_state
                 .ui
                 .notification
-                .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+                .set(Some(Notification::error(format!(
+                    "❌ {}",
+                    e.user_message()
+                ))));
         } else {
             app_state
                 .ui
@@ -245,7 +284,10 @@ pub fn App() -> impl IntoView {
         if let Some(snapshot) = app_state.canvas.history.write().undo() {
             app_state.canvas.components.set(snapshot.components);
             app_state.canvas.selected.set(snapshot.selected);
-            app_state.ui.notification.set(Some(Notification::info("↩️ Undo".to_string())));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::info("↩️ Undo".to_string())));
         }
     };
 
@@ -253,60 +295,58 @@ pub fn App() -> impl IntoView {
         if let Some(snapshot) = app_state.canvas.history.write().redo() {
             app_state.canvas.components.set(snapshot.components);
             app_state.canvas.selected.set(snapshot.selected);
-            app_state.ui.notification.set(Some(Notification::info("↪️ Redo".to_string())));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::info("↪️ Redo".to_string())));
         }
     };
-    
+
     // Export modal actions
-    let copy_export_code = {
-        let export_code = export_code;
-        let app_state = app_state;
-        move |_| {
-            let code = export_code.get();
-            let app_state_clone = app_state;
-            wasm_bindgen_futures::spawn_local(async move {
-                match copy_to_clipboard(&code).await {
-                    Ok(()) => {
-                        app_state_clone
-                            .ui
-                            .notification
-                            .set(Some(Notification::success("📋 Code copied to clipboard!".to_string())));
-                    }
-                    Err(e) => {
-                        app_state_clone
-                            .ui
-                            .notification
-                            .set(Some(Notification::error(format!("❌ {}", e.user_message()))));
-                    }
+    let copy_export_code = move |_| {
+        let code = export_code.get();
+        let app_state_clone = app_state;
+        wasm_bindgen_futures::spawn_local(async move {
+            match copy_to_clipboard(&code).await {
+                Ok(()) => {
+                    app_state_clone
+                        .ui
+                        .notification
+                        .set(Some(Notification::success(
+                            "📋 Code copied to clipboard!".to_string(),
+                        )));
                 }
-            });
-        }
+                Err(e) => {
+                    app_state_clone
+                        .ui
+                        .notification
+                        .set(Some(Notification::error(format!(
+                            "❌ {}",
+                            e.user_message()
+                        ))));
+                }
+            }
+        });
     };
 
-    let download_export_code = {
-        let export_code = export_code;
-        let export_template = export_template;
-        let app_state = app_state;
-        move |_| {
-            let code = export_code.get();
-            let mime = match export_template.get().as_str() {
-                "html" => "text/html",
-                "markdown" => "text/markdown",
-                "json" => "application/json",
-                _ => "text/plain",
-            };
+    let download_export_code = move |_| {
+        let code = export_code.get();
+        let mime = match export_template.get().as_str() {
+            "html" => "text/html",
+            "markdown" => "text/markdown",
+            "json" => "application/json",
+            _ => "text/plain",
+        };
 
-            let encoded = encode_uri_component(&code);
-            let url = format!("data:{};charset=utf-8,{}", mime, encoded);
+        let encoded = encode_uri_component(&code);
+        let url = format!("data:{};charset=utf-8,{}", mime, encoded);
 
-            if let Some(window) = web_sys::window() {
-                let _ = window.open_with_url_and_target(&url, "_blank");
-            } else {
-                app_state
-                    .ui
-                    .notification
-                    .set(Some(Notification::error("❌ Unable to open download window".to_string())));
-            }
+        if let Some(window) = web_sys::window() {
+            let _ = window.open_with_url_and_target(&url, "_blank");
+        } else {
+            app_state.ui.notification.set(Some(Notification::error(
+                "❌ Unable to open download window".to_string(),
+            )));
         }
     };
 
