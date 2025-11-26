@@ -20,6 +20,7 @@ export default {
         ],
         'subject-case': [2, 'always', 'sentence-case'],
         'subject-full-stop': [0],  // Disabled: Allow periods in commit messages
+        'body-max-line-length': [0],  // Disabled: Allow longer lines in body
         'header-max-length': [2, 'always', 150],
     },
 };
