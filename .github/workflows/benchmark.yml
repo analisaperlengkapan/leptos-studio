@@ -1,0 +1,115 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+jobs:
+  benchmark:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run benchmarks
+        run: cargo bench --bench '*' -- --output-format bencher | tee output.txt
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1
+        if: github.event_name != 'pull_request'
+        with:
+          name: Rust Benchmark
+          tool: "cargo"
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          alert-threshold: "150%"
+          comment-on-alert: true
+          fail-on-alert: false
+
+      - name: Comment benchmark on PR
+        uses: benchmark-action/github-action-benchmark@v1
+        if: github.event_name == 'pull_request'
+        with:
+          name: Rust Benchmark
+          tool: "cargo"
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: false
+          comment-always: true
+
+  size-analysis:
+    name: WASM Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Setup Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install Trunk
+        uses: jetli/trunk-action@v0.5.0
+        with:
+          version: "latest"
+
+      - name: Install twiggy
+        run: cargo install twiggy
+
+      - name: Build WASM
+        run: trunk build --release
+
+      - name: Analyze WASM size
+        run: |
+          echo "## WASM Size Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          WASM_FILE=$(find dist -name "*.wasm" | head -n 1)
+          
+          echo "### File Size" >> $GITHUB_STEP_SUMMARY
+          ls -lh $WASM_FILE >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "### Top 20 Functions" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          twiggy top -n 20 $WASM_FILE >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Compare with main
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin main
+          git checkout origin/main
+          trunk build --release
+          MAIN_SIZE=$(find dist -name "*.wasm" -exec stat -f%z {} \; 2>/dev/null || find dist -name "*.wasm" -exec stat -c%s {} \;)
+          
+          git checkout -
+          trunk build --release
+          PR_SIZE=$(find dist -name "*.wasm" -exec stat -f%z {} \; 2>/dev/null || find dist -name "*.wasm" -exec stat -c%s {} \;)
+          
+          DIFF=$((PR_SIZE - MAIN_SIZE))
+          PERCENT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $MAIN_SIZE) * 100}")
+          
+          echo "## Size Comparison" >> $GITHUB_STEP_SUMMARY
+          echo "Main branch: $(numfmt --to=iec-i --suffix=B $MAIN_SIZE)" >> $GITHUB_STEP_SUMMARY
+          echo "This PR: $(numfmt --to=iec-i --suffix=B $PR_SIZE)" >> $GITHUB_STEP_SUMMARY
+          echo "Difference: $(numfmt --to=iec-i --suffix=B $DIFF) ($PERCENT%)" >> $GITHUB_STEP_SUMMARY

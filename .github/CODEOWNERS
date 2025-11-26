@@ -1,0 +1,25 @@
+# Code Owners for Leptos Studio
+# These owners will be the default reviewers for everything in the repo.
+# Unless a later match takes precedence, they will be requested for review when someone opens a pull request.
+
+# Global owners
+* @analisaperlengkapan
+
+# Workflow and CI configuration
+/.github/ @analisaperlengkapan
+
+# Documentation
+*.md @analisaperlengkapan
+/docs/ @analisaperlengkapan
+
+# Rust source code
+*.rs @analisaperlengkapan
+Cargo.toml @analisaperlengkapan
+Cargo.lock @analisaperlengkapan
+
+# Web assets
+*.css @analisaperlengkapan
+*.html @analisaperlengkapan
+
+# Configuration files
+Trunk.toml @analisaperlengkapan
