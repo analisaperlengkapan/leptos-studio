@@ -1,40 +1,40 @@
 # Leptos Studio
 
-Leptos Studio adalah visual UI builder untuk framework [Leptos](https://github.com/leptos-rs/leptos) (Rust + WASM). Aplikasi ini memungkinkan Anda menyusun layout dengan drag & drop, mengelola komponen, dan mengekspor kode ke beberapa format.
+Leptos Studio is a visual UI builder for the [Leptos](https://github.com/leptos-rs/leptos) framework (Rust + WASM). This application allows you to compose layouts with drag & drop, manage components, and export code in multiple formats.
 
-## Fitur Utama
+## Key Features
 
-- **Canvas drag & drop**  
-  Susun layout dengan komponen Button, Text, Input, Container, dan Custom.
+- **Canvas Drag & Drop**  
+  Compose layouts with Button, Text, Input, Container, and Custom components.
 
 - **Custom Components**  
-  Tambah komponen custom berbasis HTML template dengan validasi nama dan template.
+  Add custom components based on HTML templates with name and template validation.
 
 - **Command Palette**  
-  Pencarian perintah cepat (VS Code style) dengan fuzzy search, tersinkron dengan design tokens & CSS variables.
+  Quick command search (VS Code style) with fuzzy search, synchronized with design tokens & CSS variables.
 
 - **Project Management**  
-  Panel Project untuk:
+  Project Panel for:
   - `New` project (reset layout & history).
   - `Copy JSON` / `Download JSON` project (layout + settings).
-  - `Import JSON` untuk memulihkan project.
+  - `Import JSON` to restore a project.
 
 - **Export Code**  
-  Ekspor layout menjadi:
-  - Kode Leptos (`LeptosCodeGenerator`)
+  Export layouts to multiple formats:
+  - Leptos code (`LeptosCodeGenerator`)
   - HTML
-  - Markdown (dokumentasi)
-  - JSON (struktur CanvasComponent)
+  - Markdown (documentation)
+  - JSON (CanvasComponent structure)
 
 - **Debug Panel**  
-  Menampilkan jumlah komponen, custom components, kemampuan undo/redo, dan metrik render (`render_count`, `render_time`).
+  Display component count, custom components, undo/redo capabilities, and render metrics (`render_count`, `render_time`).
 
 - **Git Panel (stub)**  
-  Panel Git menggunakan abstraksi `GitBackend` dengan implementasi default `NoopGitBackend` yang aman di browser-only mode. Panel sudah menyediakan tombol `Status`, `Log`, `Commit`, dan `Push` (belum terhubung ke backend nyata).
+  Git Panel uses the `GitBackend` abstraction with a default `NoopGitBackend` implementation that is safe for browser-only mode. The panel provides `Status`, `Log`, `Commit`, and `Push` buttons (not yet connected to a real backend).
 
-## Menjalankan Proyek
+## Running the Project
 
-### Prasyarat
+### Prerequisites
 
 - Rust toolchain (stable)
 - `wasm32-unknown-unknown` target:
@@ -43,7 +43,7 @@ Leptos Studio adalah visual UI builder untuk framework [Leptos](https://github.c
 rustup target add wasm32-unknown-unknown
 ```
 
-- [Trunk](https://trunkrs.dev/) untuk dev server WASM:
+- [Trunk](https://trunkrs.dev/) for WASM dev server:
 
 ```bash
 cargo install trunk
@@ -51,73 +51,73 @@ cargo install trunk
 
 ### Development Server
 
-Di direktori proyek:
+From the project directory:
 
 ```bash
 trunk serve
 ```
 
-Secara default Trunk akan melayani aplikasi di `http://localhost:8899` (lihat `Trunk.toml`).
+By default, Trunk serves the application at `http://localhost:8899` (see `Trunk.toml`).
 
 ## Testing
 
-### Unit & Integration tests
+### Unit & Integration Tests
 
-Jalankan semua test native:
+Run all native tests:
 
 ```bash
 cargo test
 ```
 
-### WASM tests
+### WASM Tests
 
-Proyek menyertakan test WASM (mis. `tests/wasm_smoke.rs`) yang memverifikasi layanan export di lingkungan `wasm32`:
+The project includes WASM tests (e.g., `tests/wasm_smoke.rs`) that verify export services in the `wasm32` environment:
 
 ```bash
 rustup target add wasm32-unknown-unknown
 cargo test --target wasm32-unknown-unknown
 ```
 
-CI (disarankan) sebaiknya menjalankan kedua perintah di atas.
+CI (recommended) should run both commands above.
 
-## Arsitektur Singkat
+## Architecture Overview
 
-Struktur utama crate:
+Main crate structure:
 
 - `src/domain/`  
-  Model domain: `CanvasComponent` dan variannya (`ButtonComponent`, `TextComponent`, `InputComponent`, `ContainerComponent`, `CustomComponent`), error (`AppError`, `ValidationError`), dan validator.
+  Domain models: `CanvasComponent` and its variants (`ButtonComponent`, `TextComponent`, `InputComponent`, `ContainerComponent`, `CustomComponent`), errors (`AppError`, `ValidationError`), and validators.
 
 - `src/state/`  
-  Global `AppState` (canvas, UI, settings, project), `CanvasState`, `UiState`, `SettingsState`, history undo/redo, dan persistence (LocalStorage).  
-  `Project` merepresentasikan layout + settings yang bisa diekspor ke JSON.
+  Global `AppState` (canvas, UI, settings, project), `CanvasState`, `UiState`, `SettingsState`, undo/redo history, and persistence (LocalStorage).  
+  `Project` represents layout + settings that can be exported to JSON.
 
 - `src/services/`  
-  - `export_service`: generator kode (Leptos/HTML/JSON/Markdown) + unit tests.  
-  - `project_service`: serialize/deserialize `Project` ke/dari JSON.  
-  - `git_service`: trait `GitBackend` + `NoopGitBackend` untuk Git.
+  - `export_service`: code generators (Leptos/HTML/JSON/Markdown) + unit tests.  
+  - `project_service`: serialize/deserialize `Project` to/from JSON.  
+  - `git_service`: `GitBackend` trait + `NoopGitBackend` for Git.
 
 - `src/builder/`  
-  Komponen UI utama: `Canvas`, `Sidebar`, `PropertyEditor`, `Preview`, `CommandPalette`, `DebugPanel`, `GitPanel`, `ProjectPanel`, drag & drop tools (`DragState`, `DropZone`), dll.
+  Main UI components: `Canvas`, `Sidebar`, `PropertyEditor`, `Preview`, `CommandPalette`, `DebugPanel`, `GitPanel`, `ProjectPanel`, drag & drop tools (`DragState`, `DropZone`), etc.
 
 - `src/utils/`  
-  utilitas umum, mis. clipboard.
+  Common utilities, e.g., clipboard operations.
 
 - `style.css`  
-  Design tokens dan styling global, termasuk semantic CSS variables untuk Command Palette dan styling Canvas/Sidebar.
+  Design tokens and global styling, including semantic CSS variables for Command Palette and Canvas/Sidebar styling.
 
-## Catatan Pengembangan
+## Development Notes
 
 - **ComponentRegistry**  
-  Helper kecil di `builder::component_library` untuk membantu operasi atas `LibraryComponent` (misalnya cek nama duplikat dan menurunkan custom components dari `component_library`).
+  Small helper in `builder::component_library` for operations on `LibraryComponent` (e.g., checking for duplicate names and filtering custom components from `component_library`).
 
 - **Undo/Redo**  
-  Canvas menyimpan `History<Snapshot>` untuk mendukung undo/redo layout.
+  Canvas stores `History<Snapshot>` to support layout undo/redo.
 
 - **Error Handling & Notifications**  
-  Semua operasi penting menggunakan `AppError::user_message()` untuk menampilkan pesan yang ramah pengguna melalui `Notification` dan `Snackbar`.
+  All important operations use `AppError::user_message()` to display user-friendly messages via `Notification` and `Snackbar`.
 
-## Ide Lanjutan
+## Future Ideas
 
-- Implementasi nyata `GitBackend` (HTTP backend atau Tauri) untuk menghubungkan GitPanel dengan repository.
-- Memperluas `ComponentRegistry` dan schema props agar Property Editor bisa lebih generik.
-- Dokumentasi arsitektur lebih rinci (`docs/` atau `ARCHITECTURE.md`) bila proyek berkembang lebih jauh.
+- Real implementation of `GitBackend` (HTTP backend or Tauri) to connect GitPanel with repositories.
+- Extend `ComponentRegistry` and props schema so Property Editor can be more generic.
+- Detailed architecture documentation (`docs/` or `ARCHITECTURE.md`) as the project evolves.

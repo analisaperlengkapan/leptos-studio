@@ -145,7 +145,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    view! { <div></div> }.into_any()
                                                                 }
                                                             }}
                                                         </label>
@@ -253,7 +253,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    view! { <div></div> }.into_any()
                                                                 }
                                                             }}
                                                         </label>
@@ -377,7 +377,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    view! { <div></div> }.into_any()
                                                                 }
                                                             }}
                                                         </label>

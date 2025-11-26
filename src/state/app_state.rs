@@ -132,31 +132,25 @@ impl Notification {
 
 /// Theme options
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum Theme {
+    #[default]
     Light,
     Dark,
     Custom,
 }
 
-impl Default for Theme {
-    fn default() -> Self {
-        Self::Light
-    }
-}
 
 /// Responsive preview modes
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum ResponsiveMode {
+    #[default]
     Desktop,
     Tablet,
     Mobile,
 }
 
-impl Default for ResponsiveMode {
-    fn default() -> Self {
-        Self::Desktop
-    }
-}
 
 /// UI state (modals, panels, etc)
 #[derive(Clone, Copy)]
@@ -384,18 +378,15 @@ impl Default for UiState {
 
 /// Export preset options
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Default)]
 pub enum ExportPreset {
+    #[default]
     Plain,
     ThawUi,
     LeptosMaterial,
     LeptosUse,
 }
 
-impl Default for ExportPreset {
-    fn default() -> Self {
-        Self::Plain
-    }
-}
 
 /// Settings state
 #[derive(Clone, Debug, Serialize, Deserialize)]

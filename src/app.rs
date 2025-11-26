@@ -10,6 +10,7 @@ use crate::builder::breadcrumb::BreadcrumbNavigation;
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::keyboard::{KeyboardHandler, KeyboardAction, get_default_shortcuts};
 use crate::builder::command_palette::CommandPalette;
+use crate::builder::responsive_preview::{ResponsivePreviewControls, CanvasViewport};
 use crate::state::app_state::{AppState, Notification};
 use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator, HtmlCodeGenerator, MarkdownCodeGenerator};
 use crate::domain::component::CanvasComponent;
@@ -347,10 +348,13 @@ pub fn App() -> impl IntoView {
                                 <button on:click=do_undo class="btn btn-outline">{"Undo"}</button>
                                 <button on:click=do_redo class="btn btn-outline">{"Redo"}</button>
                             </div>
+                            <ResponsivePreviewControls />
                         </nav>
                         <div class="main-content">
                             <section class="canvas-area">
-                                <Canvas />
+                                <CanvasViewport>
+                                    <Canvas />
+                                </CanvasViewport>
                             </section>
                             <aside class="property-panel">
                                 <div class="property-editor-section">
