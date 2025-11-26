@@ -2,8 +2,11 @@ use crate::domain::{
     ButtonComponent,
     ButtonVariant,
     ButtonSize,
+    ContainerComponent,
+    FlexDirection,
     InputComponent,
     InputType,
+    LayoutType,
     PropValue,
     TextComponent,
     TextStyle,
@@ -105,4 +108,62 @@ pub fn update_input_prop(mut input: InputComponent, name: &str, value: PropValue
     }
 
     input
+}
+
+/// Update a ContainerComponent based on a property name and value.
+pub fn update_container_prop(mut container: ContainerComponent, name: &str, value: PropValue) -> ContainerComponent {
+    match (name, value) {
+        ("layout", PropValue::String(s)) => {
+            let current_layout = container.layout.clone();
+            container.layout = match s.as_str() {
+                "FlexRow" => {
+                    match current_layout {
+                        LayoutType::Flex { wrap, .. } => LayoutType::Flex { direction: FlexDirection::Row, wrap },
+                        _ => LayoutType::Flex { direction: FlexDirection::Row, wrap: false },
+                    }
+                }
+                "FlexColumn" => {
+                    match current_layout {
+                        LayoutType::Flex { wrap, .. } => LayoutType::Flex { direction: FlexDirection::Column, wrap },
+                        _ => LayoutType::Flex { direction: FlexDirection::Column, wrap: false },
+                    }
+                }
+                "Grid" => {
+                    match current_layout {
+                        LayoutType::Grid { columns, rows } => LayoutType::Grid { columns, rows },
+                        _ => LayoutType::Grid { columns: 2, rows: 2 },
+                    }
+                }
+                "Stack" => LayoutType::Stack,
+                _ => current_layout,
+            };
+        }
+        ("gap", PropValue::Number(n)) => {
+            let value = if n.is_finite() && n >= 0.0 { n.round() as u32 } else { container.gap };
+            container.gap = value;
+        }
+        ("padding_top", PropValue::Number(n)) => {
+            if n.is_finite() && n >= 0.0 {
+                container.padding.top = n.round() as u32;
+            }
+        }
+        ("padding_right", PropValue::Number(n)) => {
+            if n.is_finite() && n >= 0.0 {
+                container.padding.right = n.round() as u32;
+            }
+        }
+        ("padding_bottom", PropValue::Number(n)) => {
+            if n.is_finite() && n >= 0.0 {
+                container.padding.bottom = n.round() as u32;
+            }
+        }
+        ("padding_left", PropValue::Number(n)) => {
+            if n.is_finite() && n >= 0.0 {
+                container.padding.left = n.round() as u32;
+            }
+        }
+        _ => {}
+    }
+
+    container
 }

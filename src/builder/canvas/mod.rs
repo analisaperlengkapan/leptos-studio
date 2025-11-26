@@ -7,11 +7,9 @@ use web_sys::DragEvent;
 use js_sys::Date;
 
 use crate::state::{AppState, CanvasState, Snapshot};
-use crate::domain::{
-    CanvasComponent, ButtonComponent, TextComponent, InputComponent,
-    ContainerComponent, CustomComponent
-};
+use crate::domain::CanvasComponent;
 use crate::builder::drag_drop::DropZone;
+use crate::builder::component_library::create_canvas_component;
 
 /// Main Canvas component for the UI builder
 /// 
@@ -115,34 +113,7 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
 
 /// Create component from drag data type string
 fn create_component_from_type(component_type: &str) -> Option<CanvasComponent> {
-    match component_type {
-        "Button" => {
-            let button = ButtonComponent::new("Button".to_string());
-            Some(CanvasComponent::Button(button))
-        }
-        "Text" => {
-            let text = TextComponent::new("Text".to_string());
-            Some(CanvasComponent::Text(text))
-        }
-        "Input" => {
-            let input = InputComponent::new();
-            Some(CanvasComponent::Input(input))
-        }
-        "Container" => {
-            let container = ContainerComponent::new();
-            Some(CanvasComponent::Container(container))
-        }
-        data if data.starts_with("Custom::") => {
-            // Custom component format: "Custom::ComponentName"
-            let name = data.strip_prefix("Custom::").unwrap_or("Custom");
-            let custom = CustomComponent::new(
-                name.to_string(),
-                "<div>Custom Component</div>".to_string()
-            );
-            Some(CanvasComponent::Custom(custom))
-        }
-        _ => None,
-    }
+    create_canvas_component(component_type)
 }
 
 #[cfg(test)]
