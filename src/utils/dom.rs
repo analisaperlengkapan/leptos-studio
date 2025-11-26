@@ -1,5 +1,5 @@
 use wasm_bindgen::JsCast;
-use web_sys::{window, Document, Element, HtmlElement};
+use web_sys::{Document, Element, HtmlElement, window};
 
 use crate::domain::AppResult;
 
@@ -12,11 +12,9 @@ pub fn get_document() -> AppResult<Document> {
 
 /// Get element by ID
 pub fn get_element_by_id(id: &str) -> AppResult<Element> {
-    get_document()?
-        .get_element_by_id(id)
-        .ok_or_else(|| {
-            crate::domain::AppError::ComponentNotFound(format!("Element with id '{}' not found", id))
-        })
+    get_document()?.get_element_by_id(id).ok_or_else(|| {
+        crate::domain::AppError::ComponentNotFound(format!("Element with id '{}' not found", id))
+    })
 }
 
 /// Get HTML element by ID
@@ -50,27 +48,19 @@ pub fn add_class(element: &Element, class: &str) -> AppResult<()> {
     element
         .class_list()
         .add_1(class)
-        .map_err(|_| {
-            crate::domain::AppError::Storage(format!("Failed to add class '{}'", class))
-        })
+        .map_err(|_| crate::domain::AppError::Storage(format!("Failed to add class '{}'", class)))
 }
 
 /// Remove class from element
 pub fn remove_class(element: &Element, class: &str) -> AppResult<()> {
-    element
-        .class_list()
-        .remove_1(class)
-        .map_err(|_| {
-            crate::domain::AppError::Storage(format!("Failed to remove class '{}'", class))
-        })
+    element.class_list().remove_1(class).map_err(|_| {
+        crate::domain::AppError::Storage(format!("Failed to remove class '{}'", class))
+    })
 }
 
 /// Toggle class on element
 pub fn toggle_class(element: &Element, class: &str) -> AppResult<bool> {
-    element
-        .class_list()
-        .toggle(class)
-        .map_err(|_| {
-            crate::domain::AppError::Storage(format!("Failed to toggle class '{}'", class))
-        })
+    element.class_list().toggle(class).map_err(|_| {
+        crate::domain::AppError::Storage(format!("Failed to toggle class '{}'", class))
+    })
 }

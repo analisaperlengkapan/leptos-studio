@@ -1,12 +1,12 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::domain::{CanvasComponent, ComponentId};
-use crate::builder::drag_drop::DragState;
-use crate::builder::component_library::{LibraryComponent, PropSchema};
 use super::history::{History, Snapshot};
 use super::persistence::Persistable;
 use super::project::Project;
+use crate::builder::component_library::{LibraryComponent, builtin_library_components};
+use crate::builder::drag_drop::DragState;
+use crate::domain::{CanvasComponent, ComponentId};
 
 /// Canvas-specific state
 #[derive(Clone, Copy)]
@@ -26,28 +26,27 @@ impl CanvasState {
             drag_state: RwSignal::new(DragState::NotDragging),
         }
     }
-    
+
     /// Add a component to the canvas
     pub fn add_component(&self, component: CanvasComponent) {
         self.components.update(|components| {
             components.push(component);
         });
     }
-    
+
     /// Remove a component by ID
     pub fn remove_component(&self, id: &ComponentId) {
         self.components.update(|components| {
             components.retain(|c| c.id() != id);
         });
     }
-    
+
     /// Get a component by ID
     pub fn get_component(&self, id: &ComponentId) -> Option<CanvasComponent> {
-        self.components.with(|components| {
-            components.iter().find(|c| c.id() == id).cloned()
-        })
+        self.components
+            .with(|components| components.iter().find(|c| c.id() == id).cloned())
     }
-    
+
     /// Update a component
     pub fn update_component(&self, id: &ComponentId, new_component: CanvasComponent) {
         self.components.update(|components| {
@@ -56,16 +55,13 @@ impl CanvasState {
             }
         });
     }
-    
+
     /// Record a snapshot for undo/redo
     pub fn record_snapshot(&self) {
-        let snapshot = Snapshot::new(
-            self.components.get(),
-            self.selected.get(),
-        );
+        let snapshot = Snapshot::new(self.components.get(), self.selected.get());
         self.history.update(|h| h.push(snapshot));
     }
-    
+
     /// Apply a snapshot to the canvas
     pub fn apply_snapshot(&self, snapshot: &Snapshot) {
         self.components.set(snapshot.components.clone());
@@ -104,7 +100,7 @@ impl Notification {
             duration: Some(3000),
         }
     }
-    
+
     pub fn error(message: String) -> Self {
         Self {
             message,
@@ -112,7 +108,7 @@ impl Notification {
             duration: Some(5000),
         }
     }
-    
+
     pub fn warning(message: String) -> Self {
         Self {
             message,
@@ -120,7 +116,7 @@ impl Notification {
             duration: Some(4000),
         }
     }
-    
+
     pub fn info(message: String) -> Self {
         Self {
             message,
@@ -131,31 +127,21 @@ impl Notification {
 }
 
 /// Theme options
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum Theme {
+    #[default]
     Light,
     Dark,
     Custom,
 }
 
-impl Default for Theme {
-    fn default() -> Self {
-        Self::Light
-    }
-}
-
 /// Responsive preview modes
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ResponsiveMode {
+    #[default]
     Desktop,
     Tablet,
     Mobile,
-}
-
-impl Default for ResponsiveMode {
-    fn default() -> Self {
-        Self::Desktop
-    }
 }
 
 /// UI state (modals, panels, etc)
@@ -188,148 +174,11 @@ impl UiState {
             render_time: RwSignal::new(0.0),
         }
     }
-    
+
     /// Get default component library
     fn default_components() -> Vec<LibraryComponent> {
-        vec![
-            LibraryComponent {
-                name: "Button".to_string(),
-                kind: "Button".to_string(),
-                template: None,
-                category: "Basic".to_string(),
-                props_schema: Some(vec![
-                    PropSchema {
-                        name: "label".to_string(),
-                        prop_type: "string".to_string(),
-                        required: true,
-                        description: Some("Button label".to_string()),
-                    },
-                    PropSchema {
-                        name: "variant".to_string(),
-                        prop_type: "enum:Primary,Secondary,Outline,Ghost".to_string(),
-                        required: true,
-                        description: Some("Visual style variant".to_string()),
-                    },
-                    PropSchema {
-                        name: "size".to_string(),
-                        prop_type: "enum:Small,Medium,Large".to_string(),
-                        required: true,
-                        description: Some("Button size".to_string()),
-                    },
-                    PropSchema {
-                        name: "disabled".to_string(),
-                        prop_type: "bool".to_string(),
-                        required: false,
-                        description: Some("Disable interaction".to_string()),
-                    },
-                ]),
-                description: Some("Interactive button component".to_string()),
-            },
-            LibraryComponent {
-                name: "Text".to_string(),
-                kind: "Text".to_string(),
-                template: None,
-                category: "Basic".to_string(),
-                props_schema: Some(vec![
-                    PropSchema {
-                        name: "content".to_string(),
-                        prop_type: "string".to_string(),
-                        required: false,
-                        description: Some("Text content".to_string()),
-                    },
-                    PropSchema {
-                        name: "style".to_string(),
-                        prop_type: "enum:Heading1,Heading2,Heading3,Body,Caption".to_string(),
-                        required: true,
-                        description: Some("Typographic style".to_string()),
-                    },
-                    PropSchema {
-                        name: "tag".to_string(),
-                        prop_type: "enum:H1,H2,H3,P,Span".to_string(),
-                        required: true,
-                        description: Some("HTML tag".to_string()),
-                    },
-                ]),
-                description: Some("Text label or paragraph".to_string()),
-            },
-            LibraryComponent {
-                name: "Input".to_string(),
-                kind: "Input".to_string(),
-                template: None,
-                category: "Basic".to_string(),
-                props_schema: Some(vec![
-                    PropSchema {
-                        name: "placeholder".to_string(),
-                        prop_type: "string".to_string(),
-                        required: false,
-                        description: Some("Placeholder text".to_string()),
-                    },
-                    PropSchema {
-                        name: "input_type".to_string(),
-                        prop_type: "enum:Text,Password,Email,Number,Tel".to_string(),
-                        required: true,
-                        description: Some("Input type".to_string()),
-                    },
-                    PropSchema {
-                        name: "required".to_string(),
-                        prop_type: "bool".to_string(),
-                        required: false,
-                        description: Some("Field is required".to_string()),
-                    },
-                    PropSchema {
-                        name: "disabled".to_string(),
-                        prop_type: "bool".to_string(),
-                        required: false,
-                        description: Some("Disable input".to_string()),
-                    },
-                ]),
-                description: Some("Text input field".to_string()),
-            },
-            LibraryComponent {
-                name: "Container".to_string(),
-                kind: "Container".to_string(),
-                template: None,
-                category: "Layout".to_string(),
-                props_schema: Some(vec![
-                    PropSchema {
-                        name: "layout".to_string(),
-                        prop_type: "enum:FlexRow,FlexColumn,Grid,Stack".to_string(),
-                        required: true,
-                        description: Some("Layout type".to_string()),
-                    },
-                    PropSchema {
-                        name: "gap".to_string(),
-                        prop_type: "number".to_string(),
-                        required: false,
-                        description: Some("Gap between children (px)".to_string()),
-                    },
-                    PropSchema {
-                        name: "padding_top".to_string(),
-                        prop_type: "number".to_string(),
-                        required: false,
-                        description: Some("Padding top (px)".to_string()),
-                    },
-                    PropSchema {
-                        name: "padding_right".to_string(),
-                        prop_type: "number".to_string(),
-                        required: false,
-                        description: Some("Padding right (px)".to_string()),
-                    },
-                    PropSchema {
-                        name: "padding_bottom".to_string(),
-                        prop_type: "number".to_string(),
-                        required: false,
-                        description: Some("Padding bottom (px)".to_string()),
-                    },
-                    PropSchema {
-                        name: "padding_left".to_string(),
-                        prop_type: "number".to_string(),
-                        required: false,
-                        description: Some("Padding left (px)".to_string()),
-                    },
-                ]),
-                description: Some("Container for other components".to_string()),
-            },
+        let mut components = builtin_library_components();
+        components.extend_from_slice(&[
             LibraryComponent {
                 name: "Div".to_string(),
                 kind: "Container".to_string(),
@@ -362,14 +211,15 @@ impl UiState {
                 props_schema: None,
                 description: Some("Image component".to_string()),
             },
-        ]
+        ]);
+        components
     }
-    
+
     /// Show a notification
     pub fn notify(&self, notification: Notification) {
         self.notification.set(Some(notification));
     }
-    
+
     /// Clear notification
     pub fn clear_notification(&self) {
         self.notification.set(None);
@@ -383,18 +233,13 @@ impl Default for UiState {
 }
 
 /// Export preset options
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ExportPreset {
+    #[default]
     Plain,
     ThawUi,
     LeptosMaterial,
     LeptosUse,
-}
-
-impl Default for ExportPreset {
-    fn default() -> Self {
-        Self::Plain
-    }
 }
 
 /// Settings state
@@ -453,7 +298,7 @@ impl AppState {
     pub fn new() -> Self {
         // Try to load settings from LocalStorage
         let settings = SettingsState::load_or_default();
-        
+
         Self {
             canvas: CanvasState::new(),
             ui: UiState::new(),
@@ -461,25 +306,25 @@ impl AppState {
             project_name: RwSignal::new("Untitled Project".to_string()),
         }
     }
-    
+
     /// Provide AppState as context
     pub fn provide_context() {
         let state = Self::new();
         provide_context(state);
     }
-    
+
     /// Use AppState from context
     pub fn use_context() -> Self {
         expect_context::<Self>()
     }
-    
+
     /// Save settings to LocalStorage
     pub fn save_settings(&self) {
         if let Err(e) = self.settings.get().save() {
             web_sys::console::error_1(&format!("Failed to save settings: {}", e).into());
         }
     }
-    
+
     /// Save canvas data to LocalStorage
     pub fn save(&self) -> Result<(), crate::domain::AppError> {
         let data = CanvasData {
@@ -488,7 +333,7 @@ impl AppState {
         };
         data.save()
     }
-    
+
     /// Load canvas data from LocalStorage
     pub fn load(&self) -> Result<(), crate::domain::AppError> {
         let data = CanvasData::load()?;

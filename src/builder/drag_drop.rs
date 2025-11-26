@@ -107,13 +107,14 @@ pub fn create_drag_handlers(
             // Set custom drag image (invisible)
             if config.enable_ghost
                 && let Some(document) = web_sys::window().and_then(|w| w.document())
-                    && let Ok(img) = document.create_element("div") {
-                        let img = img.unchecked_into::<web_sys::HtmlElement>();
-                        _ = img.style().set_property("width", "1px");
-                        _ = img.style().set_property("height", "1px");
-                        _ = img.style().set_property("background", "transparent");
-                        dt.set_drag_image(&img, 0, 0);
-                    }
+                && let Ok(img) = document.create_element("div")
+            {
+                let img = img.unchecked_into::<web_sys::HtmlElement>();
+                _ = img.style().set_property("width", "1px");
+                _ = img.style().set_property("height", "1px");
+                _ = img.style().set_property("background", "transparent");
+                dt.set_drag_image(&img, 0, 0);
+            }
         }
 
         let client_x = drag_ev.client_x() as f64;
@@ -151,20 +152,21 @@ pub fn create_drag_handlers(
 
             // Auto-scroll
             if config.enable_auto_scroll
-                && let Some(window) = web_sys::window() {
-                    let _scroll_y = window.scroll_y().unwrap_or(0.0);
-                    let inner_height = window
-                        .inner_height()
-                        .unwrap_or(wasm_bindgen::JsValue::from(600.0))
-                        .as_f64()
-                        .unwrap_or(600.0);
+                && let Some(window) = web_sys::window()
+            {
+                let _scroll_y = window.scroll_y().unwrap_or(0.0);
+                let inner_height = window
+                    .inner_height()
+                    .unwrap_or(wasm_bindgen::JsValue::from(600.0))
+                    .as_f64()
+                    .unwrap_or(600.0);
 
-                    if client_y < config.scroll_threshold {
-                        window.scroll_by_with_x_and_y(0.0, -config.scroll_speed);
-                    } else if client_y > inner_height - config.scroll_threshold {
-                        window.scroll_by_with_x_and_y(0.0, config.scroll_speed);
-                    }
+                if client_y < config.scroll_threshold {
+                    window.scroll_by_with_x_and_y(0.0, -config.scroll_speed);
+                } else if client_y > inner_height - config.scroll_threshold {
+                    window.scroll_by_with_x_and_y(0.0, config.scroll_speed);
                 }
+            }
         }
     };
 
@@ -196,14 +198,15 @@ pub fn create_drop_zone_handlers(
             ghost_x,
             ghost_y,
         } = drag_state.get()
-            && config.enable_drop_zones {
-                drag_state.set(DragState::DraggingOver {
-                    component_type,
-                    drop_zone: zone_enter.clone(),
-                    ghost_x,
-                    ghost_y,
-                });
-            }
+            && config.enable_drop_zones
+        {
+            drag_state.set(DragState::DraggingOver {
+                component_type,
+                drop_zone: zone_enter.clone(),
+                ghost_x,
+                ghost_y,
+            });
+        }
     };
 
     let on_drag_over = move |ev: leptos::ev::DragEvent| {
@@ -218,24 +221,24 @@ pub fn create_drop_zone_handlers(
         // Only change state if we're actually leaving the drop zone
         if let Some(related_target) = drag_ev.related_target()
             && let Some(current_target) = drag_ev.current_target()
-                && let (Ok(related_element), Ok(current_element)) = (
-                    related_target.dyn_into::<web_sys::Element>(),
-                    current_target.dyn_into::<web_sys::Element>(),
-                )
-                    && !current_element.contains(Some(&related_element))
-                        && let DragState::DraggingOver {
-                            component_type,
-                            ghost_x,
-                            ghost_y,
-                            ..
-                        } = drag_state.get()
-                        {
-                            drag_state.set(DragState::Dragging {
-                                component_type,
-                                ghost_x,
-                                ghost_y,
-                            });
-                        }
+            && let (Ok(related_element), Ok(current_element)) = (
+                related_target.dyn_into::<web_sys::Element>(),
+                current_target.dyn_into::<web_sys::Element>(),
+            )
+            && !current_element.contains(Some(&related_element))
+            && let DragState::DraggingOver {
+                component_type,
+                ghost_x,
+                ghost_y,
+                ..
+            } = drag_state.get()
+        {
+            drag_state.set(DragState::Dragging {
+                component_type,
+                ghost_x,
+                ghost_y,
+            });
+        }
     };
 
     (on_drag_enter, on_drag_over, on_drag_leave)

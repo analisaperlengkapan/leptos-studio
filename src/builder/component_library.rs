@@ -1,12 +1,24 @@
+use crate::domain::{
+    ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
+    TextComponent,
+};
 use serde::{Deserialize, Serialize};
 
 // Re-export types from state module to avoid duplication
 pub use crate::state::app_state::{ResponsiveMode, Theme};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum PropType {
+    String,
+    Number,
+    Bool,
+    Enum { options: Vec<String> },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PropSchema {
     pub name: String,
-    pub prop_type: String, // e.g. "string", "number", "bool"
+    pub prop_type: PropType, // e.g. "string", "number", "bool"
     pub required: bool,
     pub description: Option<String>,
 }
@@ -71,10 +83,9 @@ impl ComponentRegistry {
         }
     }
 
-    /// Update the name and template of a custom component at the given index in
-    /// custom_components and in component_library (matched by old name).
+    #[allow(clippy::ptr_arg)]
     pub fn update_custom_by_index(
-        custom_components: &mut Vec<LibraryComponent>,
+        custom_components: &mut [LibraryComponent],
         component_library: &mut Vec<LibraryComponent>,
         idx: usize,
         new_name: String,
@@ -95,5 +106,220 @@ impl ComponentRegistry {
             item.name = new_name;
             item.template = Some(new_template);
         }
+    }
+}
+
+pub fn builtin_library_components() -> Vec<LibraryComponent> {
+    vec![
+        LibraryComponent {
+            name: "Button".to_string(),
+            kind: "Button".to_string(),
+            template: None,
+            category: "Basic".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "label".to_string(),
+                    prop_type: PropType::String,
+                    required: true,
+                    description: Some("Button label".to_string()),
+                },
+                PropSchema {
+                    name: "variant".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "Primary".to_string(),
+                            "Secondary".to_string(),
+                            "Outline".to_string(),
+                            "Ghost".to_string(),
+                        ],
+                    },
+                    required: true,
+                    description: Some("Visual style variant".to_string()),
+                },
+                PropSchema {
+                    name: "size".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "Small".to_string(),
+                            "Medium".to_string(),
+                            "Large".to_string(),
+                        ],
+                    },
+                    required: true,
+                    description: Some("Button size".to_string()),
+                },
+                PropSchema {
+                    name: "disabled".to_string(),
+                    prop_type: PropType::Bool,
+                    required: false,
+                    description: Some("Disable interaction".to_string()),
+                },
+            ]),
+            description: Some("Interactive button component".to_string()),
+        },
+        LibraryComponent {
+            name: "Text".to_string(),
+            kind: "Text".to_string(),
+            template: None,
+            category: "Basic".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "content".to_string(),
+                    prop_type: PropType::String,
+                    required: false,
+                    description: Some("Text content".to_string()),
+                },
+                PropSchema {
+                    name: "style".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "Heading1".to_string(),
+                            "Heading2".to_string(),
+                            "Heading3".to_string(),
+                            "Body".to_string(),
+                            "Caption".to_string(),
+                        ],
+                    },
+                    required: true,
+                    description: Some("Typographic style".to_string()),
+                },
+                PropSchema {
+                    name: "tag".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "H1".to_string(),
+                            "H2".to_string(),
+                            "H3".to_string(),
+                            "P".to_string(),
+                            "Span".to_string(),
+                        ],
+                    },
+                    required: true,
+                    description: Some("HTML tag".to_string()),
+                },
+            ]),
+            description: Some("Text label or paragraph".to_string()),
+        },
+        LibraryComponent {
+            name: "Input".to_string(),
+            kind: "Input".to_string(),
+            template: None,
+            category: "Basic".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "placeholder".to_string(),
+                    prop_type: PropType::String,
+                    required: false,
+                    description: Some("Placeholder text".to_string()),
+                },
+                PropSchema {
+                    name: "input_type".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "Text".to_string(),
+                            "Password".to_string(),
+                            "Email".to_string(),
+                            "Number".to_string(),
+                            "Tel".to_string(),
+                        ],
+                    },
+                    required: true,
+                    description: Some("Input type".to_string()),
+                },
+                PropSchema {
+                    name: "required".to_string(),
+                    prop_type: PropType::Bool,
+                    required: false,
+                    description: Some("Field is required".to_string()),
+                },
+                PropSchema {
+                    name: "disabled".to_string(),
+                    prop_type: PropType::Bool,
+                    required: false,
+                    description: Some("Disable input".to_string()),
+                },
+            ]),
+            description: Some("Text input field".to_string()),
+        },
+        LibraryComponent {
+            name: "Container".to_string(),
+            kind: "Container".to_string(),
+            template: None,
+            category: "Layout".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "layout".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "FlexRow".to_string(),
+                            "FlexColumn".to_string(),
+                            "Grid".to_string(),
+                            "Stack".to_string(),
+                        ],
+                    },
+                    required: true,
+                    description: Some("Layout type".to_string()),
+                },
+                PropSchema {
+                    name: "gap".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Gap between children (px)".to_string()),
+                },
+                PropSchema {
+                    name: "padding_top".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Padding top (px)".to_string()),
+                },
+                PropSchema {
+                    name: "padding_right".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Padding right (px)".to_string()),
+                },
+                PropSchema {
+                    name: "padding_bottom".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Padding bottom (px)".to_string()),
+                },
+                PropSchema {
+                    name: "padding_left".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Padding left (px)".to_string()),
+                },
+            ]),
+            description: Some("Container for other components".to_string()),
+        },
+    ]
+}
+
+pub fn create_canvas_component(component_type: &str) -> Option<CanvasComponent> {
+    match component_type {
+        "Button" => {
+            let button = ButtonComponent::new("Button".to_string());
+            Some(CanvasComponent::Button(button))
+        }
+        "Text" => {
+            let text = TextComponent::new("Text".to_string());
+            Some(CanvasComponent::Text(text))
+        }
+        "Input" => {
+            let input = InputComponent::new();
+            Some(CanvasComponent::Input(input))
+        }
+        "Container" => {
+            let container = ContainerComponent::new();
+            Some(CanvasComponent::Container(container))
+        }
+        data if data.starts_with("Custom::") => {
+            let name = data.strip_prefix("Custom::").unwrap_or("Custom");
+            let custom =
+                CustomComponent::new(name.to_string(), "<div>Custom Component</div>".to_string());
+            Some(CanvasComponent::Custom(custom))
+        }
+        _ => None,
     }
 }

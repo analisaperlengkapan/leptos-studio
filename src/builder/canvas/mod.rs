@@ -2,19 +2,17 @@ pub mod renderer;
 
 pub use renderer::ComponentRenderer;
 
+use js_sys::Date;
 use leptos::prelude::*;
 use web_sys::DragEvent;
-use js_sys::Date;
 
-use crate::state::{AppState, CanvasState, Snapshot};
-use crate::domain::{
-    CanvasComponent, ButtonComponent, TextComponent, InputComponent,
-    ContainerComponent, CustomComponent
-};
+use crate::builder::component_library::create_canvas_component;
 use crate::builder::drag_drop::DropZone;
+use crate::domain::CanvasComponent;
+use crate::state::{AppState, CanvasState, Snapshot};
 
 /// Main Canvas component for the UI builder
-/// 
+///
 /// The Canvas is where users drag and drop components to build their UI.
 /// It uses AppState context for all state management, eliminating prop drilling.
 #[component]
@@ -22,17 +20,17 @@ pub fn Canvas() -> impl IntoView {
     // Get app state from context - no prop drilling!
     let app_state = AppState::use_context();
     let canvas_state = app_state.canvas;
-    
+
     // Drag and drop handlers
     let drop_zone_on_drop = move |ev: leptos::ev::DragEvent| {
         handle_drop(ev, canvas_state);
     };
-    
+
     // Clear selection when clicking on empty canvas area
     let on_canvas_click = move |_ev: leptos::ev::MouseEvent| {
         canvas_state.selected.set(None);
     };
-    
+
     view! {
         <DropZone
             zone_name="canvas-root".to_string()
@@ -40,7 +38,7 @@ pub fn Canvas() -> impl IntoView {
             on_drop=drop_zone_on_drop
             config=None
         >
-            <div 
+            <div
                 class="canvas"
                 on:click=on_canvas_click
             >
@@ -62,7 +60,7 @@ pub fn Canvas() -> impl IntoView {
                                     key=|comp| comp.id().clone()
                                     children=move |comp| {
                                         view! {
-                                            <ComponentRenderer 
+                                            <ComponentRenderer
                                                 component=comp
                                                 canvas_state=canvas_state
                                             />
@@ -90,59 +88,30 @@ pub fn Canvas() -> impl IntoView {
 /// Handle drop event on canvas
 fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
     ev.prevent_default();
-    
+
     if let Some(data_transfer) = ev.data_transfer()
-        && let Ok(component_type) = data_transfer.get_data("component") {
-            if component_type.is_empty() {
-                return;
-            }
-            
-            // Create snapshot before modification
-            let snapshot = Snapshot::new(
-                canvas_state.components.get(),
-                canvas_state.selected.get()
-            );
-            canvas_state.history.update(|h| h.push(snapshot));
-            
-            // Add new component based on type
-            let new_component = create_component_from_type(&component_type);
-            
-            if let Some(component) = new_component {
-                canvas_state.add_component(component);
-            }
+        && let Ok(component_type) = data_transfer.get_data("component")
+    {
+        if component_type.is_empty() {
+            return;
         }
+
+        // Create snapshot before modification
+        let snapshot = Snapshot::new(canvas_state.components.get(), canvas_state.selected.get());
+        canvas_state.history.update(|h| h.push(snapshot));
+
+        // Add new component based on type
+        let new_component = create_component_from_type(&component_type);
+
+        if let Some(component) = new_component {
+            canvas_state.add_component(component);
+        }
+    }
 }
 
 /// Create component from drag data type string
 fn create_component_from_type(component_type: &str) -> Option<CanvasComponent> {
-    match component_type {
-        "Button" => {
-            let button = ButtonComponent::new("Button".to_string());
-            Some(CanvasComponent::Button(button))
-        }
-        "Text" => {
-            let text = TextComponent::new("Text".to_string());
-            Some(CanvasComponent::Text(text))
-        }
-        "Input" => {
-            let input = InputComponent::new();
-            Some(CanvasComponent::Input(input))
-        }
-        "Container" => {
-            let container = ContainerComponent::new();
-            Some(CanvasComponent::Container(container))
-        }
-        data if data.starts_with("Custom::") => {
-            // Custom component format: "Custom::ComponentName"
-            let name = data.strip_prefix("Custom::").unwrap_or("Custom");
-            let custom = CustomComponent::new(
-                name.to_string(),
-                "<div>Custom Component</div>".to_string()
-            );
-            Some(CanvasComponent::Custom(custom))
-        }
-        _ => None,
-    }
+    create_canvas_component(component_type)
 }
 
 #[cfg(test)]

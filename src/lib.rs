@@ -6,7 +6,7 @@ pub mod state;
 pub mod utils;
 
 use wasm_bindgen::prelude::*;
-use web_sys::{window, HtmlElement};
+use web_sys::{HtmlElement, window};
 
 #[wasm_bindgen(start)]
 pub fn main() {
@@ -17,7 +17,7 @@ pub fn main() {
         .expect("Failed to get window")
         .document()
         .expect("Failed to get document");
-    
+
     let target = document
         .get_element_by_id("leptos")
         .expect("Failed to find #leptos element")
@@ -26,7 +26,7 @@ pub fn main() {
 
     // Clear the loading spinner content before mounting
     target.set_inner_html("");
-    
+
     // Reset the #leptos styling (remove loading state flexbox centering)
     let style = target.style();
     style.set_property("display", "block").ok();

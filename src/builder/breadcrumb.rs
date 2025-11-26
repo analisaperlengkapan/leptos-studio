@@ -49,7 +49,7 @@ fn component_name(component: &CanvasComponent) -> String {
             } else {
                 inp.placeholder.clone()
             }
-        },
+        }
         CanvasComponent::Container(_) => "Container".to_string(),
         CanvasComponent::Custom(custom) => custom.name.clone(),
     }
@@ -60,7 +60,7 @@ pub fn BreadcrumbNavigation() -> impl IntoView {
     // Get app state from context - no prop drilling!
     let app_state = AppState::use_context();
     let canvas_state = app_state.canvas;
-    
+
     let breadcrumbs = Memo::new(move |_| {
         let mut items = vec![BreadcrumbItem {
             name: "Canvas".to_string(),
@@ -70,7 +70,11 @@ pub fn BreadcrumbNavigation() -> impl IntoView {
 
         if let Some(selected_id) = canvas_state.selected.get() {
             let components = canvas_state.components.get();
-            if let Some((idx, component)) = components.iter().enumerate().find(|(_, c)| c.id() == &selected_id) {
+            if let Some((idx, component)) = components
+                .iter()
+                .enumerate()
+                .find(|(_, c)| c.id() == &selected_id)
+            {
                 items.push(BreadcrumbItem {
                     name: component_name(component),
                     component_type: component_type(component),
@@ -82,17 +86,15 @@ pub fn BreadcrumbNavigation() -> impl IntoView {
         items
     });
 
-    let navigate_to = move |item: BreadcrumbItem| {
-        match item.index {
-            Some(idx) => {
-                let components = canvas_state.components.get();
-                if let Some(component) = components.get(idx) {
-                    canvas_state.selected.set(Some(component.id().clone()));
-                }
+    let navigate_to = move |item: BreadcrumbItem| match item.index {
+        Some(idx) => {
+            let components = canvas_state.components.get();
+            if let Some(component) = components.get(idx) {
+                canvas_state.selected.set(Some(component.id().clone()));
             }
-            None => {
-                canvas_state.selected.set(None);
-            }
+        }
+        None => {
+            canvas_state.selected.set(None);
         }
     };
 

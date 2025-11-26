@@ -1,16 +1,9 @@
+use crate::builder::component_library::PropType;
 use crate::domain::{
-    ButtonSize,
-    ButtonVariant,
-    CanvasComponent,
-    InputType,
-    PropValue,
-    TextStyle,
-    TextTag,
+    ButtonSize, ButtonVariant, CanvasComponent, InputType, PropValue, TextStyle, TextTag,
 };
 use crate::services::{
-    update_button_prop,
-    update_input_prop,
-    update_text_prop,
+    update_button_prop, update_container_prop, update_input_prop, update_text_prop,
 };
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -79,8 +72,8 @@ pub fn PropertyEditor() -> impl IntoView {
                                                     <div class="property-field">
                                                         <label>
                                                             {label_text.clone()}
-                                                            {match prop_type.as_str() {
-                                                                "string" => {
+                                                            {match prop_type {
+                                                                PropType::String => {
                                                                     let value = current_string.unwrap_or_default();
                                                                     view! {
                                                                         <input
@@ -98,7 +91,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                         />
                                                                     }.into_any()
                                                                 },
-                                                                "bool" => {
+                                                                PropType::Bool => {
                                                                     let checked = current_bool.unwrap_or(false);
                                                                     view! {
                                                                         <input
@@ -115,12 +108,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                         />
                                                                     }.into_any()
                                                                 },
-                                                                ty if ty.starts_with("enum:") => {
-                                                                    let options_str = &ty[5..];
-                                                                    let options: Vec<String> = options_str
-                                                                        .split(',')
-                                                                        .map(|s| s.trim().to_string())
-                                                                        .collect();
+                                                                PropType::Enum { options } => {
                                                                     let selected_value = current_string.unwrap_or_default();
                                                                     view! {
                                                                         <select
@@ -145,7 +133,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    view! { <div></div> }.into_any()
                                                                 }
                                                             }}
                                                         </label>
@@ -204,8 +192,8 @@ pub fn PropertyEditor() -> impl IntoView {
                                                     <div class="property-field">
                                                         <label>
                                                             {label_text.clone()}
-                                                            {match prop_type.as_str() {
-                                                                "string" => {
+                                                            {match prop_type {
+                                                                PropType::String => {
                                                                     let value = current_string.unwrap_or_default();
                                                                     view! {
                                                                         <input
@@ -223,12 +211,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                         />
                                                                     }.into_any()
                                                                 },
-                                                                ty if ty.starts_with("enum:") => {
-                                                                    let options_str = &ty[5..];
-                                                                    let options: Vec<String> = options_str
-                                                                        .split(',')
-                                                                        .map(|s| s.trim().to_string())
-                                                                        .collect();
+                                                                PropType::Enum { options } => {
                                                                     let selected_value = current_string.unwrap_or_default();
                                                                     view! {
                                                                         <select
@@ -253,7 +236,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    view! { <div></div> }.into_any()
                                                                 }
                                                             }}
                                                         </label>
@@ -311,8 +294,8 @@ pub fn PropertyEditor() -> impl IntoView {
                                                     <div class="property-field">
                                                         <label>
                                                             {label_text.clone()}
-                                                            {match prop_type.as_str() {
-                                                                "string" => {
+                                                            {match prop_type {
+                                                                PropType::String => {
                                                                     let value = current_string.unwrap_or_default();
                                                                     view! {
                                                                         <input
@@ -330,7 +313,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                         />
                                                                     }.into_any()
                                                                 },
-                                                                "bool" => {
+                                                                PropType::Bool => {
                                                                     let checked = current_bool.unwrap_or(false);
                                                                     view! {
                                                                         <input
@@ -347,12 +330,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                         />
                                                                     }.into_any()
                                                                 },
-                                                                ty if ty.starts_with("enum:") => {
-                                                                    let options_str = &ty[5..];
-                                                                    let options: Vec<String> = options_str
-                                                                        .split(',')
-                                                                        .map(|s| s.trim().to_string())
-                                                                        .collect();
+                                                                PropType::Enum { options } => {
                                                                     let selected_value = current_string.unwrap_or_default();
                                                                     view! {
                                                                         <select
@@ -377,7 +355,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                                     }.into_any()
                                                                 },
                                                                 _ => {
-                                                                    view! { }.into_any()
+                                                                    view! { <div></div> }.into_any()
                                                                 }
                                                             }}
                                                         </label>
@@ -388,9 +366,113 @@ pub fn PropertyEditor() -> impl IntoView {
                                     </div>
                                 }.into_any()
                             },
-                            CanvasComponent::Container(_) => {
+                            CanvasComponent::Container(container) => {
+                                // Read Container schema from component_library
+                                let container_schema = app_state
+                                    .ui
+                                    .component_library
+                                    .get()
+                                    .into_iter()
+                                    .find(|c| c.kind == "Container")
+                                    .and_then(|c| c.props_schema)
+                                    .unwrap_or_default();
+
+                                let comp_id = container.id.clone();
+
                                 view! {
-                                    <div><p>{"Container properties"}</p></div>
+                                    <div>
+                                        {container_schema
+                                            .into_iter()
+                                            .map(|prop| {
+                                                let prop_name = prop.name.clone();
+                                                let prop_type = prop.prop_type.clone();
+                                                let label_text = prop.name.clone();
+
+                                                let comp_id_field = comp_id.clone();
+                                                let container_for_field = container.clone();
+
+                                                view! {
+                                                    <div class="property-field">
+                                                        <label>
+                                                            {label_text.clone()}
+                                                            {match prop_type {
+                                                                PropType::Enum { options } => {
+                                                                    let selected_value = match prop_name.as_str() {
+                                                                        "layout" => {
+                                                                            match &container_for_field.layout {
+                                                                                crate::domain::LayoutType::Flex { direction, .. } => {
+                                                                                    match direction {
+                                                                                        crate::domain::FlexDirection::Row => "FlexRow".to_string(),
+                                                                                        crate::domain::FlexDirection::Column => "FlexColumn".to_string(),
+                                                                                    }
+                                                                                }
+                                                                                crate::domain::LayoutType::Grid { .. } => "Grid".to_string(),
+                                                                                crate::domain::LayoutType::Stack => "Stack".to_string(),
+                                                                            }
+                                                                        }
+                                                                        _ => String::new(),
+                                                                    };
+
+                                                                    view! {
+                                                                        <select
+                                                                            on:change=move |ev| {
+                                                                                let value = event_target_value(&ev);
+                                                                                let updated_container = update_container_prop(
+                                                                                    container_for_field.clone(),
+                                                                                    prop_name.as_str(),
+                                                                                    PropValue::String(value),
+                                                                                );
+                                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Container(updated_container));
+                                                                            }
+                                                                        >
+                                                                            {options.into_iter().map(|opt| {
+                                                                                let opt_clone = opt.clone();
+                                                                                let is_selected = opt_clone == selected_value;
+                                                                                view! {
+                                                                                    <option value=opt_clone selected=is_selected>{opt}</option>
+                                                                                }
+                                                                            }).collect::<Vec<_>>()}
+                                                                        </select>
+                                                                    }.into_any()
+                                                                },
+                                                                PropType::Number => {
+                                                                    let value = match prop_name.as_str() {
+                                                                        "gap" => container_for_field.gap.to_string(),
+                                                                        "padding_top" => container_for_field.padding.top.to_string(),
+                                                                        "padding_right" => container_for_field.padding.right.to_string(),
+                                                                        "padding_bottom" => container_for_field.padding.bottom.to_string(),
+                                                                        "padding_left" => container_for_field.padding.left.to_string(),
+                                                                        _ => String::new(),
+                                                                    };
+
+                                                                    view! {
+                                                                        <input
+                                                                            type="number"
+                                                                            prop:value=value.clone()
+                                                                            on:input=move |ev| {
+                                                                                let raw = event_target_value(&ev);
+                                                                                if let Ok(parsed) = raw.parse::<f64>() {
+                                                                                    let updated_container = update_container_prop(
+                                                                                        container_for_field.clone(),
+                                                                                        prop_name.as_str(),
+                                                                                        PropValue::Number(parsed),
+                                                                                    );
+                                                                                    canvas_state.update_component(&comp_id_field, CanvasComponent::Container(updated_container));
+                                                                                }
+                                                                            }
+                                                                        />
+                                                                    }.into_any()
+                                                                },
+                                                                _ => {
+                                                                    ().into_any()
+                                                                }
+                                                            }}
+                                                        </label>
+                                                    </div>
+                                                }.into_any()
+                                            })
+                                            .collect::<Vec<_>>()}
+                                    </div>
                                 }.into_any()
                             },
                             CanvasComponent::Custom(custom) => {
@@ -401,12 +483,12 @@ pub fn PropertyEditor() -> impl IntoView {
                                 let custom_for_template = custom.clone();
                                 let comp_id_for_name = comp_id.clone();
                                 let comp_id_for_template = comp_id.clone();
-                                
+
                                 view! {
                                     <div>
                                         <label>
                                             {"Name: "}
-                                            <input 
+                                            <input
                                                 type="text"
                                                 prop:value=name_value
                                                 on:input=move |ev| {

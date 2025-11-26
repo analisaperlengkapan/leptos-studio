@@ -6,18 +6,18 @@ use crate::domain::{AppError, AppResult};
 /// Trait for types that can be persisted to LocalStorage
 pub trait Persistable: Serialize + for<'de> Deserialize<'de> {
     fn storage_key() -> &'static str;
-    
+
     /// Save to LocalStorage
     fn save(&self) -> AppResult<()> {
         let storage = get_local_storage()?;
-        let json = serde_json::to_string(self)
-            .map_err(|e| AppError::Serialization(e.to_string()))?;
+        let json =
+            serde_json::to_string(self).map_err(|e| AppError::Serialization(e.to_string()))?;
         storage
             .set_item(Self::storage_key(), &json)
             .map_err(|_| AppError::Storage("Failed to save to LocalStorage".to_string()))?;
         Ok(())
     }
-    
+
     /// Load from LocalStorage
     fn load() -> AppResult<Self> {
         let storage = get_local_storage()?;
@@ -25,11 +25,10 @@ pub trait Persistable: Serialize + for<'de> Deserialize<'de> {
             .get_item(Self::storage_key())
             .map_err(|_| AppError::Storage("Failed to read from LocalStorage".to_string()))?
             .ok_or_else(|| AppError::Storage("No data found in LocalStorage".to_string()))?;
-        
-        serde_json::from_str(&json)
-            .map_err(|e| AppError::Serialization(e.to_string()))
+
+        serde_json::from_str(&json).map_err(|e| AppError::Serialization(e.to_string()))
     }
-    
+
     /// Load with default value if not found
     fn load_or_default() -> Self
     where

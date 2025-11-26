@@ -13,7 +13,7 @@ impl ComponentId {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
     }
-    
+
     pub fn as_string(&self) -> String {
         self.0.to_string()
     }
@@ -93,11 +93,11 @@ impl Component for ButtonComponent {
     fn component_type(&self) -> ComponentType {
         ComponentType::Button
     }
-    
+
     fn id(&self) -> &ComponentId {
         &self.id
     }
-    
+
     fn validate(&self) -> Result<(), ValidationError> {
         if self.label.trim().is_empty() {
             return Err(ValidationError::InvalidPropertyValue(
@@ -153,11 +153,11 @@ impl Component for TextComponent {
     fn component_type(&self) -> ComponentType {
         ComponentType::Text
     }
-    
+
     fn id(&self) -> &ComponentId {
         &self.id
     }
-    
+
     fn validate(&self) -> Result<(), ValidationError> {
         // Text content can be empty (for placeholder text)
         Ok(())
@@ -206,11 +206,11 @@ impl Component for InputComponent {
     fn component_type(&self) -> ComponentType {
         ComponentType::Input
     }
-    
+
     fn id(&self) -> &ComponentId {
         &self.id
     }
-    
+
     fn validate(&self) -> Result<(), ValidationError> {
         Ok(())
     }
@@ -219,8 +219,14 @@ impl Component for InputComponent {
 /// Layout types
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum LayoutType {
-    Flex { direction: FlexDirection, wrap: bool },
-    Grid { columns: u32, rows: u32 },
+    Flex {
+        direction: FlexDirection,
+        wrap: bool,
+    },
+    Grid {
+        columns: u32,
+        rows: u32,
+    },
     Stack,
 }
 
@@ -231,15 +237,13 @@ pub enum FlexDirection {
 }
 
 /// Spacing
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct Spacing {
     pub top: u32,
     pub right: u32,
     pub bottom: u32,
     pub left: u32,
 }
-
 
 /// Container component
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -276,11 +280,11 @@ impl Component for ContainerComponent {
     fn component_type(&self) -> ComponentType {
         ComponentType::Container
     }
-    
+
     fn id(&self) -> &ComponentId {
         &self.id
     }
-    
+
     fn validate(&self) -> Result<(), ValidationError> {
         // Validate all children
         for child in &self.children {
@@ -323,22 +327,22 @@ impl Component for CustomComponent {
     fn component_type(&self) -> ComponentType {
         ComponentType::Custom
     }
-    
+
     fn id(&self) -> &ComponentId {
         &self.id
     }
-    
+
     fn validate(&self) -> Result<(), ValidationError> {
         use super::validation::{ComponentNameValidator, HtmlTemplateValidator};
-        
+
         // Validate name
         let name_validator = ComponentNameValidator;
         name_validator.validate(&self.name)?;
-        
+
         // Validate template
         let template_validator = HtmlTemplateValidator;
         template_validator.validate(&self.template)?;
-        
+
         Ok(())
     }
 }
@@ -363,7 +367,7 @@ impl CanvasComponent {
             CanvasComponent::Custom(c) => c.id(),
         }
     }
-    
+
     pub fn component_type(&self) -> ComponentType {
         match self {
             CanvasComponent::Button(c) => c.component_type(),
@@ -373,7 +377,7 @@ impl CanvasComponent {
             CanvasComponent::Custom(c) => c.component_type(),
         }
     }
-    
+
     pub fn validate(&self) -> Result<(), ValidationError> {
         match self {
             CanvasComponent::Button(c) => c.validate(),
@@ -400,29 +404,23 @@ mod tests {
     fn test_button_component_validation() {
         let button = ButtonComponent::new("Click me".to_string());
         assert!(button.validate().is_ok());
-        
+
         let empty_button = ButtonComponent::new("".to_string());
         assert!(empty_button.validate().is_err());
     }
 
     #[test]
     fn test_custom_component_validation() {
-        let valid_custom = CustomComponent::new(
-            "MyComponent".to_string(),
-            "<div>Hello</div>".to_string(),
-        );
+        let valid_custom =
+            CustomComponent::new("MyComponent".to_string(), "<div>Hello</div>".to_string());
         assert!(valid_custom.validate().is_ok());
-        
-        let invalid_name = CustomComponent::new(
-            "123Invalid".to_string(),
-            "<div>Hello</div>".to_string(),
-        );
+
+        let invalid_name =
+            CustomComponent::new("123Invalid".to_string(), "<div>Hello</div>".to_string());
         assert!(invalid_name.validate().is_err());
-        
-        let invalid_template = CustomComponent::new(
-            "ValidName".to_string(),
-            "No tags here".to_string(),
-        );
+
+        let invalid_template =
+            CustomComponent::new("ValidName".to_string(), "No tags here".to_string());
         assert!(invalid_template.validate().is_err());
     }
 
@@ -430,17 +428,21 @@ mod tests {
     fn test_container_component_validation() {
         let mut container = ContainerComponent::new();
         assert!(container.validate().is_ok());
-        
+
         // Add valid child
-        container.children.push(CanvasComponent::Button(
-            ButtonComponent::new("Button".to_string())
-        ));
+        container
+            .children
+            .push(CanvasComponent::Button(ButtonComponent::new(
+                "Button".to_string(),
+            )));
         assert!(container.validate().is_ok());
-        
+
         // Add invalid child
-        container.children.push(CanvasComponent::Button(
-            ButtonComponent::new("".to_string())
-        ));
+        container
+            .children
+            .push(CanvasComponent::Button(ButtonComponent::new(
+                "".to_string(),
+            )));
         assert!(container.validate().is_err());
     }
 }
