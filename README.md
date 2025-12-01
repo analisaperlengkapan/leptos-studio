@@ -7,6 +7,23 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org/)
 [![WASM](https://img.shields.io/badge/WASM-ready-brightgreen.svg)](https://webassembly.org/)
+[![Status](https://img.shields.io/badge/status-experimental-orange.svg)](#experimental-notice)
+[![Stability](https://img.shields.io/badge/stability-unstable-yellow.svg)](#experimental-notice)
+
+---
+
+## ⚠️ Experimental Notice {#experimental-notice}
+
+> **🚧 This project is experimental and under active development.**
+>
+> - **Not production-ready**: APIs, features, and behavior may change without notice
+> - **Unstable**: Expect breaking changes between versions
+> - **Work in progress**: Some features are incomplete or may have bugs
+> - **Use at your own risk**: Not recommended for production applications
+>
+> We welcome feedback and contributions! See [Contributing](#contributing) to get involved.
+
+---
 
 > A visual UI builder for the [Leptos](https://github.com/leptos-rs/leptos) framework (Rust + WASM)
 
@@ -189,7 +206,36 @@ This project is licensed under the **Apache License 2.0** - see the [LICENSE](LI
 
 ## Project Status
 
-🚀 **Active Development** - This project is under active development. Features and APIs may change.
+🧪 **Experimental / Pre-Alpha** - This project is in its early stages and under active development.
+
+### Current State
+
+| Aspect | Status |
+|--------|--------|
+| **Stability** | ⚠️ Unstable - Breaking changes expected |
+| **API** | 🔄 Subject to change |
+| **Features** | 🚧 Many features are incomplete |
+| **Documentation** | 📝 Work in progress |
+| **Testing** | ✅ Unit tests available |
+| **Production Use** | ❌ Not recommended |
+
+### What Works
+
+- ✅ Basic drag-and-drop UI composition
+- ✅ Component property editing
+- ✅ Code export (Leptos, HTML, JSON, Markdown)
+- ✅ Project save/load (localStorage)
+- ✅ Undo/redo functionality
+- ✅ Custom component support
+
+### Known Limitations
+
+- 🚧 Git integration is a stub (no real backend)
+- 🚧 Responsive preview is basic
+- 🚧 Limited component library
+- 🚧 No real-time collaboration
+- 🚧 No cloud storage
+- 🚧 Component templates need expansion
 
 ### Roadmap
 
