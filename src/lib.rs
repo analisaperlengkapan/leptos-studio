@@ -1,5 +1,6 @@
 pub mod app;
 pub mod builder;
+pub mod constants;
 pub mod domain;
 pub mod services;
 pub mod state;

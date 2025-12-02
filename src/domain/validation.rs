@@ -33,6 +33,7 @@ impl Validator<String> for ComponentNameValidator {
 /// - Not be empty
 /// - Have minimum length of 3 characters
 /// - Contain at least one HTML tag
+/// - Not contain dangerous patterns (XSS prevention)
 pub struct HtmlTemplateValidator;
 
 impl Validator<String> for HtmlTemplateValidator {
@@ -55,7 +56,55 @@ impl Validator<String> for HtmlTemplateValidator {
             ));
         }
 
+        // Security: Check for dangerous patterns
+        if !crate::utils::sanitize::is_html_safe(template) {
+            return Err(ValidationError::InvalidTemplate(
+                "Template contains potentially dangerous content (scripts, event handlers, or dangerous protocols)".to_string(),
+            ));
+        }
+
         Ok(())
+    }
+}
+
+/// Sanitizing HTML template validator
+/// Same as HtmlTemplateValidator but also sanitizes the input
+pub struct SanitizingHtmlTemplateValidator;
+
+impl SanitizingHtmlTemplateValidator {
+    /// Validate and sanitize the template, returning the sanitized version
+    pub fn validate_and_sanitize(&self, template: &str) -> Result<String, ValidationError> {
+        if template.trim().is_empty() {
+            return Err(ValidationError::EmptyTemplate);
+        }
+
+        if template.len() < 3 {
+            return Err(ValidationError::InvalidTemplate(
+                "Template too short".to_string(),
+            ));
+        }
+
+        // Check if contains HTML tags
+        let tag_re = Regex::new(r"<[^>]+>").unwrap();
+        if !tag_re.is_match(template) {
+            return Err(ValidationError::InvalidTemplate(
+                "Template must contain at least one HTML tag".to_string(),
+            ));
+        }
+
+        // Sanitize the template
+        let result = crate::utils::sanitize::sanitize_html(
+            template,
+            &crate::utils::sanitize::SanitizeConfig::default(),
+        );
+
+        if result.was_truncated {
+            return Err(ValidationError::InvalidTemplate(
+                "Template is too long".to_string(),
+            ));
+        }
+
+        Ok(result.html)
     }
 }
 

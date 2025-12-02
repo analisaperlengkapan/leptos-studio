@@ -5,14 +5,18 @@ version = "0.1.0"
 edition = "2024"
 description = "Visual UI builder for Leptos framework"
 license = "Apache-2.0"
-repository = "https://gitlab.com/analisiskebutuhan/leptos-studio"
+repository = "https://github.com/analisaperlengkapan/leptos-studio"
+authors = ["Leptos Studio Contributors"]
+keywords = ["leptos", "wasm", "ui-builder", "webassembly", "rust"]
+categories = ["wasm", "web-programming", "gui"]
+rust-version = "1.90.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-leptos = { version = "0.8.12", features = ["csr"] }
-leptos_router = "0.8.9"
+leptos = { version = "0.8.14", features = ["csr"] }
+leptos_router = "0.8.10"
 leptos_dom = "0.8.7"
 web-sys = { version = "0.3", features = [
     "DragEvent", "DataTransfer", "Window", "Storage", "console", 

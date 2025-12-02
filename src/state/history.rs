@@ -1,9 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 
+use crate::constants::MAX_HISTORY_SIZE;
 use crate::domain::{CanvasComponent, ComponentId};
-
-const MAX_HISTORY_SIZE: usize = 50;
 
 /// Snapshot of canvas state at a point in time
 #[derive(Clone, Debug, Serialize, Deserialize)]
