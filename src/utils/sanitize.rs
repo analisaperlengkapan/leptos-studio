@@ -114,49 +114,49 @@ pub fn sanitize_html(html: &str, config: &SanitizeConfig) -> SanitizeResult {
 
     // Remove dangerous patterns
     for pattern in DANGEROUS_PATTERNS {
-        if let Ok(regex) = Regex::new(pattern) {
-            if regex.is_match(&result) {
-                removed_patterns.push(pattern.to_string());
-                result = regex.replace_all(&result, "").into_owned();
-                was_modified = true;
-            }
+        if let Ok(regex) = Regex::new(pattern)
+            && regex.is_match(&result)
+        {
+            removed_patterns.push(pattern.to_string());
+            result = regex.replace_all(&result, "").into_owned();
+            was_modified = true;
         }
     }
 
     // Remove event handlers more specifically
-    if let Ok(event_handler_regex) = Regex::new(r#"(?i)\s+on\w+\s*=\s*"[^"]*""#) {
-        if event_handler_regex.is_match(&result) {
-            result = event_handler_regex.replace_all(&result, "").into_owned();
-            was_modified = true;
-            let event_handlers_str = "event handlers".to_string();
-            if !removed_patterns.contains(&event_handlers_str) {
-                removed_patterns.push(event_handlers_str);
-            }
+    if let Ok(event_handler_regex) = Regex::new(r#"(?i)\s+on\w+\s*=\s*"[^"]*""#)
+        && event_handler_regex.is_match(&result)
+    {
+        result = event_handler_regex.replace_all(&result, "").into_owned();
+        was_modified = true;
+        let event_handlers_str = "event handlers".to_string();
+        if !removed_patterns.contains(&event_handlers_str) {
+            removed_patterns.push(event_handlers_str);
         }
     }
 
     // Also check single-quoted event handlers
-    if let Ok(event_handler_regex_sq) = Regex::new(r"(?i)\s+on\w+\s*=\s*'[^']*'") {
-        if event_handler_regex_sq.is_match(&result) {
-            result = event_handler_regex_sq.replace_all(&result, "").into_owned();
-            was_modified = true;
-        }
+    if let Ok(event_handler_regex_sq) = Regex::new(r"(?i)\s+on\w+\s*=\s*'[^']*'")
+        && event_handler_regex_sq.is_match(&result)
+    {
+        result = event_handler_regex_sq.replace_all(&result, "").into_owned();
+        was_modified = true;
     }
 
     // Remove javascript: and other dangerous protocols in href/src
-    if let Ok(protocol_regex) = Regex::new(r#"(?i)(href|src)\s*=\s*"(javascript|vbscript|data):[^"]*""#) {
-        if protocol_regex.is_match(&result) {
-            result = protocol_regex.replace_all(&result, r#"$1="""#).into_owned();
-            was_modified = true;
-        }
+    if let Ok(protocol_regex) = Regex::new(r#"(?i)(href|src)\s*=\s*"(javascript|vbscript|data):[^"]*""#)
+        && protocol_regex.is_match(&result)
+    {
+        result = protocol_regex.replace_all(&result, r#"$1="""#).into_owned();
+        was_modified = true;
     }
 
     // Also check single-quoted protocols
-    if let Ok(protocol_regex_sq) = Regex::new(r"(?i)(href|src)\s*=\s*'(javascript|vbscript|data):[^']*'") {
-        if protocol_regex_sq.is_match(&result) {
-            result = protocol_regex_sq.replace_all(&result, "$1=''").into_owned();
-            was_modified = true;
-        }
+    if let Ok(protocol_regex_sq) = Regex::new(r"(?i)(href|src)\s*=\s*'(javascript|vbscript|data):[^']*'")
+        && protocol_regex_sq.is_match(&result)
+    {
+        result = protocol_regex_sq.replace_all(&result, "$1=''").into_owned();
+        was_modified = true;
     }
 
     SanitizeResult {
@@ -176,10 +176,10 @@ pub fn sanitize_html_quick(html: &str) -> String {
 /// Check if HTML contains potentially dangerous content
 pub fn is_html_safe(html: &str) -> bool {
     for pattern in DANGEROUS_PATTERNS {
-        if let Ok(regex) = Regex::new(pattern) {
-            if regex.is_match(html) {
-                return false;
-            }
+        if let Ok(regex) = Regex::new(pattern)
+            && regex.is_match(html)
+        {
+            return false;
         }
     }
     true
