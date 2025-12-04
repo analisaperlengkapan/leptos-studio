@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 // Re-export types from state module to avoid duplication
 pub use crate::state::app_state::{ResponsiveMode, Theme};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PropType {
     String,
     Number,
@@ -15,7 +15,7 @@ pub enum PropType {
     Enum { options: Vec<String> },
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PropSchema {
     pub name: String,
     pub prop_type: PropType, // e.g. "string", "number", "bool"
@@ -25,7 +25,7 @@ pub struct PropSchema {
 
 // Shared definition for LibraryComponent used in component library management
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct LibraryComponent {
     pub name: String,
     pub kind: String, // e.g. "Button", "Text", "Input", "Container", "Custom"

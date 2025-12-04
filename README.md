@@ -49,9 +49,45 @@ Leptos Studio is a visual UI builder that allows you to compose layouts with dra
 - **Export Code**  
   Export layouts to multiple formats:
   - Leptos code (`LeptosCodeGenerator`)
-  - HTML
+  - HTML / HTML + Tailwind CSS
+  - React/JSX Component
+  - Svelte Component
+  - TypeScript Types
+  - JSON Schema
   - Markdown (documentation)
   - JSON (CanvasComponent structure)
+
+- **Template Gallery** 🆕  
+  Pre-built layout templates for quick-start designs:
+  - Login/Contact Forms
+  - Hero Sections
+  - Navigation Bars
+  - Pricing Cards
+  - Dashboard Headers
+  - Feature Grids
+  - Category filtering and search
+
+- **Status Bar** 🆕  
+  Bottom status bar showing:
+  - Component count
+  - Nesting depth
+  - Selection status
+  - Undo/Redo availability
+  - Responsive mode indicator
+  - Theme indicator
+  - Render performance metrics
+
+- **Accessibility Features** 🆕  
+  - Skip links for keyboard navigation
+  - ARIA labels and roles
+  - Screen reader live region announcements
+  - Focus trap for modals
+  - Keyboard shortcuts
+
+- **Responsive Design Tools** 🆕  
+  - Custom breakpoint editor
+  - Responsive preview controls
+  - Device-specific preview modes (Desktop, Tablet, Mobile)
 
 - **Debug Panel**  
   Display component count, custom components, undo/redo capabilities, and render metrics (`render_count`, `render_time`).

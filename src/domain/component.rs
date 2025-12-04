@@ -66,7 +66,7 @@ pub enum ButtonSize {
 }
 
 /// Button component
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ButtonComponent {
     pub id: ComponentId,
     pub label: String,
@@ -130,7 +130,7 @@ pub enum TextTag {
 }
 
 /// Text component
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TextComponent {
     pub id: ComponentId,
     pub content: String,
@@ -175,7 +175,7 @@ pub enum InputType {
 }
 
 /// Input component
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct InputComponent {
     pub id: ComponentId,
     pub placeholder: String,
@@ -246,7 +246,7 @@ pub struct Spacing {
 }
 
 /// Container component
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ContainerComponent {
     pub id: ComponentId,
     pub children: Vec<CanvasComponent>,
@@ -295,7 +295,7 @@ impl Component for ContainerComponent {
 }
 
 /// Property value types
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PropValue {
     String(String),
     Number(f64),
@@ -304,7 +304,7 @@ pub enum PropValue {
 }
 
 /// Custom component
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct CustomComponent {
     pub id: ComponentId,
     pub name: String,
@@ -348,7 +348,7 @@ impl Component for CustomComponent {
 }
 
 /// Main component enum with all variants
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CanvasComponent {
     Button(ButtonComponent),
     Text(TextComponent),

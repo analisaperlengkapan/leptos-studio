@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 
+use crate::builder::accessibility::{AccessibilityProvider, SkipLink, announce};
 use crate::builder::breadcrumb::BreadcrumbNavigation;
 use crate::builder::canvas::Canvas;
 use crate::builder::command_palette::CommandPalette;
@@ -11,11 +12,20 @@ use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
 use crate::builder::sidebar::Sidebar;
 use crate::builder::snackbar::Snackbar;
+use crate::builder::status_bar::StatusBar;
+use crate::builder::template_gallery::TemplateGallery;
 use crate::domain::component::CanvasComponent;
 use crate::services::export_service::{
     CodeGenerator, HtmlCodeGenerator, LeptosCodeGenerator, MarkdownCodeGenerator,
 };
+use crate::services::export_advanced::{
+    JsonSchemaGenerator, TypeScriptGenerator, ReactGenerator, TailwindHtmlGenerator, SvelteGenerator,
+};
+use crate::services::analytics_service::AnalyticsService;
+use crate::services::event_bus::EventBus;
+use crate::services::template_service::TemplateService;
 use crate::state::app_state::{AppState, Notification};
+use crate::state::derived::DerivedState;
 use crate::utils::{copy_to_clipboard, read_from_clipboard};
 use js_sys::encode_uri_component;
 
@@ -25,6 +35,14 @@ pub fn App() -> impl IntoView {
     AppState::provide_context();
     let app_state = AppState::use_context();
 
+    // Initialize services
+    let _event_bus = StoredValue::new(EventBus::new());
+    let _template_service = StoredValue::new(TemplateService::new());
+    let _analytics_service = StoredValue::new(AnalyticsService::new());
+    
+    // Create and provide derived state for memoized computations
+    DerivedState::provide_context(app_state);
+
     // Design tokens
     let design_tokens = RwSignal::new(DesignTokens::default());
 
@@ -32,6 +50,9 @@ pub fn App() -> impl IntoView {
     let show_export = RwSignal::new(false);
     let export_code = RwSignal::new(String::new());
     let export_template = RwSignal::new("leptos".to_string());
+    
+    // Template gallery visibility
+    let show_template_gallery = RwSignal::new(false);
 
     // Keyboard action handler
     let keyboard_action_handler = move |action: KeyboardAction| match action {
@@ -237,6 +258,36 @@ pub fn App() -> impl IntoView {
             }
             "json" => serde_json::to_string_pretty(&comps)
                 .unwrap_or_else(|e| format!("Error serializing JSON: {}", e)),
+            "jsonschema" => {
+                let generator = JsonSchemaGenerator::default();
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
+            }
+            "typescript" => {
+                let generator = TypeScriptGenerator::default();
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
+            }
+            "react" => {
+                let generator = ReactGenerator::default();
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
+            }
+            "tailwind" => {
+                let generator = TailwindHtmlGenerator::default();
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
+            }
+            "svelte" => {
+                let generator = SvelteGenerator::default();
+                generator
+                    .generate(&comps)
+                    .unwrap_or_else(|e| e.user_message())
+            }
             _ => "Unknown template".to_string(),
         };
 
@@ -354,81 +405,148 @@ pub fn App() -> impl IntoView {
 
     view! {
         <DesignTokenProvider tokens=design_tokens>
-            <div class="leptos-studio" tabindex="0">
-                <KeyboardHandler
-                    shortcuts=get_default_shortcuts()
-                    on_action=keyboard_action_handler
-                />
+            <AccessibilityProvider>
+                <SkipLink target="#main-canvas" label="Skip to canvas" />
+                <div class="leptos-studio" tabindex="0" role="application" aria-label="Leptos Studio Visual Builder">
+                    <KeyboardHandler
+                        shortcuts=get_default_shortcuts()
+                        on_action=keyboard_action_handler
+                    />
 
-                <DragPreview drag_state=app_state.canvas.drag_state />
+                    <DragPreview drag_state=app_state.canvas.drag_state />
 
-                <CommandPalette
-                    is_open=app_state.ui.show_command_palette.read_only()
-                    close=app_state.ui.show_command_palette.write_only()
-                    search=RwSignal::new(String::new())
-                    on_action=keyboard_action_handler
-                />
+                    <CommandPalette
+                        is_open=app_state.ui.show_command_palette.read_only()
+                        close=app_state.ui.show_command_palette.write_only()
+                        search=RwSignal::new(String::new())
+                        on_action=keyboard_action_handler
+                    />
 
-                <header class="app-header">
-                    <h1>{"Leptos Studio"}</h1>
-                </header>
+                    <header class="app-header">
+                        <h1>{"Leptos Studio"}</h1>
+                        <button
+                            class="btn btn-outline btn-sm"
+                            on:click=move |_| show_template_gallery.set(true)
+                            aria-label="Open template gallery"
+                        >
+                            {"📑 Templates"}
+                        </button>
+                    </header>
 
-                <BreadcrumbNavigation />
+                    <BreadcrumbNavigation />
 
-                <div class="app-layout">
-                    <aside class="sidebar-panel">
-                        <Sidebar />
-                    </aside>
-                    <main>
-                        <nav class="main-nav">
-                            <div class="nav-actions">
-                                <button on:click=save_layout class="btn btn-primary">{"Save"}</button>
-                                <button on:click=load_layout class="btn btn-secondary">{"Load"}</button>
-                                <button on:click=do_export class="btn btn-success">{"Export"}</button>
-                                <button on:click=do_undo class="btn btn-outline">{"Undo"}</button>
-                                <button on:click=do_redo class="btn btn-outline">{"Redo"}</button>
+                    <div class="app-layout">
+                        <aside class="sidebar-panel" role="navigation" aria-label="Component library">
+                            <Sidebar />
+                        </aside>
+                        <main role="main">
+                            <nav class="main-nav" aria-label="Main actions">
+                                <div class="nav-actions">
+                                    <button on:click=save_layout class="btn btn-primary" aria-label="Save layout">{"Save"}</button>
+                                    <button on:click=load_layout class="btn btn-secondary" aria-label="Load layout">{"Load"}</button>
+                                    <button on:click=do_export class="btn btn-success" aria-label="Export code">{"Export"}</button>
+                                    <button 
+                                        on:click=do_undo 
+                                        class="btn btn-outline" 
+                                        aria-label="Undo last action"
+                                    >{"Undo"}</button>
+                                    <button 
+                                        on:click=do_redo 
+                                        class="btn btn-outline" 
+                                        aria-label="Redo last action"
+                                    >{"Redo"}</button>
+                                </div>
+                                <ResponsivePreviewControls />
+                            </nav>
+                            <div class="main-content">
+                                <section id="main-canvas" class="canvas-area" role="region" aria-label="Design canvas">
+                                    <CanvasViewport>
+                                        <Canvas />
+                                    </CanvasViewport>
+                                </section>
+                                <aside class="property-panel" role="complementary" aria-label="Property editor">
+                                    <div class="property-editor-section">
+                                        <PropertyEditor />
+                                    </div>
+                                    <div class="preview-section">
+                                        <Preview />
+                                    </div>
+                                </aside>
                             </div>
-                            <ResponsivePreviewControls />
-                        </nav>
-                        <div class="main-content">
-                            <section class="canvas-area">
-                                <CanvasViewport>
-                                    <Canvas />
-                                </CanvasViewport>
-                            </section>
-                            <aside class="property-panel">
-                                <div class="property-editor-section">
-                                    <PropertyEditor />
-                                </div>
-                                <div class="preview-section">
-                                    <Preview />
-                                </div>
-                            </aside>
-                        </div>
-                    </main>
-                </div>
+                        </main>
+                    </div>
+
+                    <StatusBar />
+
+                    {move || if show_template_gallery.get() {
+                        view! {
+                            <TemplateGallery
+                                on_close=move || show_template_gallery.set(false)
+                                on_apply=move |template: crate::services::Template| {
+                                    app_state.canvas.record_snapshot();
+                                    let comp_count = template.components.len();
+                                    let template_name = template.name.clone();
+                                    for comp in template.components {
+                                        app_state.canvas.add_component(comp);
+                                    }
+                                    show_template_gallery.set(false);
+                                    app_state.ui.notification.set(Some(Notification::success(
+                                        format!("✨ Template '{}' applied!", template_name)
+                                    )));
+                                    announce(&format!("Template {} applied with {} components", template_name, comp_count));
+                                }
+                            />
+                        }.into_any()
+                    } else {
+                        view! { <div></div> }.into_any()
+                    }}
 
                 {move || if show_export.get() {
                     view! {
-                        <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
-                            <div style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:800px;width:80vw;">
-                                <h3>{"Export Code"}</h3>
+                        <div 
+                            class="modal-overlay"
+                            style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="export-dialog-title"
+                        >
+                            <div class="modal-content" style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:800px;width:80vw;">
+                                <h3 id="export-dialog-title">{"Export Code"}</h3>
+                                <label for="export-format" class="visually-hidden">{"Export format"}</label>
                                 <select
+                                    id="export-format"
                                     prop:value=export_template
                                     on:input=move |ev| export_template.set(event_target_value(&ev))
-                                    style="margin-bottom:1em;"
+                                    style="margin-bottom:1em;width:100%;padding:0.5rem;"
                                 >
-                                    <option value="leptos">{"Leptos Component"}</option>
-                                    <option value="html">{"HTML"}</option>
-                                    <option value="markdown">{"Markdown"}</option>
-                                    <option value="json">{"Raw JSON"}</option>
+                                    <optgroup label="Framework Code">
+                                        <option value="leptos">{"Leptos Component"}</option>
+                                        <option value="react">{"React/JSX Component"}</option>
+                                        <option value="svelte">{"Svelte Component"}</option>
+                                    </optgroup>
+                                    <optgroup label="Web Output">
+                                        <option value="html">{"Plain HTML"}</option>
+                                        <option value="tailwind">{"HTML + Tailwind CSS"}</option>
+                                    </optgroup>
+                                    <optgroup label="Data Formats">
+                                        <option value="json">{"Raw JSON"}</option>
+                                        <option value="jsonschema">{"JSON Schema"}</option>
+                                        <option value="typescript">{"TypeScript Types"}</option>
+                                    </optgroup>
+                                    <optgroup label="Documentation">
+                                        <option value="markdown">{"Markdown"}</option>
+                                    </optgroup>
                                 </select>
-                                <textarea style="width:100%;height:300px;margin-bottom:0.75rem;" readonly>
+                                <textarea 
+                                    style="width:100%;height:300px;margin-bottom:0.75rem;font-family:monospace;font-size:0.875rem;" 
+                                    readonly
+                                    aria-label="Generated code"
+                                >
                                     {export_code.get()}
                                 </textarea>
                                 <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
-                                    <button on:click=copy_export_code class="btn btn-secondary">{"Copy"}</button>
-                                    <button on:click=download_export_code class="btn btn-secondary">{"Download"}</button>
+                                    <button on:click=copy_export_code class="btn btn-secondary">{"📋 Copy"}</button>
+                                    <button on:click=download_export_code class="btn btn-secondary">{"⬇️ Download"}</button>
                                     <button on:click=close_export class="btn btn-outline">{"Close"}</button>
                                 </div>
                             </div>
@@ -438,8 +556,9 @@ pub fn App() -> impl IntoView {
                     view! { <div></div> }.into_any()
                 }}
 
-                <Snackbar notification=app_state.ui.notification />
-            </div>
+                    <Snackbar notification=app_state.ui.notification />
+                </div>
+            </AccessibilityProvider>
         </DesignTokenProvider>
     }
 }
