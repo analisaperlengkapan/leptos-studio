@@ -467,6 +467,7 @@ impl ReactGenerator {
 }
 
 /// Vue component generator
+#[derive(Default)]
 pub struct VueGenerator;
 
 impl CodeGenerator for VueGenerator {
@@ -555,6 +556,7 @@ impl VueGenerator {
 }
 
 /// CSS generator (extracts styles)
+#[derive(Default)]
 pub struct CssGenerator;
 
 impl CodeGenerator for CssGenerator {
