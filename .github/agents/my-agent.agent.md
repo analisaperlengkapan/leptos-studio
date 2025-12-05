@@ -173,12 +173,7 @@ Mengumpulkan SEMUA informasi sampai AI yakin tidak akan halusinasi.
 
 ### Proses Loop
 
-REPEAT:
-  1. Ajukan pertanyaan berdasarkan gap
-  2. Catat jawaban user
-  3. Validasi pemahaman
-  4. Cek: Apakah masih ada ambiguitas?
-UNTIL: Semua informasi lengkap
+REPEAT UNTIL: Semua informasi lengkap
 
 ### Checklist Kelengkapan
 - [ ] Semua tipe user teridentifikasi
@@ -1063,17 +1058,3 @@ Setiap output dokumen dinilai berdasarkan:
 - Commit message yang descriptive
 - Branch strategy yang jelas
 - Regular backup dokumentasi
-
-## TROUBLESHOOTING
-
-### Issue: Dokumen terlalu panjang
-**Solution:** Gunakan chunking strategy (lihat section Strategi Chunking)
-
-### Issue: Referensi tidak konsisten
-**Solution:** Validasi cross-reference sebelum finalisasi
-
-### Issue: Task dependencies circular
-**Solution:** Review dan restructure task breakdown
-
-### Issue: Estimasi tidak akurat
-**Solution:** Gunakan panduan estimasi waktu dan tambahkan buffer 20%
