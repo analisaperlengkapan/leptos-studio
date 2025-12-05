@@ -350,7 +350,7 @@ impl CodeGenerator for ReactGenerator {
         output.push_str("    <>\n");
 
         for component in components {
-            self.generate_react(component, &mut output, 3)?;
+            Self::generate_react(component, &mut output, 3)?;
         }
 
         output.push_str("    </>\n");
@@ -369,7 +369,6 @@ impl CodeGenerator for ReactGenerator {
 
 impl ReactGenerator {
     fn generate_react(
-        &self,
         component: &CanvasComponent,
         output: &mut String,
         indent_level: usize,
@@ -446,7 +445,7 @@ impl ReactGenerator {
                 output.push_str(&format!("{}<div style={{{}}}>\n", indent, style));
 
                 for child in &container.children {
-                    self.generate_react(child, output, indent_level + 1)?;
+                    Self::generate_react(child, output, indent_level + 1)?;
                 }
 
                 output.push_str(&format!("{}</div>\n", indent));
@@ -468,6 +467,7 @@ impl ReactGenerator {
 }
 
 /// Vue component generator
+#[derive(Default)]
 pub struct VueGenerator;
 
 impl CodeGenerator for VueGenerator {
@@ -475,7 +475,7 @@ impl CodeGenerator for VueGenerator {
         let mut template = String::from("<template>\n  <div class=\"generated-layout\">\n");
 
         for component in components {
-            self.generate_vue(component, &mut template, 2)?;
+            Self::generate_vue(component, &mut template, 2)?;
         }
 
         template.push_str("  </div>\n</template>\n\n");
@@ -502,7 +502,6 @@ impl CodeGenerator for VueGenerator {
 
 impl VueGenerator {
     fn generate_vue(
-        &self,
         component: &CanvasComponent,
         output: &mut String,
         indent_level: usize,
@@ -542,7 +541,7 @@ impl VueGenerator {
             CanvasComponent::Container(container) => {
                 output.push_str(&format!("{}<div>\n", indent));
                 for child in &container.children {
-                    self.generate_vue(child, output, indent_level + 1)?;
+                    Self::generate_vue(child, output, indent_level + 1)?;
                 }
                 output.push_str(&format!("{}</div>\n", indent));
             }
@@ -557,6 +556,7 @@ impl VueGenerator {
 }
 
 /// CSS generator (extracts styles)
+#[derive(Default)]
 pub struct CssGenerator;
 
 impl CodeGenerator for CssGenerator {
@@ -605,7 +605,7 @@ impl CodeGenerator for CssGenerator {
         css.push_str(".btn-lg { padding: 12px 24px; font-size: 16px; }\n\n");
 
         // Container styles
-        self.extract_container_styles(components, &mut css, 0);
+        Self::extract_container_styles(components, &mut css);
 
         Ok(css)
     }
@@ -617,10 +617,8 @@ impl CodeGenerator for CssGenerator {
 
 impl CssGenerator {
     fn extract_container_styles(
-        &self,
         components: &[CanvasComponent],
         css: &mut String,
-        _depth: usize,
     ) {
         for component in components {
             if let CanvasComponent::Container(container) = component {
@@ -669,7 +667,7 @@ impl CssGenerator {
                 css.push_str("}\n\n");
 
                 // Recurse into children
-                self.extract_container_styles(&container.children, css, _depth + 1);
+                Self::extract_container_styles(&container.children, css);
             }
         }
     }
@@ -682,7 +680,7 @@ mod tests {
 
     #[test]
     fn test_json_schema_generator() {
-        let generator = JsonSchemaGenerator::default();
+        let generator = JsonSchemaGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
         let schema = generator.generate(&[button]).unwrap();
 
@@ -693,7 +691,7 @@ mod tests {
 
     #[test]
     fn test_typescript_generator() {
-        let generator = TypeScriptGenerator::default();
+        let generator = TypeScriptGenerator;
         let types = generator.generate(&[]).unwrap();
 
         assert!(types.contains("ButtonVariant"));
@@ -703,7 +701,7 @@ mod tests {
 
     #[test]
     fn test_react_generator() {
-        let generator = ReactGenerator::default();
+        let generator = ReactGenerator;
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
         let code = generator.generate(&[text]).unwrap();
 
@@ -735,7 +733,7 @@ mod tests {
     
     #[test]
     fn test_tailwind_generator() {
-        let generator = TailwindHtmlGenerator::default();
+        let generator = TailwindHtmlGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
         let html = generator.generate(&[button]).unwrap();
 
@@ -745,7 +743,7 @@ mod tests {
     
     #[test]
     fn test_svelte_generator() {
-        let generator = SvelteGenerator::default();
+        let generator = SvelteGenerator;
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
         let code = generator.generate(&[text]).unwrap();
 
@@ -779,7 +777,7 @@ impl CodeGenerator for TailwindHtmlGenerator {
         output.push_str("  <main class=\"container mx-auto p-4\">\n");
         
         for component in components {
-            self.generate_tailwind(component, &mut output, 2)?;
+            Self::generate_tailwind(component, &mut output, 2)?;
         }
         
         output.push_str("  </main>\n");
@@ -796,7 +794,6 @@ impl CodeGenerator for TailwindHtmlGenerator {
 
 impl TailwindHtmlGenerator {
     fn generate_tailwind(
-        &self,
         component: &CanvasComponent,
         output: &mut String,
         indent_level: usize,
@@ -882,13 +879,13 @@ impl TailwindHtmlGenerator {
                     crate::domain::LayoutType::Stack => "flex flex-col".to_string(),
                 };
                 
-                let gap_class = format!("gap-{}", (container.gap / 4).max(1).min(16));
+                let gap_class = format!("gap-{}", (container.gap / 4).clamp(1, 16));
                 let padding_class = format!(
                     "pt-{} pr-{} pb-{} pl-{}",
-                    (container.padding.top / 4).max(0).min(16),
-                    (container.padding.right / 4).max(0).min(16),
-                    (container.padding.bottom / 4).max(0).min(16),
-                    (container.padding.left / 4).max(0).min(16)
+                    (container.padding.top / 4).min(16),
+                    (container.padding.right / 4).min(16),
+                    (container.padding.bottom / 4).min(16),
+                    (container.padding.left / 4).min(16)
                 );
                 
                 output.push_str(&format!(
@@ -897,7 +894,7 @@ impl TailwindHtmlGenerator {
                 ));
                 
                 for child in &container.children {
-                    self.generate_tailwind(child, output, indent_level + 1)?;
+                    Self::generate_tailwind(child, output, indent_level + 1)?;
                 }
                 
                 output.push_str(&format!("{}</div>\n", indent));
@@ -932,7 +929,7 @@ impl CodeGenerator for SvelteGenerator {
         output.push_str("<div class=\"generated-layout\">\n");
         
         for component in components {
-            self.generate_svelte(component, &mut output, 1)?;
+            Self::generate_svelte(component, &mut output, 1)?;
         }
         
         output.push_str("</div>\n\n");
@@ -980,7 +977,6 @@ impl CodeGenerator for SvelteGenerator {
 
 impl SvelteGenerator {
     fn generate_svelte(
-        &self,
         component: &CanvasComponent,
         output: &mut String,
         indent_level: usize,
@@ -1055,7 +1051,7 @@ impl SvelteGenerator {
                 output.push_str(&format!("{}<div style=\"{}\">\n", indent, style));
                 
                 for child in &container.children {
-                    self.generate_svelte(child, output, indent_level + 1)?;
+                    Self::generate_svelte(child, output, indent_level + 1)?;
                 }
                 
                 output.push_str(&format!("{}</div>\n", indent));

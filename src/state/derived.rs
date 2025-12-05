@@ -162,10 +162,10 @@ fn find_component_by_id(components: &[CanvasComponent], id: &ComponentId) -> Opt
         if comp.id() == id {
             return Some(comp.clone());
         }
-        if let CanvasComponent::Container(container) = comp {
-            if let Some(found) = find_component_by_id(&container.children, id) {
-                return Some(found);
-            }
+        if let CanvasComponent::Container(container) = comp
+            && let Some(found) = find_component_by_id(&container.children, id)
+        {
+            return Some(found);
         }
     }
     None

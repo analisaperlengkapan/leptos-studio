@@ -78,6 +78,7 @@ impl Template {
 }
 
 /// Template service for managing and applying templates
+#[derive(Default)]
 pub struct TemplateService;
 
 impl TemplateService {
