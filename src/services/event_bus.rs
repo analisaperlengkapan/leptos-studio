@@ -174,7 +174,7 @@ impl EventBus {
 
     /// Check if last event matches a specific type
     pub fn is_component_event(&self) -> bool {
-        self.current().map_or(false, |e| {
+        self.current().is_some_and(|e| {
             matches!(
                 e,
                 AppEvent::ComponentAdded { .. }
@@ -187,7 +187,7 @@ impl EventBus {
 
     /// Check if last event is a canvas event
     pub fn is_canvas_event(&self) -> bool {
-        self.current().map_or(false, |e| {
+        self.current().is_some_and(|e| {
             matches!(
                 e,
                 AppEvent::CanvasCleared | AppEvent::CanvasLoaded | AppEvent::CanvasSnapshot
@@ -197,7 +197,7 @@ impl EventBus {
 
     /// Check if last event is a project event
     pub fn is_project_event(&self) -> bool {
-        self.current().map_or(false, |e| {
+        self.current().is_some_and(|e| {
             matches!(
                 e,
                 AppEvent::ProjectSaved { .. }

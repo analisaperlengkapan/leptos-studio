@@ -259,31 +259,31 @@ pub fn App() -> impl IntoView {
             "json" => serde_json::to_string_pretty(&comps)
                 .unwrap_or_else(|e| format!("Error serializing JSON: {}", e)),
             "jsonschema" => {
-                let generator = JsonSchemaGenerator::default();
+                let generator = JsonSchemaGenerator;
                 generator
                     .generate(&comps)
                     .unwrap_or_else(|e| e.user_message())
             }
             "typescript" => {
-                let generator = TypeScriptGenerator::default();
+                let generator = TypeScriptGenerator;
                 generator
                     .generate(&comps)
                     .unwrap_or_else(|e| e.user_message())
             }
             "react" => {
-                let generator = ReactGenerator::default();
+                let generator = ReactGenerator;
                 generator
                     .generate(&comps)
                     .unwrap_or_else(|e| e.user_message())
             }
             "tailwind" => {
-                let generator = TailwindHtmlGenerator::default();
+                let generator = TailwindHtmlGenerator;
                 generator
                     .generate(&comps)
                     .unwrap_or_else(|e| e.user_message())
             }
             "svelte" => {
-                let generator = SvelteGenerator::default();
+                let generator = SvelteGenerator;
                 generator
                     .generate(&comps)
                     .unwrap_or_else(|e| e.user_message())
