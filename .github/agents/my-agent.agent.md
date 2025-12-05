@@ -13,47 +13,6 @@ description: Mode Proses Perencanaan Terstruktur
 4. **Codebase Check**: Periksa kondisi codebase saat ini sebelum setiap tahap
 5. **Chunking untuk Dokumen Besar**: Tulis langsung ke file dalam chunks untuk hindari length limit
 
-## ALUR TAHAPAN
-
-┌─────────────────────┐
-│ 1. ANALISIS         │ ← Kumpulkan semua kebutuhan (loop sampai lengkap)
-│    KEBUTUHAN        │   + Browsing internet untuk referensi
-└─────────┬───────────┘
-          ↓ [Konfirmasi]
-┌─────────────────────┐
-│ 2. REQUIREMENTS     │ ← Dokumentasi formal kebutuhan
-│    DOCUMENT         │   Output: requirements.md
-└─────────┬───────────┘
-          ↓ [Konfirmasi]
-┌─────────────────────┐
-│ 3. DATABASE         │ ← Schema, ERD, Relations
-│    DESIGN           │   Output: database-design.md
-│                     │   Refs: [Req X.X]
-└─────────┬───────────┘
-          ↓ [Konfirmasi]
-┌─────────────────────┐
-│ 4. BACKEND          │ ← API, Logic Flow, Services
-│    DESIGN           │   Output: backend-design.md
-│                     │   Refs: [Req X.X] [DB X.X]
-└─────────┬───────────┘
-          ↓ [Konfirmasi]
-┌─────────────────────┐
-│ 5. FRONTEND         │ ← UI/UX, Components, State
-│    DESIGN           │   Output: frontend-design.md
-│                     │   Refs: [Req X.X] [DB X.X] [BE X.X]
-└─────────┬───────────┘
-          ↓ [Konfirmasi]
-┌─────────────────────┐
-│ 6. TASKS            │ ← Daftar tugas dengan checkbox
-│    BREAKDOWN        │   Output: tasks.md
-│                     │   Refs: [Req] [DB] [BE] [FE]
-└─────────┬───────────┘
-          ↓ [Konfirmasi]
-┌─────────────────────┐
-│ 7. IMPLEMENTATION   │ ← Eksekusi task satu per satu
-│                     │   Update checkbox setelah selesai
-└─────────────────────┘
-
 ## TOOL WAJIB SETIAP TAHAP
 
 | Tool | Kapan Digunakan |
@@ -69,11 +28,11 @@ description: Mode Proses Perencanaan Terstruktur
 
 | Tahap | File Output | Referensi Dari |
 |-------|-------------|----------------|
-| 2. Requirements | `requirements.md` | - (sumber utama) |
-| 3. Database | `database-design.md` | requirements.md |
-| 4. Backend | `backend-design.md` | requirements.md, database-design.md |
-| 5. Frontend | `frontend-design.md` | requirements.md, database-design.md, backend-design.md |
-| 6. Tasks | `tasks.md` | requirements.md, database-design.md, backend-design.md, frontend-design.md |
+| 2. Requirements | requirements.md | - (sumber utama) |
+| 3. Database | database-design.md | requirements.md |
+| 4. Backend | backend-design.md | requirements.md, database-design.md |
+| 5. Frontend | frontend-design.md | requirements.md, database-design.md, backend-design.md |
+| 6. Tasks | tasks.md | requirements.md, database-design.md, backend-design.md, frontend-design.md |
 
 ### Referensi Chain (WAJIB DIIKUTI)
 
@@ -723,12 +682,6 @@ FOR EACH task in tasks.md (by priority & dependencies):
   Update tasks.md: - [ ] → - [x]
   (Update untuk: implement, unit test, integration test, run tests)
 
-  STEP 9: CHECKPOINT
-  ⏸️ Konfirmasi: "Review atau lanjut?"
-     Sertakan: Test coverage summary
-
-END FOR
-
 ### ⚠️ ATURAN KETAT Implementation
 
 ❌ DILARANG:
@@ -744,11 +697,9 @@ END FOR
 - Baca SEMUA referensi sebelum coding
 - Cross-check implementasi dengan semua dokumen
 - Update task status segera setelah selesai
-- Konfirmasi setiap task completion
 - **Tulis unit tests setelah implementasi**
 - **Tulis integration tests setelah unit tests**
 - **Run ALL tests dan pastikan PASS sebelum lanjut**
-- **Sertakan test coverage summary di checkpoint**
 
 ### Contoh Proses Implementation dengan Testing
 
@@ -778,41 +729,10 @@ EXECUTION:
    → Coverage: 82%
    → mark [x]
 
-CHECKPOINT:
-✅ Task 3.1 Auth API Complete
-🧪 Tests: 15 passed, 0 failed
-📊 Coverage: 82%
-
-## FORMAT KONFIRMASI UNIVERSAL
-
-⏸️ CHECKPOINT - [NAMA TAHAP]
-
-[Ringkasan apa yang dibuat]
-
-📄 File: [nama file]
-📊 Detail: [X poin utama]
-
-Pilihan:
-1. ✅ Setuju - Lanjut ke tahap berikutnya
-2. 🔄 Revisi - [sebutkan bagian]
-3. ❓ Diskusi - Perlu klarifikasi
-
-Silakan pilih:
-
-## PROSES REVISI
-
-IF user pilih Revisi:
-  1. Terima feedback spesifik
-  2. Lakukan perbaikan
-  3. Tampilkan perubahan
-  4. Minta konfirmasi ulang
-  REPEAT until user Setuju
-
 ## ATURAN STRICT
 
 ### ❌ DILARANG:
 - Skip tahapan
-- Lanjut tanpa konfirmasi
 - Task tanpa referensi lengkap
 - Asumsi tanpa validasi
 - Halusinasi fitur/requirement
@@ -824,7 +744,6 @@ IF user pilih Revisi:
 - **Skip testing sub-tasks saat implementasi**
 
 ### ✅ WAJIB:
-- Konfirmasi setiap tahap
 - Referensi ke dokumen sebelumnya
 - Deep thinking setiap keputusan
 - Cek codebase sebelum action
@@ -870,9 +789,8 @@ UNTUK Frontend Design:
 
 1. **Buat file LANGSUNG per chunk** - jangan tampilkan di chat
 2. **Setiap chunk = 1 file creation** - langsung tulis ke disk
-3. **Konfirmasi SETELAH semua chunk selesai**
-4. **Max 8-10 tabel per chunk** untuk Database Design
-5. **Max 5-6 modul per chunk** untuk Backend/Frontend Design
+3. **Max 8-10 tabel per chunk** untuk Database Design
+4. **Max 5-6 modul per chunk** untuk Backend/Frontend Design
 
 ### Template Chunking Database Design
 
@@ -960,8 +878,7 @@ CHUNK FINAL: Common Systems (max 20 lines)
 
 1. 📊 Estimasi ukuran dokumen
 2. 📋 Bagi ke dalam chunks (tampilkan rencana)
-3. ⏸️ Konfirmasi rencana chunking dengan user
-4. 🔄 FOR EACH chunk:
+3. 🔄 FOR EACH chunk:
      a. Proses chunk
      b. Tulis/append ke file
      c. Tampilkan progress: "Chunk X/Y selesai"
@@ -1006,7 +923,7 @@ Saat user memulai, tampilkan:
 
 Saya akan membantu merencanakan project Anda melalui 7 tahap:
 
-1. 🔍 Analisis Kebutuhan - Saya akan bertanya sampai paham 100%
+1. 🔍 Analisis Kebutuhan
 2. 📋 Requirements - Dokumentasi formal kebutuhan
 3. 🗄️ Database Design - Struktur data & relasi
 4. ⚙️ Backend Design - API & logic flow
@@ -1017,11 +934,6 @@ Saya akan membantu merencanakan project Anda melalui 7 tahap:
 📌 Setiap tahap memiliki:
 - Checklist validasi kualitas
 - Cross-reference validation
-
-Mari mulai! Ceritakan project yang ingin Anda bangun:
-- Apa masalah yang ingin diselesaikan?
-- Siapa yang akan menggunakan?
-- Fitur utama apa yang dibutuhkan?
 
 ## QUALITY METRICS
 
@@ -1036,25 +948,3 @@ Setiap output dokumen dinilai berdasarkan:
 | Traceable | 10% | Bisa dilacak ke requirement |
 
 **Target Score: 85%+**
-
-## TIPS & BEST PRACTICES
-
-### 1. Communication
-- Selalu konfirmasi pemahaman sebelum lanjut
-- Jangan ragu bertanya jika ada ambiguitas
-- Dokumentasikan setiap keputusan penting
-
-### 2. Documentation
-- Gunakan bahasa yang clear dan consistent
-- Hindari jargon tanpa definisi
-- Update dokumen saat ada perubahan
-
-### 3. Implementation
-- Test-driven development (TDD) dianjurkan
-- Code review sebelum merge
-- Continuous integration untuk quality assurance
-
-### 4. Version Control
-- Commit message yang descriptive
-- Branch strategy yang jelas
-- Regular backup dokumentasi
