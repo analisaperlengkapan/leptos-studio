@@ -6,6 +6,7 @@ use crate::builder::canvas::Canvas;
 use crate::builder::command_palette::CommandPalette;
 use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::DragPreview;
+use crate::builder::export_modal::ExportModal;
 use crate::builder::keyboard::{KeyboardAction, KeyboardHandler, get_default_shortcuts};
 use crate::builder::preview::Preview;
 use crate::builder::property_editor::PropertyEditor;
@@ -27,7 +28,6 @@ use crate::services::template_service::TemplateService;
 use crate::state::app_state::{AppState, Notification};
 use crate::state::derived::DerivedState;
 use crate::utils::{copy_to_clipboard, read_from_clipboard};
-use js_sys::encode_uri_component;
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -353,56 +353,6 @@ pub fn App() -> impl IntoView {
         }
     };
 
-    // Export modal actions
-    let copy_export_code = move |_| {
-        let code = export_code.get();
-        let app_state_clone = app_state;
-        wasm_bindgen_futures::spawn_local(async move {
-            match copy_to_clipboard(&code).await {
-                Ok(()) => {
-                    app_state_clone
-                        .ui
-                        .notification
-                        .set(Some(Notification::success(
-                            "📋 Code copied to clipboard!".to_string(),
-                        )));
-                }
-                Err(e) => {
-                    app_state_clone
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!(
-                            "❌ {}",
-                            e.user_message()
-                        ))));
-                }
-            }
-        });
-    };
-
-    let download_export_code = move |_| {
-        let code = export_code.get();
-        let mime = match export_template.get().as_str() {
-            "html" => "text/html",
-            "markdown" => "text/markdown",
-            "json" => "application/json",
-            _ => "text/plain",
-        };
-
-        let encoded = encode_uri_component(&code);
-        let url = format!("data:{};charset=utf-8,{}", mime, encoded);
-
-        if let Some(window) = web_sys::window() {
-            let _ = window.open_with_url_and_target(&url, "_blank");
-        } else {
-            app_state.ui.notification.set(Some(Notification::error(
-                "❌ Unable to open download window".to_string(),
-            )));
-        }
-    };
-
-    let close_export = move |_| show_export.set(false);
-
     view! {
         <DesignTokenProvider tokens=design_tokens>
             <AccessibilityProvider>
@@ -503,54 +453,13 @@ pub fn App() -> impl IntoView {
 
                 {move || if show_export.get() {
                     view! {
-                        <div 
-                            class="modal-overlay"
-                            style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;"
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="export-dialog-title"
-                        >
-                            <div class="modal-content" style="background:#fff;padding:2rem;border-radius:8px;min-width:400px;max-width:800px;width:80vw;">
-                                <h3 id="export-dialog-title">{"Export Code"}</h3>
-                                <label for="export-format" class="visually-hidden">{"Export format"}</label>
-                                <select
-                                    id="export-format"
-                                    prop:value=export_template
-                                    on:input=move |ev| export_template.set(event_target_value(&ev))
-                                    style="margin-bottom:1em;width:100%;padding:0.5rem;"
-                                >
-                                    <optgroup label="Framework Code">
-                                        <option value="leptos">{"Leptos Component"}</option>
-                                        <option value="react">{"React/JSX Component"}</option>
-                                        <option value="svelte">{"Svelte Component"}</option>
-                                    </optgroup>
-                                    <optgroup label="Web Output">
-                                        <option value="html">{"Plain HTML"}</option>
-                                        <option value="tailwind">{"HTML + Tailwind CSS"}</option>
-                                    </optgroup>
-                                    <optgroup label="Data Formats">
-                                        <option value="json">{"Raw JSON"}</option>
-                                        <option value="jsonschema">{"JSON Schema"}</option>
-                                        <option value="typescript">{"TypeScript Types"}</option>
-                                    </optgroup>
-                                    <optgroup label="Documentation">
-                                        <option value="markdown">{"Markdown"}</option>
-                                    </optgroup>
-                                </select>
-                                <textarea 
-                                    style="width:100%;height:300px;margin-bottom:0.75rem;font-family:monospace;font-size:0.875rem;" 
-                                    readonly
-                                    aria-label="Generated code"
-                                >
-                                    {export_code.get()}
-                                </textarea>
-                                <div style="display:flex;justify-content:flex-end;gap:0.5rem;">
-                                    <button on:click=copy_export_code class="btn btn-secondary">{"📋 Copy"}</button>
-                                    <button on:click=download_export_code class="btn btn-secondary">{"⬇️ Download"}</button>
-                                    <button on:click=close_export class="btn btn-outline">{"Close"}</button>
-                                </div>
-                            </div>
-                        </div>
+                        <ExportModal
+                            show=show_export
+                            code=export_code
+                            format=export_template
+                            on_close=Callback::new(move |_| show_export.set(false))
+                            notification_signal=app_state.ui.notification
+                        />
                     }.into_any()
                 } else {
                     view! { <div></div> }.into_any()
