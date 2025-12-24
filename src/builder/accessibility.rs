@@ -111,7 +111,7 @@ pub fn SkipLink(
     label: Option<String>,
 ) -> impl IntoView {
     let text = label.unwrap_or_else(|| "Skip to main content".to_string());
-    
+
     view! {
         <a
             href=format!("#{}", target)

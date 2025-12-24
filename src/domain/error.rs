@@ -195,15 +195,15 @@ impl AppError {
             AppError::Validation(ValidationError::EmptyName) => {
                 Some("Component names cannot be empty. Please provide a valid identifier.")
             }
-            AppError::Validation(ValidationError::InvalidName(_)) => {
-                Some("Component names must start with a letter or underscore, and contain only letters, numbers, and underscores.")
-            }
-            AppError::Validation(ValidationError::InvalidTemplate(_)) => {
-                Some("Templates must contain valid HTML and should not include script tags or event handlers for security.")
-            }
-            AppError::Storage(_) => {
-                Some("Check if localStorage is available and not full. Try clearing browser cache if the issue persists.")
-            }
+            AppError::Validation(ValidationError::InvalidName(_)) => Some(
+                "Component names must start with a letter or underscore, and contain only letters, numbers, and underscores.",
+            ),
+            AppError::Validation(ValidationError::InvalidTemplate(_)) => Some(
+                "Templates must contain valid HTML and should not include script tags or event handlers for security.",
+            ),
+            AppError::Storage(_) => Some(
+                "Check if localStorage is available and not full. Try clearing browser cache if the issue persists.",
+            ),
             AppError::ComponentLimitExceeded(_) => {
                 Some("Consider grouping components into containers or removing unused components.")
             }
@@ -247,10 +247,7 @@ mod tests {
 
         for (i, code1) in codes.iter().enumerate() {
             for code2 in codes.iter().skip(i + 1) {
-                assert_ne!(
-                    *code1 as u32, *code2 as u32,
-                    "Error codes must be unique"
-                );
+                assert_ne!(*code1 as u32, *code2 as u32, "Error codes must be unique");
             }
         }
     }
@@ -281,4 +278,3 @@ mod tests {
         assert!(error.help_text().is_some());
     }
 }
-

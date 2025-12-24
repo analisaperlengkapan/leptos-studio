@@ -205,7 +205,11 @@ impl AnalyticsService {
             total_metrics: metrics.len(),
             avg_render_time,
             max_render_time,
-            min_render_time: if min_render_time == f64::INFINITY { 0.0 } else { min_render_time },
+            min_render_time: if min_render_time == f64::INFINITY {
+                0.0
+            } else {
+                min_render_time
+            },
             session: self.session_info(),
         }
     }
@@ -273,9 +277,8 @@ mod tests {
 
     #[wasm_bindgen_test]
     fn test_metric_creation() {
-        let metric = Metric::new(MetricType::RenderTime, 16.5)
-            .with_label("component", "Canvas");
-        
+        let metric = Metric::new(MetricType::RenderTime, 16.5).with_label("component", "Canvas");
+
         assert_eq!(metric.metric_type, MetricType::RenderTime);
         assert_eq!(metric.value, 16.5);
         assert_eq!(metric.labels.get("component"), Some(&"Canvas".to_string()));

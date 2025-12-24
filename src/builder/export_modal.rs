@@ -1,7 +1,7 @@
-use leptos::prelude::*;
-use js_sys::encode_uri_component;
 use crate::state::app_state::Notification;
 use crate::utils::copy_to_clipboard;
+use js_sys::encode_uri_component;
+use leptos::prelude::*;
 
 #[component]
 pub fn ExportModal(
@@ -11,7 +11,6 @@ pub fn ExportModal(
     on_close: Callback<(), ()>,
     notification_signal: RwSignal<Option<Notification>>,
 ) -> impl IntoView {
-
     let copy_handler = move |_| {
         let code_text = code.get();
         let notif_signal = notification_signal;

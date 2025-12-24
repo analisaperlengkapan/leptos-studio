@@ -19,7 +19,7 @@ pub fn TemplateGallery(
     on_apply: Callback<Template>,
 ) -> impl IntoView {
     let _app_state = AppState::use_context();
-    
+
     // Local state
     let search_query = RwSignal::new(String::new());
     let selected_category = RwSignal::new(None::<TemplateCategory>);
@@ -29,7 +29,7 @@ pub fn TemplateGallery(
     let filtered_templates = Memo::new(move |_| {
         let query = search_query.get().to_lowercase();
         let category = selected_category.get();
-        
+
         let mut templates = if query.is_empty() {
             if let Some(cat) = category {
                 TemplateService::templates_by_category(cat)
@@ -53,7 +53,7 @@ pub fn TemplateGallery(
     // Category button helper
     let category_button = move |cat: Option<TemplateCategory>, label: &'static str| {
         let is_active = Memo::new(move |_| selected_category.get() == cat);
-        
+
         view! {
             <button
                 class=move || if is_active.get() { "category-btn active" } else { "category-btn" }

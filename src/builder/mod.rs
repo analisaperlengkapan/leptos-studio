@@ -9,6 +9,7 @@ pub mod component_library_enhanced;
 pub mod component_palette;
 pub mod design_tokens;
 pub mod drag_drop;
+pub mod export_modal;
 pub mod git_panel;
 pub mod keyboard;
 pub mod preview;
@@ -20,7 +21,6 @@ pub mod snackbar;
 pub mod status_bar;
 pub mod styling_system;
 pub mod template_gallery;
-pub mod export_modal;
 
 // Re-export components for easier imports
 pub use accessibility::{

@@ -85,7 +85,7 @@ fn fuzzy_score(text: &str, query: &str) -> Option<i32> {
     // Fuzzy character match
     let text_chars: Vec<char> = text_lower.chars().collect();
     let query_chars: Vec<char> = query_lower.chars().collect();
-    
+
     let mut query_idx = 0;
     let mut score = 0;
     let mut consecutive = 0;
@@ -134,10 +134,12 @@ pub fn ComponentPalette() -> impl IntoView {
             .filter_map(|comp| {
                 // Score by name and description
                 let name_score = fuzzy_score(&comp.name, &query);
-                let desc_score = comp.description.as_ref()
+                let desc_score = comp
+                    .description
+                    .as_ref()
                     .and_then(|d| fuzzy_score(d, &query))
                     .unwrap_or(0);
-                
+
                 let total_score = name_score.map(|s| s + desc_score / 2);
                 total_score.map(|score| (comp, score))
             })
@@ -153,7 +155,7 @@ pub fn ComponentPalette() -> impl IntoView {
     let category_counts = Memo::new(move |_| {
         let library = app_state.ui.component_library.get();
         let mut counts = std::collections::HashMap::new();
-        
+
         for comp in &library {
             let cat = if comp.category == "Custom" {
                 ComponentCategory::Custom
@@ -166,10 +168,10 @@ pub fn ComponentPalette() -> impl IntoView {
             } else {
                 ComponentCategory::All
             };
-            
+
             *counts.entry(cat).or_insert(0) += 1;
         }
-        
+
         counts.insert(ComponentCategory::All, library.len());
         counts
     });
@@ -237,7 +239,7 @@ pub fn ComponentPalette() -> impl IntoView {
                                     let cat_for_class = cat.clone();
                                     let cat_for_count = cat.clone();
                                     let count = category_counts.get().get(&cat_for_count).copied().unwrap_or(0);
-                                    
+
                                     view! {
                                         <button
                                             class=move || {

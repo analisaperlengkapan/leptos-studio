@@ -54,14 +54,11 @@ impl DerivedState {
         let canvas = app_state.canvas;
 
         // Component count
-        let component_count = Memo::new(move |_| {
-            count_components_recursive(&canvas.components.get())
-        });
+        let component_count =
+            Memo::new(move |_| count_components_recursive(&canvas.components.get()));
 
         // Type counts
-        let type_counts = Memo::new(move |_| {
-            count_types_recursive(&canvas.components.get())
-        });
+        let type_counts = Memo::new(move |_| count_types_recursive(&canvas.components.get()));
 
         // Is empty
         let is_empty = Memo::new(move |_| canvas.components.get().is_empty());
@@ -71,30 +68,24 @@ impl DerivedState {
 
         // Selected component
         let selected_component = Memo::new(move |_| {
-            canvas.selected.get().and_then(|id| {
-                find_component_by_id(&canvas.components.get(), &id)
-            })
+            canvas
+                .selected
+                .get()
+                .and_then(|id| find_component_by_id(&canvas.components.get(), &id))
         });
 
         // Max nesting depth
-        let max_nesting_depth = Memo::new(move |_| {
-            calculate_max_depth(&canvas.components.get(), 0)
-        });
+        let max_nesting_depth =
+            Memo::new(move |_| calculate_max_depth(&canvas.components.get(), 0));
 
         // Custom count
-        let custom_count = Memo::new(move |_| {
-            count_custom_components(&canvas.components.get())
-        });
+        let custom_count = Memo::new(move |_| count_custom_components(&canvas.components.get()));
 
         // Can undo
-        let can_undo = Memo::new(move |_| {
-            canvas.history.with(|h| h.can_undo())
-        });
+        let can_undo = Memo::new(move |_| canvas.history.with(|h| h.can_undo()));
 
         // Can redo
-        let can_redo = Memo::new(move |_| {
-            canvas.history.with(|h| h.can_redo())
-        });
+        let can_redo = Memo::new(move |_| canvas.history.with(|h| h.can_redo()));
 
         Self {
             component_count,
@@ -134,7 +125,7 @@ fn count_components_recursive(components: &[CanvasComponent]) -> usize {
 /// Count components by type recursively
 fn count_types_recursive(components: &[CanvasComponent]) -> TypeCounts {
     let mut counts = TypeCounts::default();
-    
+
     for comp in components {
         match comp {
             CanvasComponent::Button(_) => counts.buttons += 1,
@@ -152,12 +143,15 @@ fn count_types_recursive(components: &[CanvasComponent]) -> TypeCounts {
             CanvasComponent::Custom(_) => counts.customs += 1,
         }
     }
-    
+
     counts
 }
 
 /// Find a component by ID in the tree
-fn find_component_by_id(components: &[CanvasComponent], id: &ComponentId) -> Option<CanvasComponent> {
+fn find_component_by_id(
+    components: &[CanvasComponent],
+    id: &ComponentId,
+) -> Option<CanvasComponent> {
     for comp in components {
         if comp.id() == id {
             return Some(comp.clone());
@@ -174,21 +168,21 @@ fn find_component_by_id(components: &[CanvasComponent], id: &ComponentId) -> Opt
 /// Calculate maximum nesting depth
 fn calculate_max_depth(components: &[CanvasComponent], current_depth: usize) -> usize {
     let mut max_depth = current_depth;
-    
+
     for comp in components {
         if let CanvasComponent::Container(container) = comp {
             let child_depth = calculate_max_depth(&container.children, current_depth + 1);
             max_depth = max_depth.max(child_depth);
         }
     }
-    
+
     max_depth
 }
 
 /// Count custom components
 fn count_custom_components(components: &[CanvasComponent]) -> usize {
     let mut count = 0;
-    
+
     for comp in components {
         match comp {
             CanvasComponent::Custom(_) => count += 1,
@@ -198,7 +192,7 @@ fn count_custom_components(components: &[CanvasComponent]) -> usize {
             _ => {}
         }
     }
-    
+
     count
 }
 
@@ -235,7 +229,7 @@ mod tests {
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
         let components = vec![button, text];
-        
+
         assert_eq!(count_components_recursive(&components), 2);
     }
 
@@ -247,7 +241,7 @@ mod tests {
             CanvasComponent::Text(TextComponent::new("Nested".to_string())),
             CanvasComponent::Button(ButtonComponent::new("Nested Button".to_string())),
         ];
-        
+
         let components = vec![button, CanvasComponent::Container(container)];
         assert_eq!(count_components_recursive(&components), 4);
     }
@@ -257,7 +251,7 @@ mod tests {
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
         let components = vec![button, text];
-        
+
         let counts = count_types_recursive(&components);
         assert_eq!(counts.buttons, 1);
         assert_eq!(counts.texts, 1);
@@ -273,7 +267,9 @@ mod tests {
 
         // One level of nesting
         let mut container = ContainerComponent::new();
-        container.children = vec![CanvasComponent::Button(ButtonComponent::new("Nested".to_string()))];
+        container.children = vec![CanvasComponent::Button(ButtonComponent::new(
+            "Nested".to_string(),
+        ))];
         let components = vec![CanvasComponent::Container(container)];
         assert_eq!(calculate_max_depth(&components, 0), 1);
     }
@@ -284,7 +280,7 @@ mod tests {
         let button_id = button.id.clone();
         let component = CanvasComponent::Button(button);
         let components = vec![component.clone()];
-        
+
         let found = find_component_by_id(&components, &button_id);
         assert!(found.is_some());
     }

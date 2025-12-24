@@ -86,7 +86,7 @@ impl TemplateService {
     pub fn new() -> Self {
         Self
     }
-    
+
     /// Get all built-in templates
     pub fn builtin_templates() -> Vec<Template> {
         vec![
@@ -117,7 +117,9 @@ impl TemplateService {
             .filter(|t| {
                 t.name.to_lowercase().contains(&query_lower)
                     || t.description.to_lowercase().contains(&query_lower)
-                    || t.tags.iter().any(|tag| tag.to_lowercase().contains(&query_lower))
+                    || t.tags
+                        .iter()
+                        .any(|tag| tag.to_lowercase().contains(&query_lower))
             })
             .collect()
     }
@@ -459,7 +461,8 @@ impl TemplateService {
         ];
 
         // Copyright
-        let mut copyright = TextComponent::new("© 2024 Your Company. All rights reserved.".to_string());
+        let mut copyright =
+            TextComponent::new("© 2024 Your Company. All rights reserved.".to_string());
         copyright.style = TextStyle::Caption;
 
         footer.children = vec![
@@ -617,14 +620,22 @@ mod tests {
     fn test_templates_by_category() {
         let form_templates = TemplateService::templates_by_category(TemplateCategory::Form);
         assert!(!form_templates.is_empty());
-        assert!(form_templates.iter().all(|t| t.category == TemplateCategory::Form));
+        assert!(
+            form_templates
+                .iter()
+                .all(|t| t.category == TemplateCategory::Form)
+        );
     }
 
     #[test]
     fn test_template_components() {
         let templates = TemplateService::builtin_templates();
         for template in templates {
-            assert!(!template.components.is_empty(), "Template {} has no components", template.id);
+            assert!(
+                !template.components.is_empty(),
+                "Template {} has no components",
+                template.id
+            );
         }
     }
 }

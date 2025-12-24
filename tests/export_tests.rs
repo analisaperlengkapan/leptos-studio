@@ -1,5 +1,7 @@
+use leptos_studio::domain::{
+    ButtonComponent, CanvasComponent, ContainerComponent, FlexDirection, LayoutType,
+};
 use leptos_studio::services::export_service::{CodeGenerator, LeptosCodeGenerator};
-use leptos_studio::domain::{CanvasComponent, ButtonComponent, ContainerComponent, LayoutType, FlexDirection};
 use leptos_studio::state::ExportPreset;
 
 #[test]
@@ -8,14 +10,19 @@ fn test_leptos_generator_structure() {
 
     // Create nested structure: Container -> Button
     let mut container = ContainerComponent::new();
-    container.layout = LayoutType::Flex { direction: FlexDirection::Row, wrap: false };
+    container.layout = LayoutType::Flex {
+        direction: FlexDirection::Row,
+        wrap: false,
+    };
 
     let button = CanvasComponent::Button(ButtonComponent::new("Nested Button".to_string()));
     container.children.push(button);
 
     let components = vec![CanvasComponent::Container(container)];
 
-    let code = generator.generate(&components).expect("Failed to generate code");
+    let code = generator
+        .generate(&components)
+        .expect("Failed to generate code");
 
     println!("{}", code);
 

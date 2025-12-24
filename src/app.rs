@@ -16,14 +16,15 @@ use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
 use crate::domain::component::CanvasComponent;
+use crate::services::analytics_service::AnalyticsService;
+use crate::services::event_bus::EventBus;
+use crate::services::export_advanced::{
+    JsonSchemaGenerator, ReactGenerator, SvelteGenerator, TailwindHtmlGenerator,
+    TypeScriptGenerator,
+};
 use crate::services::export_service::{
     CodeGenerator, HtmlCodeGenerator, LeptosCodeGenerator, MarkdownCodeGenerator,
 };
-use crate::services::export_advanced::{
-    JsonSchemaGenerator, TypeScriptGenerator, ReactGenerator, TailwindHtmlGenerator, SvelteGenerator,
-};
-use crate::services::analytics_service::AnalyticsService;
-use crate::services::event_bus::EventBus;
 use crate::services::template_service::TemplateService;
 use crate::state::app_state::{AppState, Notification};
 use crate::state::derived::DerivedState;
@@ -39,7 +40,7 @@ pub fn App() -> impl IntoView {
     let _event_bus = StoredValue::new(EventBus::new());
     let _template_service = StoredValue::new(TemplateService::new());
     let _analytics_service = StoredValue::new(AnalyticsService::new());
-    
+
     // Create and provide derived state for memoized computations
     DerivedState::provide_context(app_state);
 
@@ -50,7 +51,7 @@ pub fn App() -> impl IntoView {
     let show_export = RwSignal::new(false);
     let export_code = RwSignal::new(String::new());
     let export_template = RwSignal::new("leptos".to_string());
-    
+
     // Template gallery visibility
     let show_template_gallery = RwSignal::new(false);
 
@@ -395,14 +396,14 @@ pub fn App() -> impl IntoView {
                                     <button on:click=save_layout class="btn btn-primary" aria-label="Save layout">{"Save"}</button>
                                     <button on:click=load_layout class="btn btn-secondary" aria-label="Load layout">{"Load"}</button>
                                     <button on:click=do_export class="btn btn-success" aria-label="Export code">{"Export"}</button>
-                                    <button 
-                                        on:click=do_undo 
-                                        class="btn btn-outline" 
+                                    <button
+                                        on:click=do_undo
+                                        class="btn btn-outline"
                                         aria-label="Undo last action"
                                     >{"Undo"}</button>
-                                    <button 
-                                        on:click=do_redo 
-                                        class="btn btn-outline" 
+                                    <button
+                                        on:click=do_redo
+                                        class="btn btn-outline"
                                         aria-label="Redo last action"
                                     >{"Redo"}</button>
                                 </div>
