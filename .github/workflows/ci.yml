@@ -154,7 +154,7 @@ jobs:
           du -h dist/* >> $GITHUB_STEP_SUMMARY
 
       - name: Upload WASM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: wasm-dist-${{ github.sha }}
           path: dist/
@@ -182,7 +182,7 @@ jobs:
           RUSTDOCFLAGS: -D warnings
 
       - name: Upload documentation
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: docs-${{ github.sha }}
           path: target/doc/
