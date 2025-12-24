@@ -41,10 +41,10 @@ pub fn TemplateGallery(
         };
 
         // Filter by category if both search and category are set
-        if let Some(cat) = category {
-            if !query.is_empty() {
-                templates.retain(|t| t.category == cat);
-            }
+        if let Some(cat) = category
+            && !query.is_empty()
+        {
+            templates.retain(|t| t.category == cat);
         }
 
         templates
