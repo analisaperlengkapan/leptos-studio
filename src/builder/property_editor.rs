@@ -35,7 +35,8 @@ pub fn PropertyEditor() -> impl IntoView {
                                 let comp_id = btn.id.clone();
 
                                 view! {
-                                    <div>
+                                    <div class="property-group">
+                                        <div class="group-title">"Appearance"</div>
                                         {button_schema
                                             .into_iter()
                                             .map(|prop| {

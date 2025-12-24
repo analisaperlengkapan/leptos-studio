@@ -12,10 +12,18 @@ use std::fmt;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum AppEvent {
     // Component events
-    ComponentAdded { component_type: String },
-    ComponentRemoved { component_id: String },
-    ComponentUpdated { component_id: String },
-    ComponentSelected { component_id: Option<String> },
+    ComponentAdded {
+        component_type: String,
+    },
+    ComponentRemoved {
+        component_id: String,
+    },
+    ComponentUpdated {
+        component_id: String,
+    },
+    ComponentSelected {
+        component_id: Option<String>,
+    },
 
     // Canvas events
     CanvasCleared,
@@ -23,14 +31,27 @@ pub enum AppEvent {
     CanvasSnapshot,
 
     // Project events
-    ProjectSaved { name: String },
-    ProjectLoaded { name: String },
-    ProjectExported { format: String },
+    ProjectSaved {
+        name: String,
+    },
+    ProjectLoaded {
+        name: String,
+    },
+    ProjectExported {
+        format: String,
+    },
 
     // UI events
-    ThemeChanged { theme: String },
-    ResponsiveModeChanged { mode: String },
-    PanelToggled { panel: String, visible: bool },
+    ThemeChanged {
+        theme: String,
+    },
+    ResponsiveModeChanged {
+        mode: String,
+    },
+    PanelToggled {
+        panel: String,
+        visible: bool,
+    },
 
     // History events
     HistoryUndo,
@@ -38,10 +59,16 @@ pub enum AppEvent {
     HistoryCleared,
 
     // Notification events
-    NotificationShown { message: String, level: NotificationLevel },
+    NotificationShown {
+        message: String,
+        level: NotificationLevel,
+    },
 
     // Custom events for extensibility
-    Custom { name: String, data: String },
+    Custom {
+        name: String,
+        data: String,
+    },
 }
 
 /// Notification severity levels
@@ -79,7 +106,12 @@ impl fmt::Display for AppEvent {
                 write!(f, "Responsive mode changed: {}", mode)
             }
             AppEvent::PanelToggled { panel, visible } => {
-                write!(f, "Panel {}: {}", panel, if *visible { "shown" } else { "hidden" })
+                write!(
+                    f,
+                    "Panel {}: {}",
+                    panel,
+                    if *visible { "shown" } else { "hidden" }
+                )
             }
             AppEvent::HistoryUndo => write!(f, "History: Undo"),
             AppEvent::HistoryRedo => write!(f, "History: Redo"),

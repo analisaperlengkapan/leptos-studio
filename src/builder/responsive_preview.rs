@@ -111,13 +111,17 @@ pub fn CanvasViewport(children: Children) -> impl IntoView {
             class="canvas-viewport-wrapper"
             style={move || {
                 let viewport = ViewportSize::from_mode(responsive_mode.get());
-                format!(
-                    "width: {}px; height: {}px;",
-                    viewport.width, viewport.height
-                )
+                // Use max-width/max-height to keep it responsive within the container if it's too big
+                match responsive_mode.get() {
+                    ResponsiveMode::Desktop => "width: 100%; height: 100%;".to_string(), // Desktop fills the area
+                    _ => format!(
+                        "width: {}px; height: {}px; max-width: 100%; max-height: 100%; margin: auto; border: 1px solid #ccc; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);",
+                        viewport.width, viewport.height
+                    ),
+                }
             }}
         >
-            <div class="canvas-viewport">
+            <div class="canvas-viewport" style="width: 100%; height: 100%;">
                 {children()}
             </div>
         </div>

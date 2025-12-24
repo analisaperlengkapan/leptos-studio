@@ -34,26 +34,29 @@ pub fn DragPreview(drag_state: RwSignal<DragState>) -> impl IntoView {
                                 pointer-events: none;
                                 z-index: 9999;
                                 transform: translate(-50%, -50%);
-                                background: rgba(9, 105, 218, 0.1);
-                                border: 2px dashed #0969da;
-                                border-radius: 6px;
-                                padding: 8px 12px;
-                                font-size: 12px;
-                                color: #0969da;
-                                font-weight: 500;
-                                backdrop-filter: blur(8px);
-                                box-shadow: 0 4px 12px rgba(9, 105, 218, 0.2);
+                                background: rgba(59, 130, 246, 0.9);
+                                border: 2px solid white;
+                                border-radius: 8px;
+                                padding: 8px 16px;
+                                font-size: 14px;
+                                color: white;
+                                font-weight: 600;
+                                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
                             ", ghost_x, ghost_y)
                         }
                         _ => "display: none;".to_string()
                     }
                 }
             >
+                <span style="font-size: 18px;">"🖐️"</span>
                 {move || {
                     match drag_state.get() {
                         DragState::Dragging { component_type, .. } |
                         DragState::DraggingOver { component_type, .. } => {
-                            format!("+ {}", component_type)
+                            format!("Dragging {}", component_type)
                         }
                         _ => String::new()
                     }
@@ -272,15 +275,16 @@ where
             class:drop-zone-active=is_drag_over
             style=move || {
                 let base_style = "
-                    transition: all 0.2s ease;
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
                     position: relative;
                 ";
 
                 if is_drag_over.get() {
                     format!("{}
-                        background: rgba(9, 105, 218, 0.05);
-                        border: 2px dashed #0969da;
-                        border-radius: 6px;
+                        background: rgba(59, 130, 246, 0.1);
+                        border: 2px dashed #3b82f6;
+                        border-radius: 8px;
+                        box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
                     ", base_style)
                 } else {
                     base_style.to_string()

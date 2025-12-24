@@ -9,21 +9,107 @@ use std::borrow::Cow;
 /// List of allowed HTML tags for custom components
 #[allow(dead_code)]
 const ALLOWED_TAGS: &[&str] = &[
-    "div", "span", "p", "h1", "h2", "h3", "h4", "h5", "h6", "a", "img", "ul", "ol", "li", "br",
-    "hr", "strong", "em", "b", "i", "u", "code", "pre", "blockquote", "table", "thead", "tbody",
-    "tr", "th", "td", "form", "input", "button", "label", "select", "option", "textarea",
-    "header", "footer", "nav", "main", "section", "article", "aside", "figure", "figcaption",
-    "svg", "path", "circle", "rect", "line", "polyline", "polygon", "text", "g",
+    "div",
+    "span",
+    "p",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "a",
+    "img",
+    "ul",
+    "ol",
+    "li",
+    "br",
+    "hr",
+    "strong",
+    "em",
+    "b",
+    "i",
+    "u",
+    "code",
+    "pre",
+    "blockquote",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "th",
+    "td",
+    "form",
+    "input",
+    "button",
+    "label",
+    "select",
+    "option",
+    "textarea",
+    "header",
+    "footer",
+    "nav",
+    "main",
+    "section",
+    "article",
+    "aside",
+    "figure",
+    "figcaption",
+    "svg",
+    "path",
+    "circle",
+    "rect",
+    "line",
+    "polyline",
+    "polygon",
+    "text",
+    "g",
 ];
 
 /// List of allowed attributes (safe subset)
 #[allow(dead_code)]
 const ALLOWED_ATTRS: &[&str] = &[
-    "id", "class", "style", "title", "alt", "src", "href", "width", "height", "type", "name",
-    "value", "placeholder", "disabled", "readonly", "required", "checked", "selected", "for",
-    "role", "aria-label", "aria-hidden", "aria-describedby", "data-*", "tabindex",
-    "viewBox", "fill", "stroke", "stroke-width", "d", "cx", "cy", "r", "x", "y", "x1", "y1",
-    "x2", "y2", "points", "transform",
+    "id",
+    "class",
+    "style",
+    "title",
+    "alt",
+    "src",
+    "href",
+    "width",
+    "height",
+    "type",
+    "name",
+    "value",
+    "placeholder",
+    "disabled",
+    "readonly",
+    "required",
+    "checked",
+    "selected",
+    "for",
+    "role",
+    "aria-label",
+    "aria-hidden",
+    "aria-describedby",
+    "data-*",
+    "tabindex",
+    "viewBox",
+    "fill",
+    "stroke",
+    "stroke-width",
+    "d",
+    "cx",
+    "cy",
+    "r",
+    "x",
+    "y",
+    "x1",
+    "y1",
+    "x2",
+    "y2",
+    "points",
+    "transform",
 ];
 
 /// Dangerous patterns that should be removed
@@ -144,7 +230,8 @@ pub fn sanitize_html(html: &str, config: &SanitizeConfig) -> SanitizeResult {
     }
 
     // Remove javascript: and other dangerous protocols in href/src
-    if let Ok(protocol_regex) = Regex::new(r#"(?i)(href|src)\s*=\s*"(javascript|vbscript|data):[^"]*""#)
+    if let Ok(protocol_regex) =
+        Regex::new(r#"(?i)(href|src)\s*=\s*"(javascript|vbscript|data):[^"]*""#)
         && protocol_regex.is_match(&result)
     {
         result = protocol_regex.replace_all(&result, r#"$1="""#).into_owned();
@@ -152,7 +239,8 @@ pub fn sanitize_html(html: &str, config: &SanitizeConfig) -> SanitizeResult {
     }
 
     // Also check single-quoted protocols
-    if let Ok(protocol_regex_sq) = Regex::new(r"(?i)(href|src)\s*=\s*'(javascript|vbscript|data):[^']*'")
+    if let Ok(protocol_regex_sq) =
+        Regex::new(r"(?i)(href|src)\s*=\s*'(javascript|vbscript|data):[^']*'")
         && protocol_regex_sq.is_match(&result)
     {
         result = protocol_regex_sq.replace_all(&result, "$1=''").into_owned();
@@ -187,9 +275,9 @@ pub fn is_html_safe(html: &str) -> bool {
 
 /// Escape special HTML characters
 pub fn escape_html(text: &str) -> Cow<'_, str> {
-    let needs_escaping = text.chars().any(|c| {
-        c == '<' || c == '>' || c == '&' || c == '"' || c == '\''
-    });
+    let needs_escaping = text
+        .chars()
+        .any(|c| c == '<' || c == '>' || c == '&' || c == '"' || c == '\'');
 
     if !needs_escaping {
         return Cow::Borrowed(text);

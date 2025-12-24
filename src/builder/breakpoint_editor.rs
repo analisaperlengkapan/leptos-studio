@@ -179,7 +179,9 @@ pub fn BreakpointEditor() -> impl IntoView {
     let remove_breakpoint = move |id: String| {
         state.breakpoints.update(|bps| bps.retain(|bp| bp.id != id));
         if state.selected.get() == Some(id.clone()) {
-            state.selected.set(state.breakpoints.get().first().map(|bp| bp.id.clone()));
+            state
+                .selected
+                .set(state.breakpoints.get().first().map(|bp| bp.id.clone()));
         }
     };
 

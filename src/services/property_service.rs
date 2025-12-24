@@ -198,29 +198,50 @@ mod tests {
     #[test]
     fn test_update_button_variant() {
         let button = ButtonComponent::new("Test".to_string());
-        
-        let updated = update_button_prop(button.clone(), "variant", PropValue::String("Secondary".to_string()));
+
+        let updated = update_button_prop(
+            button.clone(),
+            "variant",
+            PropValue::String("Secondary".to_string()),
+        );
         assert_eq!(updated.variant, ButtonVariant::Secondary);
-        
-        let updated = update_button_prop(button.clone(), "variant", PropValue::String("Outline".to_string()));
+
+        let updated = update_button_prop(
+            button.clone(),
+            "variant",
+            PropValue::String("Outline".to_string()),
+        );
         assert_eq!(updated.variant, ButtonVariant::Outline);
-        
-        let updated = update_button_prop(button.clone(), "variant", PropValue::String("Ghost".to_string()));
+
+        let updated = update_button_prop(
+            button.clone(),
+            "variant",
+            PropValue::String("Ghost".to_string()),
+        );
         assert_eq!(updated.variant, ButtonVariant::Ghost);
-        
+
         // Unknown variant should keep original
-        let updated = update_button_prop(button, "variant", PropValue::String("Unknown".to_string()));
+        let updated =
+            update_button_prop(button, "variant", PropValue::String("Unknown".to_string()));
         assert_eq!(updated.variant, ButtonVariant::Primary);
     }
 
     #[test]
     fn test_update_button_size() {
         let button = ButtonComponent::new("Test".to_string());
-        
-        let updated = update_button_prop(button.clone(), "size", PropValue::String("Small".to_string()));
+
+        let updated = update_button_prop(
+            button.clone(),
+            "size",
+            PropValue::String("Small".to_string()),
+        );
         assert_eq!(updated.size, ButtonSize::Small);
-        
-        let updated = update_button_prop(button.clone(), "size", PropValue::String("Large".to_string()));
+
+        let updated = update_button_prop(
+            button.clone(),
+            "size",
+            PropValue::String("Large".to_string()),
+        );
         assert_eq!(updated.size, ButtonSize::Large);
     }
 
@@ -228,7 +249,7 @@ mod tests {
     fn test_update_button_disabled() {
         let button = ButtonComponent::new("Test".to_string());
         assert!(!button.disabled);
-        
+
         let updated = update_button_prop(button, "disabled", PropValue::Boolean(true));
         assert!(updated.disabled);
     }
@@ -245,34 +266,50 @@ mod tests {
     #[test]
     fn test_update_text_content() {
         let text = TextComponent::new("Original".to_string());
-        let updated = update_text_prop(text, "content", PropValue::String("New Content".to_string()));
+        let updated = update_text_prop(
+            text,
+            "content",
+            PropValue::String("New Content".to_string()),
+        );
         assert_eq!(updated.content, "New Content");
     }
 
     #[test]
     fn test_update_text_style() {
         let text = TextComponent::new("Test".to_string());
-        
-        let updated = update_text_prop(text.clone(), "style", PropValue::String("Heading1".to_string()));
+
+        let updated = update_text_prop(
+            text.clone(),
+            "style",
+            PropValue::String("Heading1".to_string()),
+        );
         assert_eq!(updated.style, TextStyle::Heading1);
-        
-        let updated = update_text_prop(text.clone(), "style", PropValue::String("Heading2".to_string()));
+
+        let updated = update_text_prop(
+            text.clone(),
+            "style",
+            PropValue::String("Heading2".to_string()),
+        );
         assert_eq!(updated.style, TextStyle::Heading2);
-        
-        let updated = update_text_prop(text.clone(), "style", PropValue::String("Caption".to_string()));
+
+        let updated = update_text_prop(
+            text.clone(),
+            "style",
+            PropValue::String("Caption".to_string()),
+        );
         assert_eq!(updated.style, TextStyle::Caption);
     }
 
     #[test]
     fn test_update_text_tag() {
         let text = TextComponent::new("Test".to_string());
-        
+
         let updated = update_text_prop(text.clone(), "tag", PropValue::String("H1".to_string()));
         assert_eq!(updated.tag, TextTag::H1);
-        
+
         let updated = update_text_prop(text.clone(), "tag", PropValue::String("H2".to_string()));
         assert_eq!(updated.tag, TextTag::H2);
-        
+
         let updated = update_text_prop(text.clone(), "tag", PropValue::String("Span".to_string()));
         assert_eq!(updated.tag, TextTag::Span);
     }
@@ -281,23 +318,39 @@ mod tests {
     #[test]
     fn test_update_input_placeholder() {
         let input = InputComponent::new();
-        let updated = update_input_prop(input, "placeholder", PropValue::String("Enter text...".to_string()));
+        let updated = update_input_prop(
+            input,
+            "placeholder",
+            PropValue::String("Enter text...".to_string()),
+        );
         assert_eq!(updated.placeholder, "Enter text...");
     }
 
     #[test]
     fn test_update_input_type() {
         let input = InputComponent::new();
-        
-        let updated = update_input_prop(input.clone(), "input_type", PropValue::String("Password".to_string()));
+
+        let updated = update_input_prop(
+            input.clone(),
+            "input_type",
+            PropValue::String("Password".to_string()),
+        );
         assert_eq!(updated.input_type, InputType::Password);
-        
-        let updated = update_input_prop(input.clone(), "input_type", PropValue::String("Email".to_string()));
+
+        let updated = update_input_prop(
+            input.clone(),
+            "input_type",
+            PropValue::String("Email".to_string()),
+        );
         assert_eq!(updated.input_type, InputType::Email);
-        
-        let updated = update_input_prop(input.clone(), "input_type", PropValue::String("Number".to_string()));
+
+        let updated = update_input_prop(
+            input.clone(),
+            "input_type",
+            PropValue::String("Number".to_string()),
+        );
         assert_eq!(updated.input_type, InputType::Number);
-        
+
         let updated = update_input_prop(input, "input_type", PropValue::String("Tel".to_string()));
         assert_eq!(updated.input_type, InputType::Tel);
     }
@@ -306,7 +359,7 @@ mod tests {
     fn test_update_input_required() {
         let input = InputComponent::new();
         assert!(!input.required);
-        
+
         let updated = update_input_prop(input, "required", PropValue::Boolean(true));
         assert!(updated.required);
     }
@@ -315,7 +368,7 @@ mod tests {
     fn test_update_input_disabled() {
         let input = InputComponent::new();
         assert!(!input.disabled);
-        
+
         let updated = update_input_prop(input, "disabled", PropValue::Boolean(true));
         assert!(updated.disabled);
     }
@@ -324,8 +377,12 @@ mod tests {
     #[test]
     fn test_update_container_layout_flex_row() {
         let container = ContainerComponent::new();
-        let updated = update_container_prop(container, "layout", PropValue::String("FlexRow".to_string()));
-        
+        let updated = update_container_prop(
+            container,
+            "layout",
+            PropValue::String("FlexRow".to_string()),
+        );
+
         match updated.layout {
             LayoutType::Flex { direction, .. } => {
                 assert_eq!(direction, FlexDirection::Row);
@@ -337,8 +394,9 @@ mod tests {
     #[test]
     fn test_update_container_layout_grid() {
         let container = ContainerComponent::new();
-        let updated = update_container_prop(container, "layout", PropValue::String("Grid".to_string()));
-        
+        let updated =
+            update_container_prop(container, "layout", PropValue::String("Grid".to_string()));
+
         match updated.layout {
             LayoutType::Grid { columns, rows } => {
                 assert_eq!(columns, 2);
@@ -351,25 +409,26 @@ mod tests {
     #[test]
     fn test_update_container_layout_stack() {
         let container = ContainerComponent::new();
-        let updated = update_container_prop(container, "layout", PropValue::String("Stack".to_string()));
+        let updated =
+            update_container_prop(container, "layout", PropValue::String("Stack".to_string()));
         assert_eq!(updated.layout, LayoutType::Stack);
     }
 
     #[test]
     fn test_update_container_gap() {
         let container = ContainerComponent::new();
-        
+
         let updated = update_container_prop(container.clone(), "gap", PropValue::Number(16.0));
         assert_eq!(updated.gap, 16);
-        
+
         // Test with decimal - should round
         let updated = update_container_prop(container.clone(), "gap", PropValue::Number(10.7));
         assert_eq!(updated.gap, 11);
-        
+
         // Negative values should be ignored
         let updated = update_container_prop(container.clone(), "gap", PropValue::Number(-5.0));
         assert_eq!(updated.gap, container.gap);
-        
+
         // NaN should be ignored
         let updated = update_container_prop(container.clone(), "gap", PropValue::Number(f64::NAN));
         assert_eq!(updated.gap, container.gap);
@@ -378,17 +437,21 @@ mod tests {
     #[test]
     fn test_update_container_padding() {
         let container = ContainerComponent::new();
-        
-        let updated = update_container_prop(container.clone(), "padding_top", PropValue::Number(10.0));
+
+        let updated =
+            update_container_prop(container.clone(), "padding_top", PropValue::Number(10.0));
         assert_eq!(updated.padding.top, 10);
-        
-        let updated = update_container_prop(container.clone(), "padding_right", PropValue::Number(20.0));
+
+        let updated =
+            update_container_prop(container.clone(), "padding_right", PropValue::Number(20.0));
         assert_eq!(updated.padding.right, 20);
-        
-        let updated = update_container_prop(container.clone(), "padding_bottom", PropValue::Number(30.0));
+
+        let updated =
+            update_container_prop(container.clone(), "padding_bottom", PropValue::Number(30.0));
         assert_eq!(updated.padding.bottom, 30);
-        
-        let updated = update_container_prop(container.clone(), "padding_left", PropValue::Number(40.0));
+
+        let updated =
+            update_container_prop(container.clone(), "padding_left", PropValue::Number(40.0));
         assert_eq!(updated.padding.left, 40);
     }
 
@@ -396,9 +459,13 @@ mod tests {
     fn test_update_unknown_property() {
         let button = ButtonComponent::new("Test".to_string());
         let original_label = button.label.clone();
-        
+
         // Unknown property should not change anything
-        let updated = update_button_prop(button, "unknown_prop", PropValue::String("value".to_string()));
+        let updated = update_button_prop(
+            button,
+            "unknown_prop",
+            PropValue::String("value".to_string()),
+        );
         assert_eq!(updated.label, original_label);
     }
 }

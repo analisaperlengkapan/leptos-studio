@@ -837,24 +837,29 @@ button, .btn {
 
 /* Drop Zone Styles */
 .drop-zone {
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: var(--border-radius-md);
 }
 
 .drop-zone-active {
-    background: rgba(59, 130, 246, 0.05);
+    background: rgba(59, 130, 246, 0.1);
     border: 2px dashed var(--color-primary-500);
-    animation: dropzone-pulse 1s infinite;
+    animation: dropzone-pulse 1.5s infinite ease-in-out;
 }
 
 @keyframes dropzone-pulse {
-    0%, 100% { 
-        border-color: var(--color-primary-500);
+    0% {
+        border-color: rgba(59, 130, 246, 0.5);
         background: rgba(59, 130, 246, 0.05);
     }
-    50% { 
-        border-color: var(--color-primary-600);
-        background: rgba(59, 130, 246, 0.1);
+    50% {
+        border-color: rgba(59, 130, 246, 1);
+        background: rgba(59, 130, 246, 0.15);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+    }
+    100% {
+        border-color: rgba(59, 130, 246, 0.5);
+        background: rgba(59, 130, 246, 0.05);
     }
 }
 
@@ -1042,6 +1047,25 @@ input::placeholder, textarea::placeholder {
     color: #64748b;
     font-size: 14px;
     line-height: 1.6;
+}
+
+.property-group {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 16px;
+}
+
+.group-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 /* Sidebar Enhancements */
@@ -1345,6 +1369,7 @@ input::placeholder, textarea::placeholder {
     box-shadow: var(--shadow-lg);
     overflow: auto;
     position: relative;
+    transition: width 0.3s ease, height 0.3s ease;
 }
 
 /* Responsive Indicator */
@@ -2622,4 +2647,27 @@ input::placeholder, textarea::placeholder {
 
 .modal-content {
     animation: slideUp 0.3s ease-out;
+}
+
+/* Export Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    min-width: 400px;
+    max-width: 800px;
+    width: 80vw;
 }

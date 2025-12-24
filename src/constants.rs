@@ -172,7 +172,7 @@ mod tests {
         assert!(MAX_TEMPLATE_LENGTH > MIN_TEMPLATE_LENGTH);
         assert!(MAX_CANVAS_COMPONENTS > 0);
         assert!(MAX_CONTAINER_NESTING_DEPTH > 0);
-        
+
         // Viewport dimensions should be positive
         assert!(VIEWPORT_MOBILE_WIDTH > 0);
         assert!(VIEWPORT_TABLET_WIDTH > VIEWPORT_MOBILE_WIDTH);
@@ -187,7 +187,7 @@ mod tests {
             STORAGE_KEY_CUSTOM_COMPONENTS,
             STORAGE_KEY_PROJECT,
         ];
-        
+
         for (i, key1) in keys.iter().enumerate() {
             for key2 in keys.iter().skip(i + 1) {
                 assert_ne!(key1, key2, "Storage keys must be unique");

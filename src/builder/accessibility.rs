@@ -111,20 +111,18 @@ pub fn SkipLink(
     label: Option<String>,
 ) -> impl IntoView {
     let text = label.unwrap_or_else(|| "Skip to main content".to_string());
-    
+
     view! {
         <a
             href=format!("#{}", target)
             class="skip-link"
             on:click=move |ev| {
                 ev.prevent_default();
-                if let Some(window) = web_sys::window() {
-                    if let Some(document) = window.document() {
-                        if let Some(element) = document.get_element_by_id(&target) {
+                if let Some(window) = web_sys::window()
+                    && let Some(document) = window.document()
+                        && let Some(element) = document.get_element_by_id(&target) {
                             let _ = element.dyn_into::<HtmlElement>().map(|el| el.focus());
                         }
-                    }
-                }
             }
         >
             {text}
@@ -149,39 +147,37 @@ pub fn FocusTrap(
             return;
         }
 
-        if ev.key() == "Tab" {
-            if let Some(container) = container_ref.get() {
-                let focusable = get_focusable_elements(&container);
-                if focusable.is_empty() {
-                    return;
-                }
+        if ev.key() == "Tab"
+            && let Some(container) = container_ref.get()
+        {
+            let focusable = get_focusable_elements(&container);
+            if focusable.is_empty() {
+                return;
+            }
 
-                let first = focusable.first().cloned();
-                let last = focusable.last().cloned();
+            let first = focusable.first().cloned();
+            let last = focusable.last().cloned();
 
-                if ev.shift_key() {
-                    // Shift+Tab: wrap to last if at first
-                    if let Some(document) = web_sys::window().and_then(|w| w.document()) {
-                        if let Some(active) = document.active_element() {
-                            if Some(&active) == first.as_ref() {
-                                ev.prevent_default();
-                                if let Some(el) = last {
-                                    let _ = el.dyn_into::<HtmlElement>().map(|h| h.focus());
-                                }
-                            }
-                        }
+            if ev.shift_key() {
+                // Shift+Tab: wrap to last if at first
+                if let Some(document) = web_sys::window().and_then(|w| w.document())
+                    && let Some(active) = document.active_element()
+                    && Some(&active) == first.as_ref()
+                {
+                    ev.prevent_default();
+                    if let Some(el) = last {
+                        let _ = el.dyn_into::<HtmlElement>().map(|h| h.focus());
                     }
-                } else {
-                    // Tab: wrap to first if at last
-                    if let Some(document) = web_sys::window().and_then(|w| w.document()) {
-                        if let Some(active) = document.active_element() {
-                            if Some(&active) == last.as_ref() {
-                                ev.prevent_default();
-                                if let Some(el) = first {
-                                    let _ = el.dyn_into::<HtmlElement>().map(|h| h.focus());
-                                }
-                            }
-                        }
+                }
+            } else {
+                // Tab: wrap to first if at last
+                if let Some(document) = web_sys::window().and_then(|w| w.document())
+                    && let Some(active) = document.active_element()
+                    && Some(&active) == last.as_ref()
+                {
+                    ev.prevent_default();
+                    if let Some(el) = first {
+                        let _ = el.dyn_into::<HtmlElement>().map(|h| h.focus());
                     }
                 }
             }
@@ -236,7 +232,7 @@ pub fn ProgressBar(
         >
             <div
                 class="progress-bar-fill"
-                style=move || format!("width: {}%", value.get().min(100.0).max(0.0))
+                style=move || format!("width: {}%", value.get().clamp(0.0, 100.0))
             />
             {if show_value {
                 view! {
