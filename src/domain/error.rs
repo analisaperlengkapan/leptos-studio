@@ -98,6 +98,9 @@ pub enum ValidationError {
 
     #[error("Property '{0}' has invalid value: {1}")]
     InvalidPropertyValue(String, String),
+
+    #[error("{0}")]
+    Generic(String),
 }
 
 impl ValidationError {
@@ -111,6 +114,7 @@ impl ValidationError {
             ValidationError::InvalidTemplate(_) => ErrorCode::ValidationInvalidTemplate,
             ValidationError::MissingRequiredProperty(_) => ErrorCode::ValidationMissingProperty,
             ValidationError::InvalidPropertyValue(_, _) => ErrorCode::ValidationInvalidProperty,
+            ValidationError::Generic(_) => ErrorCode::ValidationInvalidProperty, // Map generic to invalid property or similar
         }
     }
 

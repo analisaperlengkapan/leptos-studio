@@ -96,12 +96,13 @@ impl GitBackend for LocalStorageGitBackend {
     }
 
     fn commit(&self, message: &str) -> AppResult<()> {
-        if message.trim().is_empty() {
-            // AppError::Validation expects a ValidationError variant, but we don't have a
-            // "Generic" validation error there. Let's use Git error for now or add a proper one.
-            // Looking at domain/error.rs, ValidationError::InvalidName is close but not exact.
-            // Let's use Git error since it's a Git operation.
-            return Err(AppError::Git("Commit message cannot be empty".to_string()));
+        let trimmed_msg = message.trim();
+        if trimmed_msg.is_empty() {
+            return Err(AppError::Validation(
+                crate::domain::error::ValidationError::Generic(
+                    "Commit message cannot be empty".to_string(),
+                ),
+            ));
         }
 
         // Get current app state to snapshot the project
