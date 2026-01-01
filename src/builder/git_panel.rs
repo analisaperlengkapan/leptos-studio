@@ -1,19 +1,25 @@
 use leptos::prelude::*;
 
-use crate::services::{GitBackend, NoopGitBackend};
+use crate::services::{GitBackend, LocalStorageGitBackend};
 
 #[component]
 pub fn GitPanel() -> impl IntoView {
-    // In browser-only mode we use the NoopGitBackend. Real implementations
-    // (HTTP backend, Tauri, etc.) can later provide their own GitBackend.
-    let status_text = RwSignal::new(
-        "🔧 Git integration requires a backend server.\nThis is a client-side app. Git features will work when running with a server backend or a desktop wrapper.".to_string(),
-    );
+    // Uses LocalStorageGitBackend for persistence in the browser.
+    let status_text = RwSignal::new("Ready to commit.".to_string());
     let log_text = RwSignal::new(String::new());
     let commit_message = RwSignal::new(String::new());
 
+    // Initialize with status
+    Effect::new(move |_| {
+        let backend = LocalStorageGitBackend::new();
+        match backend.status() {
+            Ok(text) => status_text.set(text),
+            Err(e) => status_text.set(e.user_message()),
+        }
+    });
+
     let load_status = move |_| {
-        let backend = NoopGitBackend;
+        let backend = LocalStorageGitBackend::new();
         match backend.status() {
             Ok(text) => status_text.set(text),
             Err(e) => status_text.set(e.user_message()),
@@ -21,7 +27,7 @@ pub fn GitPanel() -> impl IntoView {
     };
 
     let load_log = move |_| {
-        let backend = NoopGitBackend;
+        let backend = LocalStorageGitBackend::new();
         match backend.log() {
             Ok(text) => log_text.set(text),
             Err(e) => log_text.set(e.user_message()),
@@ -35,20 +41,24 @@ pub fn GitPanel() -> impl IntoView {
             return;
         }
 
-        let backend = NoopGitBackend;
+        let backend = LocalStorageGitBackend::new();
         match backend.commit(&message) {
             Ok(()) => {
                 status_text.set(format!("✅ Commit recorded: {}", message));
                 commit_message.set(String::new());
+                // Refresh status automatically
+                if let Ok(text) = backend.status() {
+                    status_text.set(text);
+                }
             }
             Err(e) => status_text.set(format!("❌ {}", e.user_message())),
         }
     };
 
     let do_push = move |_| {
-        let backend = NoopGitBackend;
+        let backend = LocalStorageGitBackend::new();
         match backend.push() {
-            Ok(()) => status_text.set("✅ Push completed (or simulated)".to_string()),
+            Ok(()) => status_text.set("✅ Repo synced (local storage)".to_string()),
             Err(e) => status_text.set(format!("❌ {}", e.user_message())),
         }
     };

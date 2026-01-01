@@ -34,6 +34,7 @@ gloo-net = "0.6"
 thiserror = "2.0"
 uuid = { version = "1.11", features = ["v4", "serde", "js"] }
 regex = "1.11"
+chrono = { version = "0.4.42", features = ["serde"] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
