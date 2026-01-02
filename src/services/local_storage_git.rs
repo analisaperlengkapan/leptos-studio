@@ -7,7 +7,7 @@ use crate::state::AppState;
 use crate::state::persistence::Persistable;
 use crate::state::project::Project;
 
-use super::git_service::GitBackend;
+use super::git_service::{GitBackend, CommitInfo, RepoStatus};
 
 /// Represents a single commit in our LocalStorage Git backend
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -62,37 +62,36 @@ impl LocalStorageGitBackend {
 }
 
 impl GitBackend for LocalStorageGitBackend {
-    fn status(&self) -> AppResult<String> {
+    fn status(&self) -> AppResult<RepoStatus> {
         let repo = Self::get_repo()?;
         let commit_count = repo.commits.len();
 
-        let last_commit_msg = repo.commits.last()
-            .map(|c| format!("Last commit: '{}' ({})", c.message, c.id.chars().take(7).collect::<String>()))
-            .unwrap_or_else(|| "No commits yet".to_string());
+        // In this simple model, we are always clean because we snapshot on commit
+        // But for UI purposes, we could check if current AppState differs from HEAD.
+        // For now, let's just return basic stats.
 
-        Ok(format!(
-            "On branch main\nLocal storage repository active.\nCommits: {}\n{}",
-            commit_count, last_commit_msg
-        ))
+        Ok(RepoStatus {
+            branch: "main".to_string(),
+            commit_count,
+            clean: true, // We don't track dirty state yet
+            active: true,
+        })
     }
 
-    fn log(&self) -> AppResult<String> {
+    fn log(&self) -> AppResult<Vec<CommitInfo>> {
         let repo = Self::get_repo()?;
         if repo.commits.is_empty() {
-            return Ok("No commits yet.".to_string());
+            return Ok(Vec::new());
         }
 
-        let mut log_output = String::new();
-        // Show newest first
-        for commit in repo.commits.iter().rev() {
-            log_output.push_str(&format!(
-                "commit {}\nDate:   {}\n\n    {}\n\n",
-                commit.id,
-                commit.timestamp.to_rfc2822(),
-                commit.message
-            ));
-        }
-        Ok(log_output)
+        // Return commits reversed (newest first)
+        let commits = repo.commits.iter().rev().map(|c| CommitInfo {
+            id: c.id.clone(),
+            message: c.message.clone(),
+            timestamp: c.timestamp,
+        }).collect();
+
+        Ok(commits)
     }
 
     fn commit(&self, message: &str) -> AppResult<()> {
@@ -128,10 +127,23 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(())
     }
 
-    fn push(&self) -> AppResult<()> {
-        // In a local storage backend, "push" could mean exporting to a file,
-        // or it could just be a no-op since we are already "saved".
-        // For now, let's treat it as a sync confirmation.
+    fn push(&self) -> AppResult<Option<String>> {
+        // Return the whole repo state as JSON for download
+        let repo = Self::get_repo()?;
+        let json = serde_json::to_string_pretty(&repo)
+            .map_err(|e| AppError::Export(format!("Failed to serialize repo: {}", e)))?;
+        Ok(Some(json))
+    }
+
+    fn clone_repo(&self, json: &str) -> AppResult<()> {
+        let repo: RepositoryState = serde_json::from_str(json)
+            .map_err(|e| AppError::Export(format!("Failed to deserialize repo: {}", e)))?;
+
+        Self::save_repo(&repo)?;
         Ok(())
     }
 }
+
+#[cfg(test)]
+#[path = "local_storage_git_test.rs"]
+mod tests;

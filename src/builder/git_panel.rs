@@ -1,42 +1,47 @@
 use leptos::prelude::*;
+use leptos::html::Input;
+use wasm_bindgen::closure::Closure;
+use wasm_bindgen::JsCast;
 
-use crate::services::{GitBackend, LocalStorageGitBackend};
+use crate::services::{GitBackend, LocalStorageGitBackend, CommitInfo, RepoStatus};
 use crate::state::{AppState, Notification};
 
 #[component]
 pub fn GitPanel() -> impl IntoView {
     // Uses LocalStorageGitBackend for persistence in the browser.
-    let status_text = RwSignal::new("Ready to commit.".to_string());
-    let log_text = RwSignal::new(String::new());
+    let status_data = RwSignal::new(Option::<RepoStatus>::None);
+    let log_data = RwSignal::new(Vec::<CommitInfo>::new());
     let commit_message = RwSignal::new(String::new());
+
+    // For file input (import)
+    let file_input_ref = NodeRef::<Input>::new();
 
     // Access global UI state for notifications
     let app_state = expect_context::<AppState>();
 
-    // Initialize with status
+    // Initial load
     Effect::new(move |_| {
         let backend = LocalStorageGitBackend::new();
         match backend.status() {
-            Ok(text) => status_text.set(text),
-            Err(e) => status_text.set(e.user_message()),
+            Ok(status) => status_data.set(Some(status)),
+            Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
         }
     });
 
     let load_status = move |_| {
         let backend = LocalStorageGitBackend::new();
         match backend.status() {
-            Ok(text) => status_text.set(text),
-            Err(e) => status_text.set(e.user_message()),
+            Ok(status) => status_data.set(Some(status)),
+            Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
         }
     };
 
     let load_log = move |_| {
         let backend = LocalStorageGitBackend::new();
         match backend.log() {
-            Ok(text) => log_text.set(text),
+            Ok(logs) => log_data.set(logs),
             Err(e) => {
                 app_state.ui.notify(Notification::error(e.user_message()));
-                log_text.set(e.user_message());
             }
         }
     };
@@ -54,8 +59,14 @@ pub fn GitPanel() -> impl IntoView {
                 app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
                 commit_message.set(String::new());
                 // Refresh status automatically
-                if let Ok(text) = backend.status() {
-                    status_text.set(text);
+                if let Ok(status) = backend.status() {
+                    status_data.set(Some(status));
+                }
+                // If log is showing, refresh it too
+                if !log_data.get().is_empty() {
+                    if let Ok(logs) = backend.log() {
+                        log_data.set(logs);
+                    }
                 }
             }
             Err(e) => {
@@ -67,13 +78,76 @@ pub fn GitPanel() -> impl IntoView {
     let do_push = move |_| {
         let backend = LocalStorageGitBackend::new();
         match backend.push() {
-            Ok(()) => {
-                app_state.ui.notify(Notification::success("Repo synced (local storage)".to_string()));
-                status_text.set("✅ Repo synced (local storage)".to_string());
+            Ok(Some(json)) => {
+                // Trigger download
+                let filename = "leptos_studio_repo.json";
+                let encoded_json = js_sys::encode_uri_component(&json);
+                let blob_url = format!("data:application/json;charset=utf-8,{}", encoded_json);
+
+                // Create invisible anchor to click
+                let document = web_sys::window().unwrap().document().unwrap();
+                let a = document.create_element("a").unwrap();
+                let _ = a.set_attribute("href", &blob_url);
+                let _ = a.set_attribute("download", filename);
+
+                // Use HTMLElement to click
+                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
+                     html_element.click();
+                }
+
+                app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
+            }
+            Ok(None) => {
+                app_state.ui.notify(Notification::success("Push successful".to_string()));
             }
             Err(e) => {
                 app_state.ui.notify(Notification::error(e.user_message()));
             }
+        }
+    };
+
+    let on_file_select = move |ev: web_sys::Event| {
+        let input = file_input_ref.get();
+        if let Some(input) = input {
+            if let Some(files) = input.files() {
+                if let Some(file) = files.get(0) {
+                    let reader = web_sys::FileReader::new().unwrap();
+                    let reader_c = reader.clone();
+
+                    let on_load = Closure::wrap(Box::new(move |_e: web_sys::Event| {
+                        if let Ok(result) = reader_c.result() {
+                            if let Some(text) = result.as_string() {
+                                let backend = LocalStorageGitBackend::new();
+                                match backend.clone_repo(&text) {
+                                    Ok(_) => {
+                                        app_state.ui.notify(Notification::success("Repository imported successfully".to_string()));
+                                        // Refresh status and log
+                                        if let Ok(status) = backend.status() {
+                                            status_data.set(Some(status));
+                                        }
+                                        if let Ok(logs) = backend.log() {
+                                            log_data.set(logs);
+                                        }
+                                    }
+                                    Err(e) => {
+                                        app_state.ui.notify(Notification::error(format!("Import failed: {}", e.user_message())));
+                                    }
+                                }
+                            }
+                        }
+                    }) as Box<dyn FnMut(_)>);
+
+                    reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
+                    on_load.forget(); // Leak memory to keep closure alive until callback
+                    reader.read_as_text(&file).unwrap();
+                }
+            }
+        }
+    };
+
+    let trigger_import = move |_| {
+        if let Some(input) = file_input_ref.get() {
+            let _ = input.click();
         }
     };
 
@@ -85,31 +159,69 @@ pub fn GitPanel() -> impl IntoView {
             </div>
 
             <div class="git-status">
-                {move || status_text.get()}
-            </div>
-
-            <input
-                class="git-commit-input"
-                type="text"
-                placeholder="Commit message"
-                prop:value=move || commit_message.get()
-                on:input=move |ev| commit_message.set(event_target_value(&ev))
-            />
-
-            <div class="git-actions">
-                <button on:click=do_commit class="btn btn-secondary">"Commit"</button>
-                <button on:click=do_push class="btn btn-secondary">"Push"</button>
-            </div>
-
-            <div class="git-log">
                 {move || {
-                    let log = log_text.get();
-                    if log.is_empty() {
-                        "No log loaded yet".to_string()
-                    } else {
-                        log
+                    match status_data.get() {
+                        Some(status) => view! {
+                            <div class="status-box">
+                                <p>"Branch: " <b>{status.branch}</b></p>
+                                <p>"Commits: " {status.commit_count}</p>
+                                <p>{if status.clean { "Working tree clean" } else { "Changes not staged" }}</p>
+                            </div>
+                        }.into_any(),
+                        None => view! { <p>"Loading status..."</p> }.into_any()
                     }
                 }}
+            </div>
+
+            <div class="git-commit-area">
+                <input
+                    class="git-commit-input"
+                    type="text"
+                    placeholder="Commit message"
+                    prop:value=move || commit_message.get()
+                    on:input=move |ev| commit_message.set(event_target_value(&ev))
+                />
+
+                <div class="git-actions">
+                    <button on:click=do_commit class="btn btn-primary">"Commit"</button>
+                    <button on:click=do_push class="btn btn-secondary" title="Download Repository JSON">"Push (Download)"</button>
+                    <button on:click=trigger_import class="btn btn-secondary" title="Import Repository JSON">"Clone (Import)"</button>
+                </div>
+            </div>
+
+            // Hidden file input for import
+            <input
+                type="file"
+                node_ref=file_input_ref
+                style="display:none"
+                accept=".json"
+                on:change=on_file_select
+            />
+
+            <div class="git-log-container">
+                <h4>"Commit History"</h4>
+                <div class="git-log-list">
+                    <For
+                        each=move || log_data.get()
+                        key=|commit| commit.id.clone()
+                        children=move |commit| {
+                            view! {
+                                <div class="git-commit-item">
+                                    <div class="commit-header">
+                                        <span class="commit-id" title={commit.id.clone()}>{commit.id.chars().take(7).collect::<String>()}</span>
+                                        <span class="commit-date">{commit.timestamp.format("%Y-%m-%d %H:%M").to_string()}</span>
+                                    </div>
+                                    <div class="commit-message">{commit.message}</div>
+                                </div>
+                            }
+                        }
+                    />
+                    {move || if log_data.get().is_empty() {
+                        view! { <p class="no-commits">"No commits found or log not loaded."</p> }.into_any()
+                    } else {
+                        view! { <span /> }.into_any()
+                    }}
+                </div>
             </div>
         </div>
     }
