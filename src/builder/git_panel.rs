@@ -79,23 +79,44 @@ pub fn GitPanel() -> impl IntoView {
         let backend = LocalStorageGitBackend::new();
         match backend.push() {
             Ok(Some(json)) => {
-                // Trigger download
+                // Trigger download using Blob (Best Practice)
                 let filename = "leptos_studio_repo.json";
-                let encoded_json = js_sys::encode_uri_component(&json);
-                let blob_url = format!("data:application/json;charset=utf-8,{}", encoded_json);
 
-                // Create invisible anchor to click
-                let document = web_sys::window().unwrap().document().unwrap();
-                let a = document.create_element("a").unwrap();
-                let _ = a.set_attribute("href", &blob_url);
-                let _ = a.set_attribute("download", filename);
+                let array = js_sys::Array::new();
+                array.push(&json.into());
 
-                // Use HTMLElement to click
-                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
-                     html_element.click();
+                let blob_options = web_sys::BlobPropertyBag::new();
+                blob_options.set_type("application/json");
+
+                match web_sys::Blob::new_with_str_sequence_and_options(&array, &blob_options) {
+                    Ok(blob) => {
+                        match web_sys::Url::create_object_url_with_blob(&blob) {
+                            Ok(url) => {
+                                let document = web_sys::window().unwrap().document().unwrap();
+                                let a = document.create_element("a").unwrap();
+                                let _ = a.set_attribute("href", &url);
+                                let _ = a.set_attribute("download", filename);
+
+                                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
+                                    html_element.click();
+                                }
+
+                                // Revoke URL to free memory
+                                let _ = web_sys::Url::revoke_object_url(&url);
+
+                                app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
+                            },
+                            Err(e) => {
+                                let err_str = e.as_string().unwrap_or("Unknown URL error".to_string());
+                                app_state.ui.notify(Notification::error(format!("Failed to create download URL: {}", err_str)));
+                            }
+                        }
+                    },
+                    Err(e) => {
+                        let err_str = e.as_string().unwrap_or("Unknown Blob error".to_string());
+                        app_state.ui.notify(Notification::error(format!("Failed to create blob: {}", err_str)));
+                    }
                 }
-
-                app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
             }
             Ok(None) => {
                 app_state.ui.notify(Notification::success("Push successful".to_string()));
@@ -106,7 +127,7 @@ pub fn GitPanel() -> impl IntoView {
         }
     };
 
-    let on_file_select = move |ev: web_sys::Event| {
+    let on_file_select = move |_ev: web_sys::Event| {
         let input = file_input_ref.get();
         if let Some(input) = input {
             if let Some(files) = input.files() {
