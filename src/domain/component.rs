@@ -6,7 +6,7 @@ use super::error::ValidationError;
 use super::validation::Validator;
 
 /// Component ID for unique identification
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ComponentId(Uuid);
 
 impl ComponentId {

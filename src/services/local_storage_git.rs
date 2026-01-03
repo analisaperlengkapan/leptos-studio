@@ -77,13 +77,9 @@ impl GitBackend for LocalStorageGitBackend {
              // Find HEAD commit
              if let Some(head_id) = &repo.head {
                  if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
-                     // Check if project state differs (using JSON serialization is simplest deep compare)
-                     if let Ok(current_json) = serde_json::to_string(&current_project) {
-                         if let Ok(head_json) = serde_json::to_string(&head_commit.project_snapshot) {
-                             if current_json != head_json {
-                                 has_changes = true;
-                             }
-                         }
+                     // Check if project state differs (using PartialEq)
+                     if current_project != head_commit.project_snapshot {
+                         has_changes = true;
                      }
                  }
              } else {

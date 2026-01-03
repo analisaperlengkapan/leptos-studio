@@ -1,12 +1,13 @@
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, NumberInput, StringInput};
 use crate::domain::{
-    ButtonSize, ButtonVariant, CanvasComponent, Component, InputType, PropValue, TextStyle, TextTag,
+    ButtonSize, ButtonVariant, CanvasComponent, Component, ComponentId, InputType, PropValue,
+    TextStyle, TextTag,
 };
 use crate::services::{
     update_button_prop, update_container_prop, update_input_prop, update_text_prop,
 };
-use crate::state::{AppState, Notification};
+use crate::state::{AppState, CanvasState, Notification, UiState};
 use leptos::prelude::*;
 
 #[component]
@@ -15,6 +16,15 @@ pub fn PropertyEditor() -> impl IntoView {
     let app_state = AppState::use_context();
     let canvas_state = app_state.canvas;
     let ui_state = app_state.ui;
+
+    // Helper to validate and update component
+    let apply_update = move |id: ComponentId, updated: CanvasComponent| {
+        if let Err(e) = updated.validate() {
+            ui_state.notify(Notification::error(e.user_message()));
+        } else {
+            canvas_state.update_component(&id, updated);
+        }
+    };
 
     view! {
         <section class="property-editor">
@@ -33,6 +43,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                     .unwrap_or_default();
 
                                 let comp_id = btn.id.clone();
+                                let apply_update = apply_update.clone(); // Clone for closure
 
                                 view! {
                                     <div class="property-group">
@@ -43,10 +54,10 @@ pub fn PropertyEditor() -> impl IntoView {
                                             let label_text = prop.name.clone();
                                             let comp_id_field = comp_id.clone();
                                             let btn_for_field = btn.clone();
+                                            let apply_update = apply_update.clone();
 
                                             match prop_type {
                                                 PropType::String => {
-                                                    // Determine current value
                                                     let value = match prop_name.as_str() {
                                                         "label" => btn.label.clone(),
                                                         _ => String::new(),
@@ -57,12 +68,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             label=label_text
                                                             on_change=move |new_val| {
                                                                 let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                // Validation
-                                                                if let Err(e) = updated_btn.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                     canvas_state.update_component(&comp_id_field, CanvasComponent::Button(updated_btn));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
                                                             }
                                                         />
                                                     }.into_any()
@@ -89,7 +95,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             options=options
                                                             on_change=move |new_val| {
                                                                 let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Button(updated_btn));
+                                                                apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
                                                             }
                                                         />
                                                     }.into_any()
@@ -105,7 +111,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             label=label_text
                                                             on_change=move |new_val| {
                                                                 let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Button(updated_btn));
+                                                                apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
                                                             }
                                                         />
                                                     }.into_any()
@@ -126,6 +132,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                     .unwrap_or_default();
 
                                 let comp_id = txt.id.clone();
+                                let apply_update = apply_update.clone();
 
                                 view! {
                                     <div class="property-group">
@@ -136,6 +143,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                             let label_text = prop.name.clone();
                                             let comp_id_field = comp_id.clone();
                                             let txt_for_field = txt.clone();
+                                            let apply_update = apply_update.clone();
 
                                             match prop_type {
                                                 PropType::String => {
@@ -149,12 +157,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             label=label_text
                                                             on_change=move |new_val| {
                                                                 let updated_txt = update_text_prop(txt_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                // Validation
-                                                                if let Err(e) = updated_txt.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                    canvas_state.update_component(&comp_id_field, CanvasComponent::Text(updated_txt));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Text(updated_txt));
                                                             }
                                                         />
                                                     }.into_any()
@@ -184,7 +187,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             options=options
                                                             on_change=move |new_val| {
                                                                 let updated_txt = update_text_prop(txt_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                canvas_state.update_component(&comp_id_field, CanvasComponent::Text(updated_txt));
+                                                                apply_update(comp_id_field, CanvasComponent::Text(updated_txt));
                                                             }
                                                         />
                                                     }.into_any()
@@ -205,6 +208,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                     .unwrap_or_default();
 
                                 let comp_id = inp.id.clone();
+                                let apply_update = apply_update.clone();
 
                                 view! {
                                     <div class="property-group">
@@ -215,6 +219,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                             let label_text = prop.name.clone();
                                             let comp_id_field = comp_id.clone();
                                             let inp_for_field = inp.clone();
+                                            let apply_update = apply_update.clone();
 
                                             match prop_type {
                                                 PropType::String => {
@@ -228,11 +233,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             label=label_text
                                                             on_change=move |new_val| {
                                                                 let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                if let Err(e) = updated_inp.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                     canvas_state.update_component(&comp_id_field, CanvasComponent::Input(updated_inp));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
                                                             }
                                                         />
                                                     }.into_any()
@@ -255,11 +256,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             options=options
                                                             on_change=move |new_val| {
                                                                 let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                if let Err(e) = updated_inp.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                     canvas_state.update_component(&comp_id_field, CanvasComponent::Input(updated_inp));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
                                                             }
                                                         />
                                                     }.into_any()
@@ -276,11 +273,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             label=label_text
                                                             on_change=move |new_val| {
                                                                 let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                                                if let Err(e) = updated_inp.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                     canvas_state.update_component(&comp_id_field, CanvasComponent::Input(updated_inp));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
                                                             }
                                                         />
                                                     }.into_any()
@@ -301,6 +294,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                     .unwrap_or_default();
 
                                 let comp_id = container.id.clone();
+                                let apply_update = apply_update.clone();
 
                                 view! {
                                      <div class="property-group">
@@ -311,6 +305,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                             let label_text = prop.name.clone();
                                             let comp_id_field = comp_id.clone();
                                             let container_for_field = container.clone();
+                                            let apply_update = apply_update.clone();
 
                                             match prop_type {
                                                 PropType::Enum { options } => {
@@ -332,11 +327,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             options=options
                                                             on_change=move |new_val| {
                                                                 let updated_container = update_container_prop(container_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                                                if let Err(e) = updated_container.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                     canvas_state.update_component(&comp_id_field, CanvasComponent::Container(updated_container));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Container(updated_container));
                                                             }
                                                         />
                                                     }.into_any()
@@ -356,11 +347,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                             label=label_text
                                                             on_change=move |new_val| {
                                                                 let updated_container = update_container_prop(container_for_field.clone(), prop_name.as_str(), PropValue::Number(new_val));
-                                                                if let Err(e) = updated_container.validate() {
-                                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                                } else {
-                                                                     canvas_state.update_component(&comp_id_field, CanvasComponent::Container(updated_container));
-                                                                }
+                                                                apply_update(comp_id_field, CanvasComponent::Container(updated_container));
                                                             }
                                                         />
                                                     }.into_any()
@@ -379,6 +366,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                 let custom_for_template = custom.clone();
                                 let comp_id_for_name = comp_id.clone();
                                 let comp_id_for_template = comp_id.clone();
+                                let apply_update = apply_update.clone();
 
                                 view! {
                                     <div class="property-group">
@@ -389,12 +377,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                             on_change=move |new_name| {
                                                 let mut updated_custom = custom_for_name.clone();
                                                 updated_custom.name = new_name;
-                                                // Validation
-                                                if let Err(e) = updated_custom.validate() {
-                                                     ui_state.notify(Notification::error(e.user_message()));
-                                                } else {
-                                                     canvas_state.update_component(&comp_id_for_name, CanvasComponent::Custom(updated_custom));
-                                                }
+                                                apply_update(comp_id_for_name, CanvasComponent::Custom(updated_custom));
                                             }
                                         />
                                         <div class="property-field">
@@ -406,12 +389,7 @@ pub fn PropertyEditor() -> impl IntoView {
                                                         let new_template = event_target_value(&ev);
                                                         let mut updated_custom = custom_for_template.clone();
                                                         updated_custom.template = new_template;
-                                                        // Validation for template
-                                                        if let Err(e) = updated_custom.validate() {
-                                                             ui_state.notify(Notification::error(e.user_message()));
-                                                        } else {
-                                                             canvas_state.update_component(&comp_id_for_template, CanvasComponent::Custom(updated_custom));
-                                                        }
+                                                        apply_update(comp_id_for_template, CanvasComponent::Custom(updated_custom));
                                                     }
                                                 />
                                             </label>
