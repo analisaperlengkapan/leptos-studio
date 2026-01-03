@@ -4,6 +4,7 @@ pub mod export_advanced;
 pub mod export_service;
 pub mod git_service;
 pub mod local_storage_git;
+pub mod git_factory;
 pub mod project_service;
 pub mod property_service;
 pub mod template_service;

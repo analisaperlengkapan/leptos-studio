@@ -15,6 +15,7 @@ pub mod keyboard;
 pub mod preview;
 pub mod project;
 pub mod property_editor;
+pub mod property_inputs;
 pub mod responsive_preview;
 pub mod sidebar;
 pub mod snackbar;

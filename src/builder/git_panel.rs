@@ -3,12 +3,14 @@ use leptos::html::Input;
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 
-use crate::services::{GitBackend, LocalStorageGitBackend, CommitInfo, RepoStatus};
+use crate::services::{GitBackend, CommitInfo, RepoStatus};
+use crate::services::git_factory::get_git_backend;
 use crate::state::{AppState, Notification};
 
 #[component]
+#[allow(clippy::collapsible_if)]
 pub fn GitPanel() -> impl IntoView {
-    // Uses LocalStorageGitBackend for persistence in the browser.
+    // Uses get_git_backend factory.
     let status_data = RwSignal::new(Option::<RepoStatus>::None);
     let log_data = RwSignal::new(Vec::<CommitInfo>::new());
     let commit_message = RwSignal::new(String::new());
@@ -21,7 +23,7 @@ pub fn GitPanel() -> impl IntoView {
 
     // Initial load
     Effect::new(move |_| {
-        let backend = LocalStorageGitBackend::new();
+        let backend = get_git_backend();
         match backend.status() {
             Ok(status) => status_data.set(Some(status)),
             Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
@@ -29,7 +31,7 @@ pub fn GitPanel() -> impl IntoView {
     });
 
     let load_status = move |_| {
-        let backend = LocalStorageGitBackend::new();
+        let backend = get_git_backend();
         match backend.status() {
             Ok(status) => status_data.set(Some(status)),
             Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
@@ -37,7 +39,7 @@ pub fn GitPanel() -> impl IntoView {
     };
 
     let load_log = move |_| {
-        let backend = LocalStorageGitBackend::new();
+        let backend = get_git_backend();
         match backend.log() {
             Ok(logs) => log_data.set(logs),
             Err(e) => {
@@ -53,7 +55,7 @@ pub fn GitPanel() -> impl IntoView {
             return;
         }
 
-        let backend = LocalStorageGitBackend::new();
+        let backend = get_git_backend();
         match backend.commit(&message) {
             Ok(()) => {
                 app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
@@ -76,7 +78,7 @@ pub fn GitPanel() -> impl IntoView {
     };
 
     let do_push = move |_| {
-        let backend = LocalStorageGitBackend::new();
+        let backend = get_git_backend();
         match backend.push() {
             Ok(Some(json)) => {
                 // Trigger download using Blob (Best Practice)
@@ -138,10 +140,12 @@ pub fn GitPanel() -> impl IntoView {
                     let on_load = Closure::wrap(Box::new(move |_e: web_sys::Event| {
                         if let Ok(result) = reader_c.result() {
                             if let Some(text) = result.as_string() {
-                                let backend = LocalStorageGitBackend::new();
+                                let backend = get_git_backend();
                                 match backend.clone_repo(&text) {
                                     Ok(_) => {
-                                        app_state.ui.notify(Notification::success("Repository imported successfully".to_string()));
+                                        app_state.ui.notify(Notification::success(
+                                            "Repository imported successfully".to_string(),
+                                        ));
                                         // Refresh status and log
                                         if let Ok(status) = backend.status() {
                                             status_data.set(Some(status));
@@ -151,7 +155,10 @@ pub fn GitPanel() -> impl IntoView {
                                         }
                                     }
                                     Err(e) => {
-                                        app_state.ui.notify(Notification::error(format!("Import failed: {}", e.user_message())));
+                                        app_state.ui.notify(Notification::error(format!(
+                                            "Import failed: {}",
+                                            e.user_message()
+                                        )));
                                     }
                                 }
                             }
@@ -168,7 +175,7 @@ pub fn GitPanel() -> impl IntoView {
 
     let trigger_import = move |_| {
         if let Some(input) = file_input_ref.get() {
-            let _ = input.click();
+            input.click();
         }
     };
 
@@ -186,7 +193,9 @@ pub fn GitPanel() -> impl IntoView {
                             <div class="status-box">
                                 <p>"Branch: " <b>{status.branch}</b></p>
                                 <p>"Commits: " {status.commit_count}</p>
-                                <p>{if status.clean { "Working tree clean" } else { "Changes not staged" }}</p>
+                                <p class:text-red-500=move || status.has_changes class:text-green-500=move || !status.has_changes>
+                                    {if status.has_changes { "Changes not staged" } else { "Working tree clean" }}
+                                </p>
                             </div>
                         }.into_any(),
                         None => view! { <p>"Loading status..."</p> }.into_any()

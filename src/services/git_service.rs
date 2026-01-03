@@ -16,6 +16,7 @@ pub struct RepoStatus {
     pub commit_count: usize,
     pub clean: bool,
     pub active: bool,
+    pub has_changes: bool, // Explicit flag for UI showing unsaved changes
 }
 
 impl Default for RepoStatus {
@@ -25,6 +26,7 @@ impl Default for RepoStatus {
             commit_count: 0,
             clean: true,
             active: false,
+            has_changes: false,
         }
     }
 }
@@ -51,6 +53,7 @@ impl GitBackend for NoopGitBackend {
             commit_count: 0,
             clean: true,
             active: false,
+            has_changes: false,
         })
     }
 

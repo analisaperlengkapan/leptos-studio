@@ -51,6 +51,7 @@ fn test_repo_status_logic() {
         commit_count: 5,
         clean: true,
         active: true,
+        has_changes: false,
     };
 
     assert_eq!(status.branch, "main");

@@ -62,19 +62,40 @@ impl LocalStorageGitBackend {
 }
 
 impl GitBackend for LocalStorageGitBackend {
+    #[allow(clippy::collapsible_if)]
     fn status(&self) -> AppResult<RepoStatus> {
         let repo = Self::get_repo()?;
         let commit_count = repo.commits.len();
 
-        // In this simple model, we are always clean because we snapshot on commit
-        // But for UI purposes, we could check if current AppState differs from HEAD.
-        // For now, let's just return basic stats.
+        let mut has_changes = false;
+
+        // Compare current app state with HEAD to determine if we have changes
+        // Use use_context to avoid panic if context is missing (safe access)
+        if let Some(app_state) = use_context::<AppState>() {
+             let current_project = app_state.to_project();
+
+             // Find HEAD commit
+             if let Some(head_id) = &repo.head {
+                 if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
+                     // Check if project state differs (using PartialEq)
+                     if current_project != head_commit.project_snapshot {
+                         has_changes = true;
+                     }
+                 }
+             } else {
+                // No commits yet, but if we have content, is it "changed"?
+                // Let's say yes if it's not the default empty project, but keeping it simple:
+                // If no commits, we are "dirty" effectively until first commit
+                has_changes = true;
+             }
+        }
 
         Ok(RepoStatus {
             branch: "main".to_string(),
             commit_count,
-            clean: true, // We don't track dirty state yet
+            clean: !has_changes,
             active: true,
+            has_changes,
         })
     }
 

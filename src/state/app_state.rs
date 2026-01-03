@@ -243,7 +243,7 @@ pub enum ExportPreset {
 }
 
 /// Settings state
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct SettingsState {
     pub theme: Theme,
     pub auto_save: bool,

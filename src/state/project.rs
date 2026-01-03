@@ -4,7 +4,7 @@ use super::app_state::SettingsState;
 use crate::domain::CanvasComponent;
 
 /// Persistable project representation combining layout and settings
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Project {
     pub name: String,
     pub description: Option<String>,
