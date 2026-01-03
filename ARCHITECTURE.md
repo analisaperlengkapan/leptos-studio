@@ -125,11 +125,12 @@ This section summarizes key data flows in the application.
 ### 2.5 Git Panel
 
 1. Git Panel (`builder/git_panel.rs`) uses the `GitBackend` trait from `git_service`.
-2. Current runtime implementation is `NoopGitBackend` (performs no real operations), but the API is available:
-   - status,
-   - log,
-   - commit, etc.
-3. In the future, real implementations can be injected (e.g., via HTTP/Tauri) without major UI changes.
+2. Current runtime implementation is `LocalStorageGitBackend` (persists commits to browser LocalStorage), providing:
+   - status (branch, commit count),
+   - log (browsable commit history),
+   - commit (snapshots current project state),
+   - push/clone (export/import repository as JSON).
+3. The design allows future backend implementations (e.g., HTTP/Tauri) without major UI changes.
 
 ### 2.6 Keyboard Shortcuts
 
