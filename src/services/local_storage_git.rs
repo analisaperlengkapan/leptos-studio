@@ -65,20 +65,16 @@ impl LocalStorageGitBackend {
 
     /// Checks if the current project state differs from the HEAD commit
     fn is_dirty(repo: &RepositoryState, current_project: &Project) -> bool {
-        if let Some(head_id) = &repo.head {
-            if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
-                // Check if project state differs (using PartialEq)
-                *current_project != head_commit.project_snapshot
-            } else {
-                // Head ID exists but commit not found? Should be an error or dirty state.
-                // Treating as dirty.
-                true
+        match &repo.head {
+            Some(head_id) => {
+                match repo.commits.iter().find(|c| &c.id == head_id) {
+                    Some(head_commit) => *current_project != head_commit.project_snapshot,
+                    // Head ID exists but commit not found? Treating as dirty.
+                    None => true,
+                }
             }
-        } else {
-            // No commits yet, but if we have content, is it "changed"?
-            // Let's say yes if it's not the default empty project, but keeping it simple:
-            // If no commits, we are "dirty" effectively until first commit
-            true
+            // No commits yet, we are "dirty" effectively until first commit
+            None => true,
         }
     }
 }
