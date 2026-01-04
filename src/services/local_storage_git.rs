@@ -7,7 +7,7 @@ use crate::state::project::Project;
 
 use super::git_service::{GitBackend, CommitInfo, RepoStatus};
 
-/// Represents a single commit in our LocalStorage Git backend
+/// Represents a single commit in our LocalStorageGit backend
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LocalCommit {
     pub id: String,
@@ -57,11 +57,18 @@ impl LocalStorageGitBackend {
     fn save_repo(repo: &RepositoryState) -> AppResult<()> {
         repo.save()
     }
+
+    // Simulate network delay to mimic real backend behavior
+    async fn simulate_delay(&self) {
+        gloo_timers::future::TimeoutFuture::new(300).await;
+    }
 }
 
 impl GitBackend for LocalStorageGitBackend {
     #[allow(clippy::collapsible_if)]
-    fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus> {
+    async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus> {
+        self.simulate_delay().await;
+
         let repo = Self::get_repo()?;
         let commit_count = repo.commits.len();
 
@@ -94,7 +101,9 @@ impl GitBackend for LocalStorageGitBackend {
         })
     }
 
-    fn log(&self) -> AppResult<Vec<CommitInfo>> {
+    async fn log(&self) -> AppResult<Vec<CommitInfo>> {
+        self.simulate_delay().await;
+
         let repo = Self::get_repo()?;
         if repo.commits.is_empty() {
             return Ok(Vec::new());
@@ -110,7 +119,9 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(commits)
     }
 
-    fn commit(&self, project: &Project, message: &str) -> AppResult<()> {
+    async fn commit(&self, project: &Project, message: &str) -> AppResult<()> {
+        self.simulate_delay().await;
+
         let trimmed_msg = message.trim();
         if trimmed_msg.is_empty() {
             return Err(AppError::Validation(
@@ -138,7 +149,9 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(())
     }
 
-    fn push(&self) -> AppResult<Option<String>> {
+    async fn push(&self) -> AppResult<Option<String>> {
+        self.simulate_delay().await;
+
         // Return the whole repo state as JSON for download
         let repo = Self::get_repo()?;
         let json = serde_json::to_string_pretty(&repo)
@@ -146,7 +159,9 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(Some(json))
     }
 
-    fn clone_repo(&self, json: &str) -> AppResult<()> {
+    async fn clone_repo(&self, json: &str) -> AppResult<()> {
+        self.simulate_delay().await;
+
         let repo: RepositoryState = serde_json::from_str(json)
             .map_err(|e| AppError::Export(format!("Failed to deserialize repo: {}", e)))?;
 
@@ -154,7 +169,9 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(())
     }
 
-    fn restore_head(&self) -> AppResult<Option<Project>> {
+    async fn restore_head(&self) -> AppResult<Option<Project>> {
+        self.simulate_delay().await;
+
         let repo = Self::get_repo()?;
         if let Some(head_id) = repo.head {
             if let Some(commit) = repo.commits.iter().find(|c| c.id == head_id) {

@@ -36,12 +36,12 @@ impl Default for RepoStatus {
 /// Tauri desktop, etc.) can implement Git integration without coupling the UI
 /// to a specific environment.
 pub trait GitBackend {
-    fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus>;
-    fn log(&self) -> AppResult<Vec<CommitInfo>>;
-    fn commit(&self, project: &Project, message: &str) -> AppResult<()>;
-    fn push(&self) -> AppResult<Option<String>>;
-    fn clone_repo(&self, json: &str) -> AppResult<()>;
-    fn restore_head(&self) -> AppResult<Option<Project>>;
+    async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus>;
+    async fn log(&self) -> AppResult<Vec<CommitInfo>>;
+    async fn commit(&self, project: &Project, message: &str) -> AppResult<()>;
+    async fn push(&self) -> AppResult<Option<String>>;
+    async fn clone_repo(&self, json: &str) -> AppResult<()>;
+    async fn restore_head(&self) -> AppResult<Option<Project>>;
 }
 
 /// No-op Git backend used in pure browser mode where no real Git integration
@@ -49,7 +49,7 @@ pub trait GitBackend {
 pub struct NoopGitBackend;
 
 impl GitBackend for NoopGitBackend {
-    fn status(&self, _current_project: Option<&Project>) -> AppResult<RepoStatus> {
+    async fn status(&self, _current_project: Option<&Project>) -> AppResult<RepoStatus> {
         Ok(RepoStatus {
             branch: "main".to_string(),
             commit_count: 0,
@@ -59,23 +59,23 @@ impl GitBackend for NoopGitBackend {
         })
     }
 
-    fn log(&self) -> AppResult<Vec<CommitInfo>> {
+    async fn log(&self) -> AppResult<Vec<CommitInfo>> {
         Ok(Vec::new())
     }
 
-    fn commit(&self, _project: &Project, _message: &str) -> AppResult<()> {
+    async fn commit(&self, _project: &Project, _message: &str) -> AppResult<()> {
         Ok(())
     }
 
-    fn push(&self) -> AppResult<Option<String>> {
+    async fn push(&self) -> AppResult<Option<String>> {
         Ok(None)
     }
 
-    fn clone_repo(&self, _json: &str) -> AppResult<()> {
+    async fn clone_repo(&self, _json: &str) -> AppResult<()> {
         Ok(())
     }
 
-    fn restore_head(&self) -> AppResult<Option<Project>> {
+    async fn restore_head(&self) -> AppResult<Option<Project>> {
         Ok(None)
     }
 }

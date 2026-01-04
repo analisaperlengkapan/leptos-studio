@@ -15,6 +15,11 @@ pub fn GitPanel() -> impl IntoView {
     let log_data = RwSignal::new(Vec::<CommitInfo>::new());
     let commit_message = RwSignal::new(String::new());
 
+    // Loading states for better UX
+    let is_loading_status = RwSignal::new(false);
+    let is_loading_log = RwSignal::new(false);
+    let is_committing = RwSignal::new(false);
+
     // For file input (import)
     let file_input_ref = NodeRef::<Input>::new();
 
@@ -41,7 +46,10 @@ pub fn GitPanel() -> impl IntoView {
             if debounce_token.get_value() == current_token {
                 let backend = get_git_backend();
                 let project = app_state.to_project();
-                match backend.status(Some(&project)) {
+
+                // Don't show global spinner for background status check,
+                // but we could set a local one if we wanted.
+                match backend.status(Some(&project)).await {
                     Ok(status) => status_data.set(Some(status)),
                     Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
                 }
@@ -50,22 +58,31 @@ pub fn GitPanel() -> impl IntoView {
     });
 
     let load_status = move |_| {
+        is_loading_status.set(true);
         let backend = get_git_backend();
         let project = app_state.to_project();
-        match backend.status(Some(&project)) {
-            Ok(status) => status_data.set(Some(status)),
-            Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
-        }
+
+        wasm_bindgen_futures::spawn_local(async move {
+            match backend.status(Some(&project)).await {
+                Ok(status) => status_data.set(Some(status)),
+                Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
+            }
+            is_loading_status.set(false);
+        });
     };
 
     let load_log = move |_| {
+        is_loading_log.set(true);
         let backend = get_git_backend();
-        match backend.log() {
-            Ok(logs) => log_data.set(logs),
-            Err(e) => {
-                app_state.ui.notify(Notification::error(e.user_message()));
+        wasm_bindgen_futures::spawn_local(async move {
+            match backend.log().await {
+                Ok(logs) => log_data.set(logs),
+                Err(e) => {
+                    app_state.ui.notify(Notification::error(e.user_message()));
+                }
             }
-        }
+            is_loading_log.set(false);
+        });
     };
 
     let do_commit = move |_| {
@@ -75,99 +92,111 @@ pub fn GitPanel() -> impl IntoView {
             return;
         }
 
+        is_committing.set(true);
         let backend = get_git_backend();
         let project = app_state.to_project();
-        match backend.commit(&project, &message) {
-            Ok(()) => {
-                app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
-                commit_message.set(String::new());
-                // Refresh status automatically
-                if let Ok(status) = backend.status(Some(&project)) {
-                    status_data.set(Some(status));
-                }
-                // If log is showing, refresh it too
-                if !log_data.get().is_empty() {
-                    if let Ok(logs) = backend.log() {
-                        log_data.set(logs);
+
+        wasm_bindgen_futures::spawn_local(async move {
+            match backend.commit(&project, &message).await {
+                Ok(()) => {
+                    app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
+                    commit_message.set(String::new());
+                    // Refresh status automatically
+                    if let Ok(status) = backend.status(Some(&project)).await {
+                        status_data.set(Some(status));
+                    }
+                    // If log is showing, refresh it too
+                    if !log_data.get().is_empty() {
+                        if let Ok(logs) = backend.log().await {
+                            log_data.set(logs);
+                        }
                     }
                 }
+                Err(e) => {
+                    app_state.ui.notify(Notification::error(e.user_message()));
+                }
             }
-            Err(e) => {
-                app_state.ui.notify(Notification::error(e.user_message()));
-            }
-        }
+            is_committing.set(false);
+        });
     };
 
     let do_discard = move |_| {
         let backend = get_git_backend();
-        match backend.restore_head() {
-            Ok(Some(project)) => {
-                 app_state.apply_project(project);
-                 app_state.ui.notify(Notification::success("Changes discarded. Reverted to HEAD.".to_string()));
-                 // Refresh status
-                 if let Ok(status) = backend.status(Some(&app_state.to_project())) {
-                     status_data.set(Some(status));
-                 }
+
+        wasm_bindgen_futures::spawn_local(async move {
+            match backend.restore_head().await {
+                Ok(Some(project)) => {
+                     app_state.apply_project(project);
+                     app_state.ui.notify(Notification::success("Changes discarded. Reverted to HEAD.".to_string()));
+                     // Refresh status
+                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
+                         status_data.set(Some(status));
+                     }
+                }
+                Ok(None) => {
+                     app_state.ui.notify(Notification::warning("No commits to revert to.".to_string()));
+                }
+                Err(e) => {
+                     app_state.ui.notify(Notification::error(e.user_message()));
+                }
             }
-            Ok(None) => {
-                 app_state.ui.notify(Notification::warning("No commits to revert to.".to_string()));
-            }
-            Err(e) => {
-                 app_state.ui.notify(Notification::error(e.user_message()));
-            }
-        }
+        });
     };
 
     let do_push = move |_| {
         let backend = get_git_backend();
-        match backend.push() {
-            Ok(Some(json)) => {
-                // Trigger download using Blob (Best Practice)
-                let filename = "leptos_studio_repo.json";
 
-                let array = js_sys::Array::new();
-                array.push(&json.into());
+        wasm_bindgen_futures::spawn_local(async move {
+            match backend.push().await {
+                Ok(Some(json)) => {
+                    // Trigger download using Blob (Best Practice)
+                    let filename = "leptos_studio_repo.json";
 
-                let blob_options = web_sys::BlobPropertyBag::new();
-                blob_options.set_type("application/json");
+                    let array = js_sys::Array::new();
+                    array.push(&json.into());
 
-                match web_sys::Blob::new_with_str_sequence_and_options(&array, &blob_options) {
-                    Ok(blob) => {
-                        match web_sys::Url::create_object_url_with_blob(&blob) {
-                            Ok(url) => {
-                                let document = web_sys::window().unwrap().document().unwrap();
-                                let a = document.create_element("a").unwrap();
-                                let _ = a.set_attribute("href", &url);
-                                let _ = a.set_attribute("download", filename);
+                    let blob_options = web_sys::BlobPropertyBag::new();
+                    blob_options.set_type("application/json");
 
-                                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
-                                    html_element.click();
+                    match web_sys::Blob::new_with_str_sequence_and_options(&array, &blob_options) {
+                        Ok(blob) => {
+                            match web_sys::Url::create_object_url_with_blob(&blob) {
+                                Ok(url) => {
+                                    let document = web_sys::window().unwrap().document().unwrap();
+                                    if let Ok(a) = document.create_element("a") {
+                                        let _ = a.set_attribute("href", &url);
+                                        let _ = a.set_attribute("download", filename);
+
+                                        if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
+                                            html_element.click();
+                                        }
+
+                                        // Revoke URL to free memory
+                                        let _ = web_sys::Url::revoke_object_url(&url);
+
+                                        app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
+                                    }
+                                },
+                                Err(e) => {
+                                    let err_str = e.as_string().unwrap_or("Unknown URL error".to_string());
+                                    app_state.ui.notify(Notification::error(format!("Failed to create download URL: {}", err_str)));
                                 }
-
-                                // Revoke URL to free memory
-                                let _ = web_sys::Url::revoke_object_url(&url);
-
-                                app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
-                            },
-                            Err(e) => {
-                                let err_str = e.as_string().unwrap_or("Unknown URL error".to_string());
-                                app_state.ui.notify(Notification::error(format!("Failed to create download URL: {}", err_str)));
                             }
+                        },
+                        Err(e) => {
+                            let err_str = e.as_string().unwrap_or("Unknown Blob error".to_string());
+                            app_state.ui.notify(Notification::error(format!("Failed to create blob: {}", err_str)));
                         }
-                    },
-                    Err(e) => {
-                        let err_str = e.as_string().unwrap_or("Unknown Blob error".to_string());
-                        app_state.ui.notify(Notification::error(format!("Failed to create blob: {}", err_str)));
                     }
                 }
+                Ok(None) => {
+                    app_state.ui.notify(Notification::success("Push successful".to_string()));
+                }
+                Err(e) => {
+                    app_state.ui.notify(Notification::error(e.user_message()));
+                }
             }
-            Ok(None) => {
-                app_state.ui.notify(Notification::success("Push successful".to_string()));
-            }
-            Err(e) => {
-                app_state.ui.notify(Notification::error(e.user_message()));
-            }
-        }
+        });
     };
 
     let on_file_select = move |_ev: web_sys::Event| {
@@ -182,29 +211,30 @@ pub fn GitPanel() -> impl IntoView {
                         if let Ok(result) = reader_c.result() {
                             if let Some(text) = result.as_string() {
                                 let backend = get_git_backend();
-                                match backend.clone_repo(&text) {
-                                    Ok(_) => {
-                                        app_state.ui.notify(Notification::success(
-                                            "Repository imported successfully".to_string(),
-                                        ));
-                                        // Refresh status and log
-                                        // Note: When importing, the project state might be outdated compared to repo HEAD
-                                        // But status() checks dirty state.
-                                        let project = app_state.to_project();
-                                        if let Ok(status) = backend.status(Some(&project)) {
-                                            status_data.set(Some(status));
+
+                                wasm_bindgen_futures::spawn_local(async move {
+                                    match backend.clone_repo(&text).await {
+                                        Ok(_) => {
+                                            app_state.ui.notify(Notification::success(
+                                                "Repository imported successfully".to_string(),
+                                            ));
+                                            // Refresh status and log
+                                            let project = app_state.to_project();
+                                            if let Ok(status) = backend.status(Some(&project)).await {
+                                                status_data.set(Some(status));
+                                            }
+                                            if let Ok(logs) = backend.log().await {
+                                                log_data.set(logs);
+                                            }
                                         }
-                                        if let Ok(logs) = backend.log() {
-                                            log_data.set(logs);
+                                        Err(e) => {
+                                            app_state.ui.notify(Notification::error(format!(
+                                                "Import failed: {}",
+                                                e.user_message()
+                                            )));
                                         }
                                     }
-                                    Err(e) => {
-                                        app_state.ui.notify(Notification::error(format!(
-                                            "Import failed: {}",
-                                            e.user_message()
-                                        )));
-                                    }
-                                }
+                                });
                             }
                         }
                     }) as Box<dyn FnMut(_)>);
@@ -226,8 +256,20 @@ pub fn GitPanel() -> impl IntoView {
     view! {
         <div class="git-panel-content">
             <div class="git-actions">
-                <button on:click=load_status class="btn btn-secondary">"Status"</button>
-                <button on:click=load_log class="btn btn-secondary">"Log"</button>
+                <button
+                    on:click=load_status
+                    class="btn btn-secondary"
+                    disabled=move || is_loading_status.get()
+                >
+                    {move || if is_loading_status.get() { "Checking..." } else { "Status" }}
+                </button>
+                <button
+                    on:click=load_log
+                    class="btn btn-secondary"
+                    disabled=move || is_loading_log.get()
+                >
+                    {move || if is_loading_log.get() { "Loading..." } else { "Log" }}
+                </button>
             </div>
 
             <div class="git-status">
@@ -242,7 +284,11 @@ pub fn GitPanel() -> impl IntoView {
                                 </p>
                             </div>
                         }.into_any(),
-                        None => view! { <p>"Loading status..."</p> }.into_any()
+                        None => view! {
+                            <p class:text-gray-500=true>
+                                {if is_loading_status.get() { "Loading status..." } else { "No status loaded." }}
+                            </p>
+                        }.into_any()
                     }
                 }}
             </div>
@@ -254,10 +300,17 @@ pub fn GitPanel() -> impl IntoView {
                     placeholder="Commit message"
                     prop:value=move || commit_message.get()
                     on:input=move |ev| commit_message.set(event_target_value(&ev))
+                    prop:disabled=move || is_committing.get()
                 />
 
                 <div class="git-actions">
-                    <button on:click=do_commit class="btn btn-primary">"Commit"</button>
+                    <button
+                        on:click=do_commit
+                        class="btn btn-primary"
+                        disabled=move || is_committing.get()
+                    >
+                        {move || if is_committing.get() { "Committing..." } else { "Commit" }}
+                    </button>
                     <button on:click=do_discard class="btn btn-danger" title="Discard all uncommitted changes">"Discard Changes"</button>
                     <button on:click=do_push class="btn btn-secondary" title="Download Repository JSON">"Push (Download)"</button>
                     <button on:click=trigger_import class="btn btn-secondary" title="Import Repository JSON">"Clone (Import)"</button>
@@ -292,7 +345,11 @@ pub fn GitPanel() -> impl IntoView {
                         }
                     />
                     {move || if log_data.get().is_empty() {
-                        view! { <p class="no-commits">"No commits found or log not loaded."</p> }.into_any()
+                        view! {
+                            <p class="no-commits">
+                                {if is_loading_log.get() { "Loading commits..." } else { "No commits found or log not loaded." }}
+                            </p>
+                        }.into_any()
                     } else {
                         view! { <span /> }.into_any()
                     }}
