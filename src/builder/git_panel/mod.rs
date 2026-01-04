@@ -6,6 +6,7 @@ use wasm_bindgen::JsCast;
 use crate::services::{GitBackend, CommitInfo, RepoStatus};
 use crate::services::git_factory::get_git_backend;
 use crate::state::{AppState, Notification};
+use crate::utils::spawn_result_task;
 
 mod status_display;
 mod log_list;
@@ -128,59 +129,65 @@ pub fn GitPanel() -> impl IntoView {
     let do_discard = move |_| {
         let backend = get_git_backend();
 
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.restore_head().await {
-                Ok(Some(project)) => {
+        spawn_result_task(
+            async move {
+                backend.restore_head().await
+            },
+            app_state,
+            move |opt_project| {
+                if let Some(project) = opt_project {
                      app_state.apply_project(project);
                      app_state.ui.notify(Notification::success("Changes discarded. Reverted to HEAD.".to_string()));
-                     // Refresh status
-                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
-                         status_data.set(Some(status));
-                     }
-                }
-                Ok(None) => {
+
+                     // Refresh status (spawn another task or nested? Nested is fine here since it's fire-and-forget)
+                     wasm_bindgen_futures::spawn_local(async move {
+                         let backend = get_git_backend();
+                         if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
+                             status_data.set(Some(status));
+                         }
+                     });
+                } else {
                      app_state.ui.notify(Notification::warning("No commits to revert to.".to_string()));
                 }
-                Err(e) => {
-                     app_state.ui.notify(Notification::error(e.user_message()));
-                }
             }
-        });
+        );
     };
 
     let do_reset_repo = move |_| {
         let backend = get_git_backend();
 
-        // In a real app we'd show a confirmation modal here.
-        // For now, we rely on the button text or assume user intent.
+        spawn_result_task(
+            async move {
+                backend.reset().await
+            },
+            app_state,
+            move |_| {
+                 app_state.ui.notify(Notification::success("Repository reset successfully.".to_string()));
 
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.reset().await {
-                 Ok(()) => {
-                     app_state.ui.notify(Notification::success("Repository reset successfully.".to_string()));
-
-                     // Refresh status and log
+                 // Refresh status and log
+                 wasm_bindgen_futures::spawn_local(async move {
+                     let backend = get_git_backend();
                      if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
                          status_data.set(Some(status));
                      }
                      if let Ok(logs) = backend.log().await {
                          log_data.set(logs);
                      }
-                 }
-                 Err(e) => {
-                     app_state.ui.notify(Notification::error(e.user_message()));
-                 }
+                 });
             }
-        });
+        );
     };
 
     let do_push = move |_| {
         let backend = get_git_backend();
 
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.push().await {
-                Ok(Some(json)) => {
-                    // Trigger download using shared utility (Best Practice)
+        spawn_result_task(
+            async move {
+                backend.push().await
+            },
+            app_state,
+            move |res| {
+                if let Some(json) = res {
                     let filename = "leptos_studio_repo.json";
                     match crate::utils::file::download_file(&json, filename, "application/json") {
                         Ok(_) => {
@@ -190,15 +197,11 @@ pub fn GitPanel() -> impl IntoView {
                              app_state.ui.notify(Notification::error(e.user_message()));
                         }
                     }
-                }
-                Ok(None) => {
+                } else {
                     app_state.ui.notify(Notification::success("Push successful".to_string()));
                 }
-                Err(e) => {
-                    app_state.ui.notify(Notification::error(e.user_message()));
-                }
             }
-        });
+        );
     };
 
     let on_file_select = move |_ev: web_sys::Event| {
@@ -206,53 +209,36 @@ pub fn GitPanel() -> impl IntoView {
         if let Some(input) = input {
             if let Some(files) = input.files() {
                 if let Some(file) = files.get(0) {
-                    match web_sys::FileReader::new() {
-                        Ok(reader) => {
-                            let reader_c = reader.clone();
-                            let on_load = Closure::wrap(Box::new(move |_e: web_sys::Event| {
-                                if let Ok(result) = reader_c.result() {
-                                    if let Some(text) = result.as_string() {
-                                        let backend = get_git_backend();
-
-                                        wasm_bindgen_futures::spawn_local(async move {
-                                            match backend.clone_repo(&text).await {
-                                                Ok(_) => {
-                                                    app_state.ui.notify(Notification::success(
-                                                        "Repository imported successfully".to_string(),
-                                                    ));
-                                                    // Refresh status and log
-                                                    let project = app_state.to_project();
-                                                    if let Ok(status) = backend.status(Some(&project)).await {
-                                                        status_data.set(Some(status));
-                                                    }
-                                                    if let Ok(logs) = backend.log().await {
-                                                        log_data.set(logs);
-                                                    }
-                                                }
-                                                Err(e) => {
-                                                    app_state.ui.notify(Notification::error(format!(
-                                                        "Import failed: {}",
-                                                        e.user_message()
-                                                    )));
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            }) as Box<dyn FnMut(_)>);
-
-                            reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
-                            on_load.forget(); // Leak memory to keep closure alive until callback
-                            if let Err(e) = reader.read_as_text(&file) {
-                                let err_str = e.as_string().unwrap_or("Unknown File API error".to_string());
-                                app_state.ui.notify(Notification::error(format!("Failed to read file: {}", err_str)));
-                            }
+                    spawn_result_task(
+                        async move {
+                            crate::utils::file::read_file_as_text(file).await
                         },
-                        Err(e) => {
-                            let err_str = e.as_string().unwrap_or("Unknown FileReader error".to_string());
-                            app_state.ui.notify(Notification::error(format!("Failed to create FileReader: {}", err_str)));
+                        app_state,
+                        move |text| {
+                            spawn_result_task(
+                                async move {
+                                    get_git_backend().clone_repo(&text).await
+                                },
+                                app_state,
+                                move |_| {
+                                    app_state.ui.notify(Notification::success(
+                                        "Repository imported successfully".to_string(),
+                                    ));
+                                    // Refresh status and log
+                                    let project = app_state.to_project();
+                                    let backend = get_git_backend();
+                                    wasm_bindgen_futures::spawn_local(async move {
+                                        if let Ok(status) = backend.status(Some(&project)).await {
+                                            status_data.set(Some(status));
+                                        }
+                                        if let Ok(logs) = backend.log().await {
+                                            log_data.set(logs);
+                                        }
+                                    });
+                                }
+                            );
                         }
-                    }
+                    );
                 }
             }
         }

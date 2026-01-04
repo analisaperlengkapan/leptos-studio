@@ -62,6 +62,25 @@ impl LocalStorageGitBackend {
         // Reduced delay for better responsiveness while still testing async paths
         gloo_timers::future::TimeoutFuture::new(50).await;
     }
+
+    /// Checks if the current project state differs from the HEAD commit
+    fn is_dirty(repo: &RepositoryState, current_project: &Project) -> bool {
+        if let Some(head_id) = &repo.head {
+            if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
+                // Check if project state differs (using PartialEq)
+                *current_project != head_commit.project_snapshot
+            } else {
+                // Head ID exists but commit not found? Should be an error or dirty state.
+                // Treating as dirty.
+                true
+            }
+        } else {
+            // No commits yet, but if we have content, is it "changed"?
+            // Let's say yes if it's not the default empty project, but keeping it simple:
+            // If no commits, we are "dirty" effectively until first commit
+            true
+        }
+    }
 }
 
 impl GitBackend for LocalStorageGitBackend {
@@ -76,29 +95,11 @@ impl GitBackend for LocalStorageGitBackend {
         let repo = Self::get_repo()?;
         let commit_count = repo.commits.len();
 
-        let mut has_changes = false;
-
-        // Compare current app state with HEAD to determine if we have changes
-        if let Some(current_project) = current_project {
-             // Find HEAD commit
-             if let Some(head_id) = &repo.head {
-                 if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
-                     // Check if project state differs (using PartialEq)
-                     if *current_project != head_commit.project_snapshot {
-                         has_changes = true;
-                     }
-                 } else {
-                     // Head ID exists but commit not found? Should be an error or dirty state.
-                     // Treating as dirty.
-                     has_changes = true;
-                 }
-             } else {
-                // No commits yet, but if we have content, is it "changed"?
-                // Let's say yes if it's not the default empty project, but keeping it simple:
-                // If no commits, we are "dirty" effectively until first commit
-                has_changes = true;
-             }
-        }
+        let has_changes = if let Some(current_project) = current_project {
+            Self::is_dirty(&repo, current_project)
+        } else {
+            false
+        };
 
         Ok(RepoStatus {
             branch: "main".to_string(),
@@ -144,20 +145,7 @@ impl GitBackend for LocalStorageGitBackend {
         // Reusing status implies another delay simulation, so we duplicate the check logic for efficiency.
         let mut repo = Self::get_repo()?;
 
-        let mut has_changes = false;
-        if let Some(head_id) = &repo.head {
-             if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
-                 if *project != head_commit.project_snapshot {
-                     has_changes = true;
-                 }
-             } else {
-                 has_changes = true;
-             }
-        } else {
-            has_changes = true;
-        }
-
-        if !has_changes {
+        if !Self::is_dirty(&repo, project) {
              return Err(AppError::Validation(
                 crate::domain::error::ValidationError::Generic(
                     "Nothing to commit (working directory clean)".to_string(),
