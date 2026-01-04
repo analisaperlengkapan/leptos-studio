@@ -162,19 +162,22 @@ pub fn GitPanel() -> impl IntoView {
                         Ok(blob) => {
                             match web_sys::Url::create_object_url_with_blob(&blob) {
                                 Ok(url) => {
-                                    let document = web_sys::window().unwrap().document().unwrap();
-                                    if let Ok(a) = document.create_element("a") {
-                                        let _ = a.set_attribute("href", &url);
-                                        let _ = a.set_attribute("download", filename);
+                                    if let Some(window) = web_sys::window() {
+                                        if let Some(document) = window.document() {
+                                            if let Ok(a) = document.create_element("a") {
+                                                let _ = a.set_attribute("href", &url);
+                                                let _ = a.set_attribute("download", filename);
 
-                                        if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
-                                            html_element.click();
+                                                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
+                                                    html_element.click();
+                                                }
+
+                                                // Revoke URL to free memory
+                                                let _ = web_sys::Url::revoke_object_url(&url);
+
+                                                app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
+                                            }
                                         }
-
-                                        // Revoke URL to free memory
-                                        let _ = web_sys::Url::revoke_object_url(&url);
-
-                                        app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
                                     }
                                 },
                                 Err(e) => {
@@ -204,44 +207,53 @@ pub fn GitPanel() -> impl IntoView {
         if let Some(input) = input {
             if let Some(files) = input.files() {
                 if let Some(file) = files.get(0) {
-                    let reader = web_sys::FileReader::new().unwrap();
-                    let reader_c = reader.clone();
+                    match web_sys::FileReader::new() {
+                        Ok(reader) => {
+                            let reader_c = reader.clone();
+                            let on_load = Closure::wrap(Box::new(move |_e: web_sys::Event| {
+                                if let Ok(result) = reader_c.result() {
+                                    if let Some(text) = result.as_string() {
+                                        let backend = get_git_backend();
 
-                    let on_load = Closure::wrap(Box::new(move |_e: web_sys::Event| {
-                        if let Ok(result) = reader_c.result() {
-                            if let Some(text) = result.as_string() {
-                                let backend = get_git_backend();
-
-                                wasm_bindgen_futures::spawn_local(async move {
-                                    match backend.clone_repo(&text).await {
-                                        Ok(_) => {
-                                            app_state.ui.notify(Notification::success(
-                                                "Repository imported successfully".to_string(),
-                                            ));
-                                            // Refresh status and log
-                                            let project = app_state.to_project();
-                                            if let Ok(status) = backend.status(Some(&project)).await {
-                                                status_data.set(Some(status));
+                                        wasm_bindgen_futures::spawn_local(async move {
+                                            match backend.clone_repo(&text).await {
+                                                Ok(_) => {
+                                                    app_state.ui.notify(Notification::success(
+                                                        "Repository imported successfully".to_string(),
+                                                    ));
+                                                    // Refresh status and log
+                                                    let project = app_state.to_project();
+                                                    if let Ok(status) = backend.status(Some(&project)).await {
+                                                        status_data.set(Some(status));
+                                                    }
+                                                    if let Ok(logs) = backend.log().await {
+                                                        log_data.set(logs);
+                                                    }
+                                                }
+                                                Err(e) => {
+                                                    app_state.ui.notify(Notification::error(format!(
+                                                        "Import failed: {}",
+                                                        e.user_message()
+                                                    )));
+                                                }
                                             }
-                                            if let Ok(logs) = backend.log().await {
-                                                log_data.set(logs);
-                                            }
-                                        }
-                                        Err(e) => {
-                                            app_state.ui.notify(Notification::error(format!(
-                                                "Import failed: {}",
-                                                e.user_message()
-                                            )));
-                                        }
+                                        });
                                     }
-                                });
-                            }
-                        }
-                    }) as Box<dyn FnMut(_)>);
+                                }
+                            }) as Box<dyn FnMut(_)>);
 
-                    reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
-                    on_load.forget(); // Leak memory to keep closure alive until callback
-                    reader.read_as_text(&file).unwrap();
+                            reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
+                            on_load.forget(); // Leak memory to keep closure alive until callback
+                            if let Err(e) = reader.read_as_text(&file) {
+                                let err_str = e.as_string().unwrap_or("Unknown File API error".to_string());
+                                app_state.ui.notify(Notification::error(format!("Failed to read file: {}", err_str)));
+                            }
+                        },
+                        Err(e) => {
+                            let err_str = e.as_string().unwrap_or("Unknown FileReader error".to_string());
+                            app_state.ui.notify(Notification::error(format!("Failed to create FileReader: {}", err_str)));
+                        }
+                    }
                 }
             }
         }

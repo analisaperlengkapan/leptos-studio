@@ -35,6 +35,7 @@ impl Default for RepoStatus {
 /// Abstraction over Git operations so that different backends (web server,
 /// Tauri desktop, etc.) can implement Git integration without coupling the UI
 /// to a specific environment.
+#[allow(async_fn_in_trait)]
 pub trait GitBackend {
     async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus>;
     async fn log(&self) -> AppResult<Vec<CommitInfo>>;

@@ -1,9 +1,8 @@
 use wasm_bindgen_test::*;
-use leptos_studio::services::{GitBackend, RepoStatus};
+use leptos_studio::services::GitBackend;
 use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
 use leptos_studio::state::project::Project;
 use leptos_studio::state::app_state::SettingsState;
-use leptos_studio::domain::AppResult;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
