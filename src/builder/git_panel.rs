@@ -21,15 +21,32 @@ pub fn GitPanel() -> impl IntoView {
     // Access global UI state for notifications
     let app_state = expect_context::<AppState>();
 
-    // Initial load
+    // Debounced status check using generation token pattern
+    // This avoids storing non-Send/Sync types like Timeout/Closure in StoredValue
+    let debounce_token = StoredValue::new(0usize);
+
     Effect::new(move |_| {
-        let backend = get_git_backend();
-        // Since we are inside a component, getting current project from app_state is safe
-        let project = app_state.to_project();
-        match backend.status(Some(&project)) {
-            Ok(status) => status_data.set(Some(status)),
-            Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
-        }
+        // Track dependencies:
+        let _ = app_state.to_project();
+
+        // Increment token
+        debounce_token.update_value(|t| *t = t.wrapping_add(1));
+        let current_token = debounce_token.get_value();
+
+        // Spawn async wait
+        wasm_bindgen_futures::spawn_local(async move {
+            gloo_timers::future::TimeoutFuture::new(500).await;
+
+            // Check if we are still the latest generation
+            if debounce_token.get_value() == current_token {
+                let backend = get_git_backend();
+                let project = app_state.to_project();
+                match backend.status(Some(&project)) {
+                    Ok(status) => status_data.set(Some(status)),
+                    Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
+                }
+            }
+        });
     });
 
     let load_status = move |_| {
