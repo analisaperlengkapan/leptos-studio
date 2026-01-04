@@ -44,17 +44,12 @@ impl LocalStorageGitBackend {
     }
 
     fn get_repo() -> AppResult<RepositoryState> {
-        // We reuse the load_or_default logic from Persistable trait,
-        // but we need to handle the Result explicitly here.
-        // RepositoryState doesn't implement 'load_or_default' directly as a method that returns result,
-        // it implements 'load' which returns AppResult.
         match RepositoryState::load() {
             Ok(repo) => Ok(repo),
-            // If the error is just "no data", we return default.
-            // If it's a serialization error, we should probably still return default or error.
-            // For now, let's stick to the behavior that allows the app to start even if storage is empty,
-            // but we'll be more explicit about what we are doing.
-            Err(_) => Ok(RepositoryState::default()),
+            Err(AppError::Storage(msg)) if msg.contains("No data found") => {
+                Ok(RepositoryState::default())
+            }
+            Err(e) => Err(e),
         }
     }
 
