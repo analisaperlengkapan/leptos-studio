@@ -21,15 +21,18 @@ fn test_dirty_state_logic() {
     // Since `has_changes` is initialized to `false` and only set to true inside the block or the `else` of `if let Some(head_id)`,
     // we need to verify the behavior when context is missing.
 
-    // Actually, testing `status()` in isolation without a running App is hard because of `expect_context`.
-    // BUT, we can test that the backend works as expected regarding persistence.
+    // Actually, testing `status()` in isolation is now easier because we can pass None.
 
-    let status_result = backend.status();
+    let status_result = backend.status(None);
     assert!(status_result.is_ok());
     let status = status_result.unwrap();
 
-    // Without context, it defaults to "clean" because the comparison block is skipped.
-    // This confirms that it doesn't crash without context.
+    // Without project, comparison is skipped, so it defaults to clean/true in the code?
+    // Let's check implementation:
+    // if let Some(current_project) = current_project { ... }
+    // else { has_changes = false }
+    // So if we pass None, has_changes is false, so clean is true.
+
     assert_eq!(status.clean, true);
     assert_eq!(status.commit_count, 0);
 }

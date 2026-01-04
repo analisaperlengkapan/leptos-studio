@@ -1,9 +1,7 @@
 use chrono::{DateTime, Utc};
-use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::domain::{AppError, AppResult};
-use crate::state::AppState;
 use crate::state::persistence::Persistable;
 use crate::state::project::Project;
 
@@ -63,22 +61,19 @@ impl LocalStorageGitBackend {
 
 impl GitBackend for LocalStorageGitBackend {
     #[allow(clippy::collapsible_if)]
-    fn status(&self) -> AppResult<RepoStatus> {
+    fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus> {
         let repo = Self::get_repo()?;
         let commit_count = repo.commits.len();
 
         let mut has_changes = false;
 
         // Compare current app state with HEAD to determine if we have changes
-        // Use use_context to avoid panic if context is missing (safe access)
-        if let Some(app_state) = use_context::<AppState>() {
-             let current_project = app_state.to_project();
-
+        if let Some(current_project) = current_project {
              // Find HEAD commit
              if let Some(head_id) = &repo.head {
                  if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
                      // Check if project state differs (using PartialEq)
-                     if current_project != head_commit.project_snapshot {
+                     if *current_project != head_commit.project_snapshot {
                          has_changes = true;
                      }
                  }

@@ -7,7 +7,9 @@ use crate::builder::command_palette::CommandPalette;
 use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
-use crate::builder::keyboard::{KeyboardAction, KeyboardHandler, get_default_shortcuts};
+use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
+use crate::builder::hooks::use_export_actions::use_export_actions;
+use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
 use crate::builder::preview::Preview;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
@@ -15,20 +17,11 @@ use crate::builder::sidebar::Sidebar;
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
-use crate::domain::component::CanvasComponent;
 use crate::services::analytics_service::AnalyticsService;
 use crate::services::event_bus::EventBus;
-use crate::services::export_advanced::{
-    JsonSchemaGenerator, ReactGenerator, SvelteGenerator, TailwindHtmlGenerator,
-    TypeScriptGenerator,
-};
-use crate::services::export_service::{
-    CodeGenerator, HtmlCodeGenerator, LeptosCodeGenerator, MarkdownCodeGenerator,
-};
 use crate::services::template_service::TemplateService;
 use crate::state::app_state::{AppState, Notification};
 use crate::state::derived::DerivedState;
-use crate::utils::{copy_to_clipboard, read_from_clipboard};
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -56,245 +49,10 @@ pub fn App() -> impl IntoView {
     let show_template_gallery = RwSignal::new(false);
 
     // Keyboard action handler
-    let keyboard_action_handler = move |action: KeyboardAction| match action {
-        KeyboardAction::Undo => {
-            if let Some(snapshot) = app_state.canvas.history.write().undo() {
-                app_state.canvas.apply_snapshot(&snapshot);
-                app_state
-                    .ui
-                    .notification
-                    .set(Some(Notification::info("↩️ Undo".to_string())));
-            } else {
-                app_state.ui.notification.set(Some(Notification::warning(
-                    "⚠️ Nothing to undo".to_string(),
-                )));
-            }
-        }
-        KeyboardAction::Redo => {
-            if let Some(snapshot) = app_state.canvas.history.write().redo() {
-                app_state.canvas.apply_snapshot(&snapshot);
-                app_state
-                    .ui
-                    .notification
-                    .set(Some(Notification::info("↪️ Redo".to_string())));
-            } else {
-                app_state.ui.notification.set(Some(Notification::warning(
-                    "⚠️ Nothing to redo".to_string(),
-                )));
-            }
-        }
-        KeyboardAction::Save => {
-            if let Err(e) = app_state.save() {
-                app_state
-                    .ui
-                    .notification
-                    .set(Some(Notification::error(format!(
-                        "❌ {}",
-                        e.user_message()
-                    ))));
-            } else {
-                app_state
-                    .ui
-                    .notification
-                    .set(Some(Notification::success("💾 Layout saved!".to_string())));
-            }
-        }
-        KeyboardAction::Delete => {
-            if let Some(selected_id) = app_state.canvas.selected.get() {
-                app_state.canvas.record_snapshot();
-                app_state.canvas.remove_component(&selected_id);
-                app_state.canvas.selected.set(None);
-                app_state.ui.notification.set(Some(Notification::success(
-                    "🗑️ Component deleted".to_string(),
-                )));
-            } else {
-                app_state.ui.notification.set(Some(Notification::warning(
-                    "⚠️ No component selected".to_string(),
-                )));
-            }
-        }
-        KeyboardAction::Copy => {
-            if let Some(selected_id) = app_state.canvas.selected.get() {
-                if let Some(comp) = app_state.canvas.get_component(&selected_id) {
-                    match serde_json::to_string(&comp) {
-                        Ok(json) => {
-                            let app_state_clone = app_state;
-                            wasm_bindgen_futures::spawn_local(async move {
-                                match copy_to_clipboard(&json).await {
-                                    Ok(()) => {
-                                        app_state_clone.ui.notification.set(Some(
-                                            Notification::success(
-                                                "📋 Component copied!".to_string(),
-                                            ),
-                                        ));
-                                    }
-                                    Err(e) => {
-                                        app_state_clone.ui.notification.set(Some(
-                                            Notification::error(format!("❌ {}", e.user_message())),
-                                        ));
-                                    }
-                                }
-                            });
-                        }
-                        Err(_) => {
-                            app_state.ui.notification.set(Some(Notification::error(
-                                "❌ Failed to serialize component".to_string(),
-                            )));
-                        }
-                    }
-                }
-            } else {
-                app_state.ui.notification.set(Some(Notification::warning(
-                    "⚠️ No component selected".to_string(),
-                )));
-            }
-        }
-        KeyboardAction::Paste => {
-            let app_state_clone = app_state;
-            wasm_bindgen_futures::spawn_local(async move {
-                match read_from_clipboard().await {
-                    Ok(text) => match serde_json::from_str::<CanvasComponent>(&text) {
-                        Ok(comp) => {
-                            app_state_clone.canvas.record_snapshot();
-                            app_state_clone.canvas.add_component(comp);
-                            app_state_clone
-                                .ui
-                                .notification
-                                .set(Some(Notification::success(
-                                    "📋 Component pasted!".to_string(),
-                                )));
-                        }
-                        Err(_) => {
-                            app_state_clone
-                                .ui
-                                .notification
-                                .set(Some(Notification::error(
-                                    "⚠️ Invalid clipboard content".to_string(),
-                                )));
-                        }
-                    },
-                    Err(e) => {
-                        app_state_clone
-                            .ui
-                            .notification
-                            .set(Some(Notification::error(format!(
-                                "❌ {}",
-                                e.user_message()
-                            ))));
-                    }
-                }
-            });
-        }
-        KeyboardAction::Duplicate => {
-            if let Some(selected_id) = app_state.canvas.selected.get() {
-                if let Some(comp) = app_state.canvas.get_component(&selected_id) {
-                    app_state.canvas.record_snapshot();
-                    app_state.canvas.add_component(comp);
-                    app_state.ui.notification.set(Some(Notification::success(
-                        "🔄 Component duplicated!".to_string(),
-                    )));
-                }
-            } else {
-                app_state.ui.notification.set(Some(Notification::warning(
-                    "⚠️ No component selected".to_string(),
-                )));
-            }
-        }
-        KeyboardAction::NewComponent => {
-            app_state.ui.notification.set(Some(Notification::info(
-                "ℹ️ Drag component from sidebar to add".to_string(),
-            )));
-        }
-        KeyboardAction::OpenCommandPalette => {
-            app_state.ui.show_command_palette.set(true);
-        }
-        KeyboardAction::Deselect => {
-            app_state.canvas.selected.set(None);
-        }
-        KeyboardAction::Export => {
-            let comps = app_state.canvas.components.get();
-            let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
-
-            match generator.generate(&comps) {
-                Ok(code) => {
-                    export_code.set(code);
-                    show_export.set(true);
-                }
-                Err(e) => {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!(
-                            "❌ {}",
-                            e.user_message()
-                        ))));
-                }
-            }
-        }
-        _ => {}
-    };
+    let keyboard_action_handler = use_keyboard_actions(show_export.write_only(), export_code.write_only(), show_template_gallery.write_only());
 
     // Export handler
-    let do_export = move |_| {
-        let comps = app_state.canvas.components.get();
-
-        let code = match export_template.get().as_str() {
-            "leptos" => {
-                let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "html" => {
-                let generator = HtmlCodeGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "markdown" => {
-                let generator = MarkdownCodeGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "json" => serde_json::to_string_pretty(&comps)
-                .unwrap_or_else(|e| format!("Error serializing JSON: {}", e)),
-            "jsonschema" => {
-                let generator = JsonSchemaGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "typescript" => {
-                let generator = TypeScriptGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "react" => {
-                let generator = ReactGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "tailwind" => {
-                let generator = TailwindHtmlGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            "svelte" => {
-                let generator = SvelteGenerator;
-                generator
-                    .generate(&comps)
-                    .unwrap_or_else(|e| e.user_message())
-            }
-            _ => "Unknown template".to_string(),
-        };
-
-        export_code.set(code);
-        show_export.set(true);
-    };
+    let do_export = use_export_actions(show_export.write_only(), export_code.write_only(), export_template.read_only());
 
     // Save/Load handlers
     let save_layout = move |_| {
@@ -361,7 +119,7 @@ pub fn App() -> impl IntoView {
                 <div class="leptos-studio" tabindex="0" role="application" aria-label="Leptos Studio Visual Builder">
                     <KeyboardHandler
                         shortcuts=get_default_shortcuts()
-                        on_action=keyboard_action_handler
+                        on_action=keyboard_action_handler.clone()
                     />
 
                     <DragPreview drag_state=app_state.canvas.drag_state />

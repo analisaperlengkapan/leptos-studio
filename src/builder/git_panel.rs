@@ -24,7 +24,9 @@ pub fn GitPanel() -> impl IntoView {
     // Initial load
     Effect::new(move |_| {
         let backend = get_git_backend();
-        match backend.status() {
+        // Since we are inside a component, getting current project from app_state is safe
+        let project = app_state.to_project();
+        match backend.status(Some(&project)) {
             Ok(status) => status_data.set(Some(status)),
             Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
         }
@@ -32,7 +34,8 @@ pub fn GitPanel() -> impl IntoView {
 
     let load_status = move |_| {
         let backend = get_git_backend();
-        match backend.status() {
+        let project = app_state.to_project();
+        match backend.status(Some(&project)) {
             Ok(status) => status_data.set(Some(status)),
             Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
         }
@@ -62,7 +65,7 @@ pub fn GitPanel() -> impl IntoView {
                 app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
                 commit_message.set(String::new());
                 // Refresh status automatically
-                if let Ok(status) = backend.status() {
+                if let Ok(status) = backend.status(Some(&project)) {
                     status_data.set(Some(status));
                 }
                 // If log is showing, refresh it too
@@ -148,7 +151,10 @@ pub fn GitPanel() -> impl IntoView {
                                             "Repository imported successfully".to_string(),
                                         ));
                                         // Refresh status and log
-                                        if let Ok(status) = backend.status() {
+                                        // Note: When importing, the project state might be outdated compared to repo HEAD
+                                        // But status() checks dirty state.
+                                        let project = app_state.to_project();
+                                        if let Ok(status) = backend.status(Some(&project)) {
                                             status_data.set(Some(status));
                                         }
                                         if let Ok(logs) = backend.log() {
