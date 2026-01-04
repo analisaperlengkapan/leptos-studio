@@ -201,17 +201,17 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(())
     }
 
-    #[allow(clippy::collapsible_if)]
     async fn restore_head(&self) -> AppResult<Option<Project>> {
         self.simulate_delay().await;
 
         let repo = Self::get_repo()?;
-        if let Some(head_id) = repo.head {
-            if let Some(commit) = repo.commits.iter().find(|c| c.id == head_id) {
-                return Ok(Some(commit.project_snapshot.clone()));
-            }
-        }
-        Ok(None)
+        let project = repo
+            .head
+            .as_ref()
+            .and_then(|head_id| repo.commits.iter().find(|c| &c.id == head_id))
+            .map(|commit| commit.project_snapshot.clone());
+
+        Ok(project)
     }
 
     async fn reset(&self) -> AppResult<()> {
