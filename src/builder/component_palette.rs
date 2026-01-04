@@ -115,7 +115,7 @@ fn fuzzy_score(text: &str, query: &str) -> Option<i32> {
 /// Component palette with search and filter
 #[component]
 pub fn ComponentPalette() -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     // Local state
     let search_query = RwSignal::new(String::new());

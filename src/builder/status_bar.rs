@@ -10,7 +10,7 @@ use crate::state::{AppState, DerivedState};
 /// Status bar component
 #[component]
 pub fn StatusBar() -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     // Use derived state from context (provided by App)
     let derived = DerivedState::use_context();

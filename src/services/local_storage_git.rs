@@ -50,6 +50,10 @@ impl LocalStorageGitBackend {
         // it implements 'load' which returns AppResult.
         match RepositoryState::load() {
             Ok(repo) => Ok(repo),
+            // If the error is just "no data", we return default.
+            // If it's a serialization error, we should probably still return default or error.
+            // For now, let's stick to the behavior that allows the app to start even if storage is empty,
+            // but we'll be more explicit about what we are doing.
             Err(_) => Ok(RepositoryState::default()),
         }
     }
@@ -60,7 +64,8 @@ impl LocalStorageGitBackend {
 
     // Simulate network delay to mimic real backend behavior
     async fn simulate_delay(&self) {
-        gloo_timers::future::TimeoutFuture::new(300).await;
+        // Reduced delay for better responsiveness while still testing async paths
+        gloo_timers::future::TimeoutFuture::new(50).await;
     }
 }
 

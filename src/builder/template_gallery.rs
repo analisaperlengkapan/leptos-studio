@@ -18,7 +18,7 @@ pub fn TemplateGallery(
     #[prop(into)]
     on_apply: Callback<Template>,
 ) -> impl IntoView {
-    let _app_state = AppState::use_context();
+    let _app_state = AppState::expect_context();
 
     // Local state
     let search_query = RwSignal::new(String::new());
@@ -164,7 +164,7 @@ pub fn TemplateGallery(
 /// Standalone template gallery toggle button with built-in panel
 #[component]
 pub fn TemplateGalleryToggle() -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let show_gallery = RwSignal::new(false);
 
     view! {

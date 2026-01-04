@@ -5,7 +5,7 @@ use leptos::prelude::*;
 #[component]
 pub fn Preview() -> impl IntoView {
     // Get app state from context
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let canvas_state = app_state.canvas;
     let ui_state = app_state.ui;
 

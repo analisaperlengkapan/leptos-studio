@@ -11,7 +11,7 @@ pub fn ContainerPropertyEditor(
     #[prop(into)]
     container: crate::domain::ContainerComponent,
 ) -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
     let canvas_state = app_state.canvas;
 
