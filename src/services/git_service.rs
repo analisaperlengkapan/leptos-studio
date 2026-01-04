@@ -36,7 +36,7 @@ impl Default for RepoStatus {
 /// Tauri desktop, etc.) can implement Git integration without coupling the UI
 /// to a specific environment.
 pub trait GitBackend {
-    fn status(&self) -> AppResult<RepoStatus>;
+    fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus>;
     fn log(&self) -> AppResult<Vec<CommitInfo>>;
     fn commit(&self, project: &Project, message: &str) -> AppResult<()>;
     fn push(&self) -> AppResult<Option<String>>;
@@ -48,7 +48,7 @@ pub trait GitBackend {
 pub struct NoopGitBackend;
 
 impl GitBackend for NoopGitBackend {
-    fn status(&self) -> AppResult<RepoStatus> {
+    fn status(&self, _current_project: Option<&Project>) -> AppResult<RepoStatus> {
         Ok(RepoStatus {
             branch: "main".to_string(),
             commit_count: 0,
