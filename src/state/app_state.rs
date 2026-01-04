@@ -78,7 +78,7 @@ impl CanvasState {
     /// Apply a snapshot to the canvas
     pub fn apply_snapshot(&self, snapshot: &Snapshot) {
         self.components.set(snapshot.components.clone());
-        self.selected.set(snapshot.selected.clone());
+        self.selected.set(snapshot.selected);
     }
 }
 

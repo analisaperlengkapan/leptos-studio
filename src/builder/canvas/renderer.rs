@@ -13,17 +13,14 @@ pub fn ComponentRenderer(
     /// Canvas state for selection tracking
     canvas_state: CanvasState,
 ) -> impl IntoView {
-    let component_id = component.id().clone();
-    let component_id_for_selected = component_id.clone();
-    let component_id_for_click = component_id.clone();
-    let component_id_for_attr = component_id.clone();
+    let component_id = *component.id();
 
     let is_selected = Memo::new(move |_| {
         canvas_state
             .selected
             .get()
             .as_ref()
-            .map(|id| id == &component_id_for_selected)
+            .map(|id| id == &component_id)
             .unwrap_or(false)
     });
 
@@ -31,7 +28,7 @@ pub fn ComponentRenderer(
         ev.stop_propagation();
         canvas_state
             .selected
-            .set(Some(component_id_for_click.clone()));
+            .set(Some(component_id));
     };
 
     let class = move || {
@@ -46,7 +43,7 @@ pub fn ComponentRenderer(
         <div
             class=class
             on:click=on_click
-            data-component-id=component_id_for_attr.to_string()
+            data-component-id=component_id.to_string()
         >
             {match component {
                 CanvasComponent::Button(btn) => render_button(btn).into_any(),
@@ -162,7 +159,7 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
         >
             <For
                 each=move || container.children.clone()
-                key=|comp| comp.id().clone()
+                key=|comp| *comp.id()
                 children=move |comp| {
                     view! {
                         <ComponentRenderer

@@ -90,7 +90,7 @@ pub fn BreadcrumbNavigation() -> impl IntoView {
         Some(idx) => {
             let components = canvas_state.components.get();
             if let Some(component) = components.get(idx) {
-                canvas_state.selected.set(Some(component.id().clone()));
+                canvas_state.selected.set(Some(*component.id()));
             }
         }
         None => {
