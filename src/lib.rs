@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::{HtmlElement, window};
 
 #[wasm_bindgen(start)]
+#[cfg(not(test))]
 pub fn main() {
     console_error_panic_hook::set_once();
 
