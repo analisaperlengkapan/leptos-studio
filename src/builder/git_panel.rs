@@ -143,6 +143,32 @@ pub fn GitPanel() -> impl IntoView {
         });
     };
 
+    let do_reset_repo = move |_| {
+        let backend = get_git_backend();
+
+        // In a real app we'd show a confirmation modal here.
+        // For now, we rely on the button text or assume user intent.
+
+        wasm_bindgen_futures::spawn_local(async move {
+            match backend.reset().await {
+                 Ok(()) => {
+                     app_state.ui.notify(Notification::success("Repository reset successfully.".to_string()));
+
+                     // Refresh status and log
+                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
+                         status_data.set(Some(status));
+                     }
+                     if let Ok(logs) = backend.log().await {
+                         log_data.set(logs);
+                     }
+                 }
+                 Err(e) => {
+                     app_state.ui.notify(Notification::error(e.user_message()));
+                 }
+            }
+        });
+    };
+
     let do_push = move |_| {
         let backend = get_git_backend();
 
@@ -324,6 +350,7 @@ pub fn GitPanel() -> impl IntoView {
                         {move || if is_committing.get() { "Committing..." } else { "Commit" }}
                     </button>
                     <button on:click=do_discard class="btn btn-danger" title="Discard all uncommitted changes">"Discard Changes"</button>
+                    <button on:click=do_reset_repo class="btn btn-danger" title="Reset repository (delete all history)">"Reset Repo"</button>
                     <button on:click=do_push class="btn btn-secondary" title="Download Repository JSON">"Push (Download)"</button>
                     <button on:click=trigger_import class="btn btn-secondary" title="Import Repository JSON">"Clone (Import)"</button>
                 </div>

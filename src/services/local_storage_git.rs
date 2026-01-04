@@ -69,6 +69,10 @@ impl GitBackend for LocalStorageGitBackend {
     async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus> {
         self.simulate_delay().await;
 
+        // Propagate get_repo error instead of swallowing it if it fails catastrophically,
+        // but for now, get_repo returns a default on error. We should ideally distinguish
+        // between "no repo" and "error loading repo", but the current implementation of get_repo
+        // masks the error.
         let repo = Self::get_repo()?;
         let commit_count = repo.commits.len();
 
@@ -83,6 +87,10 @@ impl GitBackend for LocalStorageGitBackend {
                      if *current_project != head_commit.project_snapshot {
                          has_changes = true;
                      }
+                 } else {
+                     // Head ID exists but commit not found? Should be an error or dirty state.
+                     // Treating as dirty.
+                     has_changes = true;
                  }
              } else {
                 // No commits yet, but if we have content, is it "changed"?
@@ -131,7 +139,31 @@ impl GitBackend for LocalStorageGitBackend {
             ));
         }
 
+        // Check for changes before committing (Standards/Best Practice)
+        // We can reuse our own status logic or duplicate the check here.
+        // Reusing status implies another delay simulation, so we duplicate the check logic for efficiency.
         let mut repo = Self::get_repo()?;
+
+        let mut has_changes = false;
+        if let Some(head_id) = &repo.head {
+             if let Some(head_commit) = repo.commits.iter().find(|c| &c.id == head_id) {
+                 if *project != head_commit.project_snapshot {
+                     has_changes = true;
+                 }
+             } else {
+                 has_changes = true;
+             }
+        } else {
+            has_changes = true;
+        }
+
+        if !has_changes {
+             return Err(AppError::Validation(
+                crate::domain::error::ValidationError::Generic(
+                    "Nothing to commit (working directory clean)".to_string(),
+                ),
+            ));
+        }
 
         let commit_id = uuid::Uuid::new_v4().to_string();
         let commit = LocalCommit {
@@ -179,6 +211,16 @@ impl GitBackend for LocalStorageGitBackend {
             }
         }
         Ok(None)
+    }
+
+    async fn reset(&self) -> AppResult<()> {
+        self.simulate_delay().await;
+
+        // Reset to default state (empty repo)
+        let repo = RepositoryState::default();
+        Self::save_repo(&repo)?;
+
+        Ok(())
     }
 }
 

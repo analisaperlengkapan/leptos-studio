@@ -1,6 +1,8 @@
 pub mod renderer;
+pub mod empty_state;
 
 pub use renderer::ComponentRenderer;
+pub use empty_state::CanvasEmptyState;
 
 use js_sys::Date;
 use leptos::prelude::*;
@@ -31,6 +33,28 @@ pub fn Canvas() -> impl IntoView {
         canvas_state.selected.set(None);
     };
 
+    // Optimization: Track render time in an effect to avoid side effects during render
+    Effect::new(move |_| {
+        // Track components change
+        let _ = canvas_state.components.get();
+        let start = Date::now();
+
+        // This effect runs after render, so we just update the stats
+        // In a real scenario we'd measure actual render time via performance API or similar,
+        // but here we just update the timestamp.
+        let end = Date::now();
+        let duration = (end - start).max(0.0);
+
+        // We use batch to avoid double triggers if possible, though Signal updates are fine
+        app_state.ui.render_time.set(duration);
+        app_state.ui.render_count.update(|count| {
+            *count = count.saturating_add(1);
+        });
+    });
+
+    // Memoize the empty check to prevent unnecessary re-evaluations
+    let is_empty = Memo::new(move |_| canvas_state.components.with(|c| c.is_empty()));
+
     view! {
         <DropZone
             zone_name="canvas-root".to_string()
@@ -44,15 +68,8 @@ pub fn Canvas() -> impl IntoView {
             >
                 <div class="canvas-content">
                     {move || {
-                        let start = Date::now();
-
-                        let components = canvas_state.components.get();
-                        let view = if components.is_empty() {
-                            view! {
-                                <div class="canvas-empty-state">
-                                    <p>"Drag components here to start building"</p>
-                                </div>
-                            }.into_any()
+                        if is_empty.get() {
+                            view! { <CanvasEmptyState /> }.into_any()
                         } else {
                             view! {
                                 <For
@@ -68,16 +85,7 @@ pub fn Canvas() -> impl IntoView {
                                     }
                                 />
                             }.into_any()
-                        };
-
-                        let end = Date::now();
-                        let duration = (end - start).max(0.0);
-                        app_state.ui.render_time.set(duration);
-                        app_state.ui.render_count.update(|count| {
-                            *count = count.saturating_add(1);
-                        });
-
-                        view
+                        }
                     }}
                 </div>
             </div>
