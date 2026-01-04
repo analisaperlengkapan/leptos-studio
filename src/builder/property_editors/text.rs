@@ -23,7 +23,7 @@ pub fn TextPropertyEditor(
         .and_then(|c| c.props_schema)
         .unwrap_or_default();
 
-    let comp_id = id.clone();
+    let comp_id = id;
 
     let apply_update = move |id: ComponentId, updated: CanvasComponent| {
         if let Err(e) = updated.validate() {
@@ -40,9 +40,8 @@ pub fn TextPropertyEditor(
                 let prop_name = prop.name.clone();
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
-                let comp_id_field = comp_id.clone();
+                let comp_id_field = comp_id;
                 let txt_for_field = text.clone();
-                let apply_update = apply_update.clone();
 
                 match prop_type {
                     PropType::String => {
@@ -56,7 +55,7 @@ pub fn TextPropertyEditor(
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_txt = update_text_prop(txt_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Text(updated_txt));
+                                    apply_update(comp_id_field, CanvasComponent::Text(updated_txt));
                                 }
                             />
                         }.into_any()
@@ -86,7 +85,7 @@ pub fn TextPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_txt = update_text_prop(txt_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Text(updated_txt));
+                                    apply_update(comp_id_field, CanvasComponent::Text(updated_txt));
                                 }
                             />
                         }.into_any()

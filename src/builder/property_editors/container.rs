@@ -23,7 +23,7 @@ pub fn ContainerPropertyEditor(
         .and_then(|c| c.props_schema)
         .unwrap_or_default();
 
-    let comp_id = id.clone();
+    let comp_id = id;
 
     let apply_update = move |id: ComponentId, updated: CanvasComponent| {
         if let Err(e) = updated.validate() {
@@ -40,9 +40,8 @@ pub fn ContainerPropertyEditor(
                 let prop_name = prop.name.clone();
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
-                let comp_id_field = comp_id.clone();
+                let comp_id_field = comp_id;
                 let container_for_field = container.clone();
-                let apply_update = apply_update.clone();
 
                 match prop_type {
                     PropType::Enum { options } => {
@@ -64,7 +63,7 @@ pub fn ContainerPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_container = update_container_prop(container_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Container(updated_container));
+                                    apply_update(comp_id_field, CanvasComponent::Container(updated_container));
                                 }
                             />
                         }.into_any()
@@ -84,7 +83,7 @@ pub fn ContainerPropertyEditor(
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_container = update_container_prop(container_for_field.clone(), prop_name.as_str(), PropValue::Number(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Container(updated_container));
+                                    apply_update(comp_id_field, CanvasComponent::Container(updated_container));
                                 }
                             />
                         }.into_any()

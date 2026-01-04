@@ -23,7 +23,7 @@ pub fn InputPropertyEditor(
         .and_then(|c| c.props_schema)
         .unwrap_or_default();
 
-    let comp_id = id.clone();
+    let comp_id = id;
 
     let apply_update = move |id: ComponentId, updated: CanvasComponent| {
         if let Err(e) = updated.validate() {
@@ -40,9 +40,8 @@ pub fn InputPropertyEditor(
                 let prop_name = prop.name.clone();
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
-                let comp_id_field = comp_id.clone();
+                let comp_id_field = comp_id;
                 let inp_for_field = input.clone();
-                let apply_update = apply_update.clone();
 
                 match prop_type {
                     PropType::String => {
@@ -56,7 +55,7 @@ pub fn InputPropertyEditor(
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Input(updated_inp));
+                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
                                 }
                             />
                         }.into_any()
@@ -79,7 +78,7 @@ pub fn InputPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Input(updated_inp));
+                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
                                 }
                             />
                         }.into_any()
@@ -96,7 +95,7 @@ pub fn InputPropertyEditor(
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Input(updated_inp));
+                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
                                 }
                             />
                         }.into_any()

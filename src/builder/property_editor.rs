@@ -20,27 +20,27 @@ pub fn PropertyEditor() -> impl IntoView {
                         match comp {
                             CanvasComponent::Button(btn) => {
                                 view! {
-                                    <ButtonPropertyEditor id=selected_id.clone() button=btn />
+                                    <ButtonPropertyEditor id=selected_id button=btn />
                                 }.into_any()
                             },
                             CanvasComponent::Text(txt) => {
                                 view! {
-                                    <TextPropertyEditor id=selected_id.clone() text=txt />
+                                    <TextPropertyEditor id=selected_id text=txt />
                                 }.into_any()
                             },
                             CanvasComponent::Input(inp) => {
                                 view! {
-                                    <InputPropertyEditor id=selected_id.clone() input=inp />
+                                    <InputPropertyEditor id=selected_id input=inp />
                                 }.into_any()
                             },
                             CanvasComponent::Container(container) => {
                                 view! {
-                                    <ContainerPropertyEditor id=selected_id.clone() container=container />
+                                    <ContainerPropertyEditor id=selected_id container=container />
                                 }.into_any()
                             },
                             CanvasComponent::Custom(custom) => {
                                 view! {
-                                    <CustomPropertyEditor id=selected_id.clone() custom=custom />
+                                    <CustomPropertyEditor _id=selected_id custom=custom />
                                 }.into_any()
                             },
                         }

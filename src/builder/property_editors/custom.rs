@@ -5,7 +5,8 @@ use crate::state::AppState;
 
 #[component]
 pub fn CustomPropertyEditor(
-    id: ComponentId,
+    #[prop(into)]
+    _id: ComponentId,
     #[prop(into)]
     custom: crate::domain::CustomComponent,
 ) -> impl IntoView {
@@ -23,13 +24,13 @@ pub fn CustomPropertyEditor(
 
     let name_value = custom.name.clone();
     let template_value = custom.template.clone();
-    let comp_id = custom.id.clone();
+    let comp_id = custom.id;
     let custom_for_name = custom.clone();
     let custom_for_template = custom.clone();
-    let comp_id_for_name = comp_id.clone();
-    let comp_id_for_template = comp_id.clone();
-    let apply_update_name = apply_update.clone();
-    let apply_update_template = apply_update.clone();
+    let comp_id_for_name = comp_id;
+    let comp_id_for_template = comp_id;
+    let apply_update_name = apply_update;
+    let apply_update_template = apply_update;
 
     view! {
         <div class="property-group">
@@ -40,7 +41,7 @@ pub fn CustomPropertyEditor(
                 on_change=move |new_name| {
                     let mut updated_custom = custom_for_name.clone();
                     updated_custom.name = new_name;
-                    apply_update_name(comp_id_for_name.clone(), CanvasComponent::Custom(updated_custom));
+                    apply_update_name(comp_id_for_name, CanvasComponent::Custom(updated_custom));
                 }
             />
             <div class="property-field">
@@ -52,7 +53,7 @@ pub fn CustomPropertyEditor(
                             let new_template = event_target_value(&ev);
                             let mut updated_custom = custom_for_template.clone();
                             updated_custom.template = new_template;
-                            apply_update_template(comp_id_for_template.clone(), CanvasComponent::Custom(updated_custom));
+                            apply_update_template(comp_id_for_template, CanvasComponent::Custom(updated_custom));
                         }
                     />
                 </label>

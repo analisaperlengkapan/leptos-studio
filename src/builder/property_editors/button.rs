@@ -23,7 +23,7 @@ pub fn ButtonPropertyEditor(
         .and_then(|c| c.props_schema)
         .unwrap_or_default();
 
-    let comp_id = id.clone();
+    let comp_id = id;
 
     // Helper to update component
     let apply_update = move |id: ComponentId, updated: CanvasComponent| {
@@ -43,9 +43,8 @@ pub fn ButtonPropertyEditor(
                 let prop_name = prop.name.clone();
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
-                let comp_id_field = comp_id.clone();
+                let comp_id_field = comp_id;
                 let btn_for_field = button.clone();
-                let apply_update = apply_update.clone();
 
                 match prop_type {
                     PropType::String => {
@@ -59,7 +58,7 @@ pub fn ButtonPropertyEditor(
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Button(updated_btn));
+                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
                                 }
                             />
                         }.into_any()
@@ -86,7 +85,7 @@ pub fn ButtonPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Button(updated_btn));
+                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
                                 }
                             />
                         }.into_any()
@@ -102,7 +101,7 @@ pub fn ButtonPropertyEditor(
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                    apply_update(comp_id_field.clone(), CanvasComponent::Button(updated_btn));
+                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
                                 }
                             />
                         }.into_any()
