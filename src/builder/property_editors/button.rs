@@ -26,13 +26,13 @@ pub fn ButtonPropertyEditor(
     let comp_id = id;
 
     // Helper to update component
-    let apply_update = move |id: ComponentId, updated: CanvasComponent| {
+    let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
         if let Err(e) = updated.validate() {
             // Notifications are handled by parent or we can use ui_state directly
             // For now, let's assume we can notify here
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component(&id, updated);
+            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Button {}", prop_name));
         }
     };
 
@@ -52,13 +52,14 @@ pub fn ButtonPropertyEditor(
                             "label" => btn_for_field.label.clone(),
                             _ => String::new(),
                         };
+                        let prop_name_closure = prop_name.clone();
                         view! {
                             <StringInput
                                 value=value
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
+                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()
@@ -78,6 +79,7 @@ pub fn ButtonPropertyEditor(
                             }.to_string(),
                             _ => String::new(),
                         };
+                        let prop_name_closure = prop_name.clone();
                         view! {
                             <EnumSelect
                                 value=value
@@ -85,7 +87,7 @@ pub fn ButtonPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
+                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()
@@ -95,13 +97,14 @@ pub fn ButtonPropertyEditor(
                             "disabled" => btn_for_field.disabled,
                             _ => false,
                         };
+                        let prop_name_closure = prop_name.clone();
                         view! {
                             <BoolCheckbox
                                 checked=checked
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn));
+                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()

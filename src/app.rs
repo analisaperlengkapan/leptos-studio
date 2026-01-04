@@ -192,7 +192,7 @@ pub fn App() -> impl IntoView {
                             <TemplateGallery
                                 on_close=move || show_template_gallery.set(false)
                                 on_apply=move |template: crate::services::Template| {
-                                    app_state.canvas.record_snapshot();
+                                    app_state.canvas.record_snapshot(&format!("Apply Template: {}", template.name));
                                     let comp_count = template.components.len();
                                     let template_name = template.name.clone();
                                     for comp in template.components {

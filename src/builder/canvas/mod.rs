@@ -97,7 +97,11 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
         }
 
         // Create snapshot before modification
-        let snapshot = Snapshot::new(canvas_state.components.get(), canvas_state.selected.get());
+        let snapshot = Snapshot::new(
+            canvas_state.components.get(),
+            canvas_state.selected.get(),
+            "Drag and Drop Component".to_string(),
+        );
         canvas_state.history.update(|h| h.push(snapshot));
 
         // Add new component based on type

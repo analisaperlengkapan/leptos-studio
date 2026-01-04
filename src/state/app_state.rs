@@ -29,6 +29,7 @@ impl CanvasState {
 
     /// Add a component to the canvas
     pub fn add_component(&self, component: CanvasComponent) {
+        self.record_snapshot("Add Component");
         self.components.update(|components| {
             components.push(component);
         });
@@ -36,6 +37,7 @@ impl CanvasState {
 
     /// Remove a component by ID
     pub fn remove_component(&self, id: &ComponentId) {
+        self.record_snapshot("Remove Component");
         self.components.update(|components| {
             components.retain(|c| c.id() != id);
         });
@@ -56,9 +58,15 @@ impl CanvasState {
         });
     }
 
+    /// Update a component and record a snapshot
+    pub fn update_component_with_snapshot(&self, id: &ComponentId, new_component: CanvasComponent, description: &str) {
+        self.record_snapshot(description);
+        self.update_component(id, new_component);
+    }
+
     /// Record a snapshot for undo/redo
-    pub fn record_snapshot(&self) {
-        let snapshot = Snapshot::new(self.components.get(), self.selected.get());
+    pub fn record_snapshot(&self, description: &str) {
+        let snapshot = Snapshot::new(self.components.get(), self.selected.get(), description.to_string());
         self.history.update(|h| h.push(snapshot));
     }
 
@@ -292,6 +300,7 @@ pub struct AppState {
     pub ui: UiState,
     pub settings: RwSignal<SettingsState>,
     pub project_name: RwSignal<String>,
+    pub last_modified: RwSignal<f64>,
 }
 
 impl AppState {
@@ -304,6 +313,7 @@ impl AppState {
             ui: UiState::new(),
             settings: RwSignal::new(settings),
             project_name: RwSignal::new("Untitled Project".to_string()),
+            last_modified: RwSignal::new(js_sys::Date::now()),
         }
     }
 
