@@ -115,7 +115,7 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(commits)
     }
 
-    fn commit(&self, message: &str) -> AppResult<()> {
+    fn commit(&self, project: &Project, message: &str) -> AppResult<()> {
         let trimmed_msg = message.trim();
         if trimmed_msg.is_empty() {
             return Err(AppError::Validation(
@@ -125,11 +125,6 @@ impl GitBackend for LocalStorageGitBackend {
             ));
         }
 
-        // Get current app state to snapshot the project
-        // Note: This relies on being called inside a reactive context where AppState is available
-        let app_state = expect_context::<AppState>();
-        let project = app_state.to_project();
-
         let mut repo = Self::get_repo()?;
 
         let commit_id = uuid::Uuid::new_v4().to_string();
@@ -137,7 +132,7 @@ impl GitBackend for LocalStorageGitBackend {
             id: commit_id.clone(),
             message: message.to_string(),
             timestamp: Utc::now(),
-            project_snapshot: project,
+            project_snapshot: project.clone(),
         };
 
         repo.commits.push(commit);

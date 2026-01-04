@@ -2,6 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::domain::AppResult;
+use crate::state::project::Project;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CommitInfo {
@@ -37,7 +38,7 @@ impl Default for RepoStatus {
 pub trait GitBackend {
     fn status(&self) -> AppResult<RepoStatus>;
     fn log(&self) -> AppResult<Vec<CommitInfo>>;
-    fn commit(&self, message: &str) -> AppResult<()>;
+    fn commit(&self, project: &Project, message: &str) -> AppResult<()>;
     fn push(&self) -> AppResult<Option<String>>;
     fn clone_repo(&self, json: &str) -> AppResult<()>;
 }
@@ -61,7 +62,7 @@ impl GitBackend for NoopGitBackend {
         Ok(Vec::new())
     }
 
-    fn commit(&self, _message: &str) -> AppResult<()> {
+    fn commit(&self, _project: &Project, _message: &str) -> AppResult<()> {
         Ok(())
     }
 

@@ -56,7 +56,8 @@ pub fn GitPanel() -> impl IntoView {
         }
 
         let backend = get_git_backend();
-        match backend.commit(&message) {
+        let project = app_state.to_project();
+        match backend.commit(&project, &message) {
             Ok(()) => {
                 app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
                 commit_message.set(String::new());
