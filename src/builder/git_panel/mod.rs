@@ -7,6 +7,11 @@ use crate::services::{GitBackend, CommitInfo, RepoStatus};
 use crate::services::git_factory::get_git_backend;
 use crate::state::{AppState, Notification};
 
+mod status_display;
+mod log_list;
+use status_display::GitStatusDisplay;
+use log_list::GitLogList;
+
 #[component]
 #[allow(clippy::collapsible_if)]
 pub fn GitPanel() -> impl IntoView {
@@ -310,26 +315,7 @@ pub fn GitPanel() -> impl IntoView {
                 </button>
             </div>
 
-            <div class="git-status">
-                {move || {
-                    match status_data.get() {
-                        Some(status) => view! {
-                            <div class="status-box">
-                                <p>"Branch: " <b>{status.branch}</b></p>
-                                <p>"Commits: " {status.commit_count}</p>
-                                <p class:text-red-500=move || status.has_changes class:text-green-500=move || !status.has_changes>
-                                    {if status.has_changes { "Changes not staged" } else { "Working tree clean" }}
-                                </p>
-                            </div>
-                        }.into_any(),
-                        None => view! {
-                            <p class:text-gray-500=true>
-                                {if is_loading_status.get() { "Loading status..." } else { "No status loaded." }}
-                            </p>
-                        }.into_any()
-                    }
-                }}
-            </div>
+            <GitStatusDisplay status=status_data.into() is_loading=is_loading_status.into() />
 
             <div class="git-commit-area">
                 <input
@@ -365,35 +351,7 @@ pub fn GitPanel() -> impl IntoView {
                 on:change=on_file_select
             />
 
-            <div class="git-log-container">
-                <h4>"Commit History"</h4>
-                <div class="git-log-list">
-                    <For
-                        each=move || log_data.get()
-                        key=|commit| commit.id.clone()
-                        children=move |commit| {
-                            view! {
-                                <div class="git-commit-item">
-                                    <div class="commit-header">
-                                        <span class="commit-id" title={commit.id.clone()}>{commit.id.chars().take(7).collect::<String>()}</span>
-                                        <span class="commit-date">{commit.timestamp.format("%Y-%m-%d %H:%M").to_string()}</span>
-                                    </div>
-                                    <div class="commit-message">{commit.message}</div>
-                                </div>
-                            }
-                        }
-                    />
-                    {move || if log_data.get().is_empty() {
-                        view! {
-                            <p class="no-commits">
-                                {if is_loading_log.get() { "Loading commits..." } else { "No commits found or log not loaded." }}
-                            </p>
-                        }.into_any()
-                    } else {
-                        view! { <span /> }.into_any()
-                    }}
-                </div>
-            </div>
+            <GitLogList logs=log_data.into() is_loading=is_loading_log.into() />
         </div>
     }
 }
