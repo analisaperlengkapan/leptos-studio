@@ -74,7 +74,7 @@ pub fn Canvas() -> impl IntoView {
                             view! {
                                 <For
                                     each=move || canvas_state.components.get()
-                                    key=|comp| comp.id().clone()
+                                    key=|comp| *comp.id()
                                     children=move |comp| {
                                         view! {
                                             <ComponentRenderer

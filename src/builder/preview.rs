@@ -33,7 +33,7 @@ pub fn Preview() -> impl IntoView {
         <div class="preview-area" style=move || preview_style.get()>
             <For
                 each=move || canvas_state.components.get()
-                key=|comp| comp.id().clone()
+                key=|comp| *comp.id()
                 children=move |comp| {
                     match comp {
                         CanvasComponent::Button(btn) => view! {

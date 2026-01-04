@@ -201,6 +201,7 @@ impl GitBackend for LocalStorageGitBackend {
         Ok(())
     }
 
+    #[allow(clippy::collapsible_if)]
     async fn restore_head(&self) -> AppResult<Option<Project>> {
         self.simulate_delay().await;
 
