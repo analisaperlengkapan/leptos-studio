@@ -27,7 +27,7 @@ use crate::state::derived::DerivedState;
 pub fn App() -> impl IntoView {
     // Initialize global AppState context
     AppState::provide_context();
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     // Initialize services
     let _event_bus = StoredValue::new(EventBus::new());

@@ -338,9 +338,14 @@ impl AppState {
         provide_context(state);
     }
 
-    /// Use AppState from context
-    pub fn use_context() -> Self {
+    /// Expect AppState from context (panics if missing)
+    pub fn expect_context() -> Self {
         expect_context::<Self>()
+    }
+
+    /// Try to get AppState from context
+    pub fn try_use_context() -> Option<Self> {
+        use_context::<Self>()
     }
 
     /// Save settings to LocalStorage

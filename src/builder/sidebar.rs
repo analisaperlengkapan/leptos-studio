@@ -26,7 +26,7 @@ fn validation_error_to_message(error: ValidationError) -> String {
 
 #[component]
 pub fn Sidebar() -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     let custom_theme_color = RwSignal::new(String::from("#888"));
     let show_add_form = RwSignal::new(false);

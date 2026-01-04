@@ -11,7 +11,7 @@ pub fn use_keyboard_actions(
     export_code: WriteSignal<String>,
     _show_template_gallery: WriteSignal<bool>
 ) -> impl Fn(KeyboardAction) + Clone + 'static {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     move |action: KeyboardAction| {
         match action {

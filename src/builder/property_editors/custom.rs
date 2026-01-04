@@ -10,7 +10,7 @@ pub fn CustomPropertyEditor(
     #[prop(into)]
     custom: crate::domain::CustomComponent,
 ) -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
     let canvas_state = app_state.canvas;
 

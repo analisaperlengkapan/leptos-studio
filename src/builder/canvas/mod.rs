@@ -20,7 +20,7 @@ use crate::state::{AppState, CanvasState, Snapshot};
 #[component]
 pub fn Canvas() -> impl IntoView {
     // Get app state from context - no prop drilling!
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let canvas_state = app_state.canvas;
 
     // Drag and drop handlers

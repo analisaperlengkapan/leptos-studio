@@ -58,7 +58,7 @@ fn component_name(component: &CanvasComponent) -> String {
 #[component]
 pub fn BreadcrumbNavigation() -> impl IntoView {
     // Get app state from context - no prop drilling!
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let canvas_state = app_state.canvas;
 
     let breadcrumbs = Memo::new(move |_| {

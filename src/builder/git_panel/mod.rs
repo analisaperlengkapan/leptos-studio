@@ -180,46 +180,14 @@ pub fn GitPanel() -> impl IntoView {
         wasm_bindgen_futures::spawn_local(async move {
             match backend.push().await {
                 Ok(Some(json)) => {
-                    // Trigger download using Blob (Best Practice)
+                    // Trigger download using shared utility (Best Practice)
                     let filename = "leptos_studio_repo.json";
-
-                    let array = js_sys::Array::new();
-                    array.push(&json.into());
-
-                    let blob_options = web_sys::BlobPropertyBag::new();
-                    blob_options.set_type("application/json");
-
-                    match web_sys::Blob::new_with_str_sequence_and_options(&array, &blob_options) {
-                        Ok(blob) => {
-                            match web_sys::Url::create_object_url_with_blob(&blob) {
-                                Ok(url) => {
-                                    if let Some(window) = web_sys::window() {
-                                        if let Some(document) = window.document() {
-                                            if let Ok(a) = document.create_element("a") {
-                                                let _ = a.set_attribute("href", &url);
-                                                let _ = a.set_attribute("download", filename);
-
-                                                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
-                                                    html_element.click();
-                                                }
-
-                                                // Revoke URL to free memory
-                                                let _ = web_sys::Url::revoke_object_url(&url);
-
-                                                app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
-                                            }
-                                        }
-                                    }
-                                },
-                                Err(e) => {
-                                    let err_str = e.as_string().unwrap_or("Unknown URL error".to_string());
-                                    app_state.ui.notify(Notification::error(format!("Failed to create download URL: {}", err_str)));
-                                }
-                            }
-                        },
+                    match crate::utils::file::download_file(&json, filename, "application/json") {
+                        Ok(_) => {
+                            app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
+                        }
                         Err(e) => {
-                            let err_str = e.as_string().unwrap_or("Unknown Blob error".to_string());
-                            app_state.ui.notify(Notification::error(format!("Failed to create blob: {}", err_str)));
+                             app_state.ui.notify(Notification::error(e.user_message()));
                         }
                     }
                 }

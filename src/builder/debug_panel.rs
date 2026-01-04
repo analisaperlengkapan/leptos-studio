@@ -5,7 +5,7 @@ use leptos::prelude::*;
 #[component]
 pub fn DebugPanel() -> impl IntoView {
     // Get AppState from context (no props!)
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     view! {
         <div class="debug-panel">

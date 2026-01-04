@@ -7,3 +7,4 @@ pub use clipboard::*;
 pub use dom::*;
 pub use format::*;
 pub use sanitize::*;
+pub mod file;

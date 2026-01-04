@@ -44,13 +44,12 @@ impl LocalStorageGitBackend {
     }
 
     fn get_repo() -> AppResult<RepositoryState> {
-        // We reuse the load_or_default logic from Persistable trait,
-        // but we need to handle the Result explicitly here.
-        // RepositoryState doesn't implement 'load_or_default' directly as a method that returns result,
-        // it implements 'load' which returns AppResult.
         match RepositoryState::load() {
             Ok(repo) => Ok(repo),
-            Err(_) => Ok(RepositoryState::default()),
+            Err(AppError::Storage(msg)) if msg.contains("No data found") => {
+                Ok(RepositoryState::default())
+            }
+            Err(e) => Err(e),
         }
     }
 
@@ -60,7 +59,8 @@ impl LocalStorageGitBackend {
 
     // Simulate network delay to mimic real backend behavior
     async fn simulate_delay(&self) {
-        gloo_timers::future::TimeoutFuture::new(300).await;
+        // Reduced delay for better responsiveness while still testing async paths
+        gloo_timers::future::TimeoutFuture::new(50).await;
     }
 }
 

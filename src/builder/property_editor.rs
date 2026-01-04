@@ -8,7 +8,7 @@ use super::property_editors::{
 #[component]
 pub fn PropertyEditor() -> impl IntoView {
     // Get app state from context
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let canvas_state = app_state.canvas;
 
     view! {

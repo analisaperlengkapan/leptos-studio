@@ -13,7 +13,7 @@ pub fn use_export_actions(
     export_code: WriteSignal<String>,
     export_template: ReadSignal<String>,
 ) -> impl Fn(web_sys::MouseEvent) {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
 
     move |_| {
         let comps = app_state.canvas.components.get();

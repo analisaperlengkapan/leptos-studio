@@ -47,7 +47,7 @@ impl ViewportSize {
 /// Displays preset device options and allows switching between them
 #[component]
 pub fn ResponsivePreviewControls() -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let responsive_mode = app_state.ui.responsive_mode;
 
     view! {
@@ -103,7 +103,7 @@ pub fn ResponsivePreviewControls() -> impl IntoView {
 /// Applies viewport constraints and styling based on the selected responsive mode
 #[component]
 pub fn CanvasViewport(children: Children) -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let responsive_mode = app_state.ui.responsive_mode;
 
     view! {
@@ -132,7 +132,7 @@ pub fn CanvasViewport(children: Children) -> impl IntoView {
 /// Shows the current viewport size and dimensions
 #[component]
 pub fn ResponsiveIndicator() -> impl IntoView {
-    let app_state = AppState::use_context();
+    let app_state = AppState::expect_context();
     let responsive_mode = app_state.ui.responsive_mode;
 
     view! {
