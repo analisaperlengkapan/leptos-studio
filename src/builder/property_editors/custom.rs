@@ -14,11 +14,11 @@ pub fn CustomPropertyEditor(
     let ui_state = app_state.ui;
     let canvas_state = app_state.canvas;
 
-    let apply_update = move |id: ComponentId, updated: CanvasComponent| {
+    let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component(&id, updated);
+            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Custom {}", prop_name));
         }
     };
 
@@ -41,7 +41,7 @@ pub fn CustomPropertyEditor(
                 on_change=move |new_name| {
                     let mut updated_custom = custom_for_name.clone();
                     updated_custom.name = new_name;
-                    apply_update_name(comp_id_for_name, CanvasComponent::Custom(updated_custom));
+                    apply_update_name(comp_id_for_name, CanvasComponent::Custom(updated_custom), "Name".to_string());
                 }
             />
             <div class="property-field">
@@ -53,7 +53,7 @@ pub fn CustomPropertyEditor(
                             let new_template = event_target_value(&ev);
                             let mut updated_custom = custom_for_template.clone();
                             updated_custom.template = new_template;
-                            apply_update_template(comp_id_for_template, CanvasComponent::Custom(updated_custom));
+                            apply_update_template(comp_id_for_template, CanvasComponent::Custom(updated_custom), "Template".to_string());
                         }
                     />
                 </label>

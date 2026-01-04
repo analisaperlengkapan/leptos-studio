@@ -108,7 +108,7 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
         let new_component = create_component_from_type(&component_type);
 
         if let Some(component) = new_component {
-            canvas_state.add_component(component);
+            canvas_state.add_component_without_snapshot(component);
         }
     }
 }

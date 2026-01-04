@@ -25,11 +25,11 @@ pub fn ContainerPropertyEditor(
 
     let comp_id = id;
 
-    let apply_update = move |id: ComponentId, updated: CanvasComponent| {
+    let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component(&id, updated);
+            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Container {}", prop_name));
         }
     };
 
@@ -56,6 +56,7 @@ pub fn ContainerPropertyEditor(
                             }.to_string(),
                             _ => String::new(),
                         };
+                        let prop_name_closure = prop_name.clone();
                         view! {
                             <EnumSelect
                                 value=value
@@ -63,7 +64,7 @@ pub fn ContainerPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_container = update_container_prop(container_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Container(updated_container));
+                                    apply_update(comp_id_field, CanvasComponent::Container(updated_container), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()
@@ -77,13 +78,14 @@ pub fn ContainerPropertyEditor(
                             "padding_left" => container_for_field.padding.left as f64,
                             _ => 0.0,
                         };
+                        let prop_name_closure = prop_name.clone();
                             view! {
                             <NumberInput
                                 value=value
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_container = update_container_prop(container_for_field.clone(), prop_name.as_str(), PropValue::Number(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Container(updated_container));
+                                    apply_update(comp_id_field, CanvasComponent::Container(updated_container), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()

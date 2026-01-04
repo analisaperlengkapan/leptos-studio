@@ -196,7 +196,7 @@ pub fn App() -> impl IntoView {
                                     let comp_count = template.components.len();
                                     let template_name = template.name.clone();
                                     for comp in template.components {
-                                        app_state.canvas.add_component(comp);
+                                        app_state.canvas.add_component_without_snapshot(comp);
                                     }
                                     show_template_gallery.set(false);
                                     app_state.ui.notification.set(Some(Notification::success(

@@ -153,6 +153,16 @@ impl GitBackend for LocalStorageGitBackend {
         Self::save_repo(&repo)?;
         Ok(())
     }
+
+    fn restore_head(&self) -> AppResult<Option<Project>> {
+        let repo = Self::get_repo()?;
+        if let Some(head_id) = repo.head {
+            if let Some(commit) = repo.commits.iter().find(|c| c.id == head_id) {
+                return Ok(Some(commit.project_snapshot.clone()));
+            }
+        }
+        Ok(None)
+    }
 }
 
 #[cfg(test)]

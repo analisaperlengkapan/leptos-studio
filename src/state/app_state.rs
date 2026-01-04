@@ -27,12 +27,17 @@ impl CanvasState {
         }
     }
 
-    /// Add a component to the canvas
-    pub fn add_component(&self, component: CanvasComponent) {
-        self.record_snapshot("Add Component");
+    /// Add a component to the canvas (internal helper without snapshot)
+    pub fn add_component_without_snapshot(&self, component: CanvasComponent) {
         self.components.update(|components| {
             components.push(component);
         });
+    }
+
+    /// Add a component to the canvas
+    pub fn add_component(&self, component: CanvasComponent) {
+        self.record_snapshot("Add Component");
+        self.add_component_without_snapshot(component);
     }
 
     /// Remove a component by ID
@@ -308,13 +313,23 @@ impl AppState {
         // Try to load settings from LocalStorage
         let settings = SettingsState::load_or_default();
 
-        Self {
+        let state = Self {
             canvas: CanvasState::new(),
             ui: UiState::new(),
             settings: RwSignal::new(settings),
             project_name: RwSignal::new("Untitled Project".to_string()),
             last_modified: RwSignal::new(js_sys::Date::now()),
-        }
+        };
+
+        // Setup reactivity for last_modified
+        let components = state.canvas.components;
+        let last_modified = state.last_modified;
+        Effect::new(move |_| {
+            components.track();
+            last_modified.set(js_sys::Date::now());
+        });
+
+        state
     }
 
     /// Provide AppState as context
@@ -368,6 +383,11 @@ impl AppState {
         self.canvas.selected.set(None);
         self.canvas.history.update(|h| h.clear());
         self.settings.set(project.settings);
+        self.update_last_modified();
+    }
+
+    fn update_last_modified(&self) {
+        self.last_modified.set(js_sys::Date::now());
     }
 }
 
