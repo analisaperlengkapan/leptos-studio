@@ -1,12 +1,11 @@
 use wasm_bindgen_test::*;
-use leptos_studio::services::local_storage_git::{LocalStorageGitBackend, RepositoryState};
+use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
 use leptos_studio::services::git_service::GitBackend;
-use leptos_studio::state::persistence::Persistable;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
 #[wasm_bindgen_test]
-fn test_dirty_state_logic() {
+async fn test_dirty_state_logic() {
     // Setup: Clear storage
     // RepositoryState::clear(); // Persistable::clear might not be public or implemented as static
 
@@ -23,7 +22,7 @@ fn test_dirty_state_logic() {
 
     // Actually, testing `status()` in isolation is now easier because we can pass None.
 
-    let status_result = backend.status(None);
+    let status_result = backend.status(None).await;
     assert!(status_result.is_ok());
     let status = status_result.unwrap();
 
