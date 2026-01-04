@@ -26,8 +26,8 @@ pub fn GitPanel() -> impl IntoView {
     let debounce_token = StoredValue::new(0usize);
 
     Effect::new(move |_| {
-        // Track dependencies:
-        let _ = app_state.to_project();
+        // Track dependencies via last_modified signal (Optimization)
+        let _ = app_state.last_modified.get();
 
         // Increment token
         debounce_token.update_value(|t| *t = t.wrapping_add(1));
@@ -94,6 +94,26 @@ pub fn GitPanel() -> impl IntoView {
             }
             Err(e) => {
                 app_state.ui.notify(Notification::error(e.user_message()));
+            }
+        }
+    };
+
+    let do_discard = move |_| {
+        let backend = get_git_backend();
+        match backend.restore_head() {
+            Ok(Some(project)) => {
+                 app_state.apply_project(project);
+                 app_state.ui.notify(Notification::success("Changes discarded. Reverted to HEAD.".to_string()));
+                 // Refresh status
+                 if let Ok(status) = backend.status(Some(&app_state.to_project())) {
+                     status_data.set(Some(status));
+                 }
+            }
+            Ok(None) => {
+                 app_state.ui.notify(Notification::warning("No commits to revert to.".to_string()));
+            }
+            Err(e) => {
+                 app_state.ui.notify(Notification::error(e.user_message()));
             }
         }
     };
@@ -238,6 +258,7 @@ pub fn GitPanel() -> impl IntoView {
 
                 <div class="git-actions">
                     <button on:click=do_commit class="btn btn-primary">"Commit"</button>
+                    <button on:click=do_discard class="btn btn-danger" title="Discard all uncommitted changes">"Discard Changes"</button>
                     <button on:click=do_push class="btn btn-secondary" title="Download Repository JSON">"Push (Download)"</button>
                     <button on:click=trigger_import class="btn btn-secondary" title="Import Repository JSON">"Clone (Import)"</button>
                 </div>

@@ -10,15 +10,21 @@ pub struct Snapshot {
     pub components: Vec<CanvasComponent>,
     pub selected: Option<ComponentId>,
     pub timestamp: f64,
+    pub description: String,
 }
 
 impl Snapshot {
-    pub fn new(components: Vec<CanvasComponent>, selected: Option<ComponentId>) -> Self {
+    pub fn new(
+        components: Vec<CanvasComponent>,
+        selected: Option<ComponentId>,
+        description: String,
+    ) -> Self {
         let timestamp = get_timestamp();
         Self {
             components,
             selected,
             timestamp,
+            description,
         }
     }
 }
@@ -115,7 +121,7 @@ mod tests {
         let button = ButtonComponent::new(label.to_string());
         let button_id = button.id.clone();
         let component = CanvasComponent::Button(button.clone());
-        Snapshot::new(vec![component], Some(button_id))
+        Snapshot::new(vec![component], Some(button_id), format!("Update {}", label))
     }
 
     #[test]

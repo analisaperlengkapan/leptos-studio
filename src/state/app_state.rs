@@ -27,15 +27,22 @@ impl CanvasState {
         }
     }
 
-    /// Add a component to the canvas
-    pub fn add_component(&self, component: CanvasComponent) {
+    /// Add a component to the canvas (internal helper without snapshot)
+    pub fn add_component_without_snapshot(&self, component: CanvasComponent) {
         self.components.update(|components| {
             components.push(component);
         });
     }
 
+    /// Add a component to the canvas
+    pub fn add_component(&self, component: CanvasComponent) {
+        self.record_snapshot("Add Component");
+        self.add_component_without_snapshot(component);
+    }
+
     /// Remove a component by ID
     pub fn remove_component(&self, id: &ComponentId) {
+        self.record_snapshot("Remove Component");
         self.components.update(|components| {
             components.retain(|c| c.id() != id);
         });
@@ -56,9 +63,15 @@ impl CanvasState {
         });
     }
 
+    /// Update a component and record a snapshot
+    pub fn update_component_with_snapshot(&self, id: &ComponentId, new_component: CanvasComponent, description: &str) {
+        self.record_snapshot(description);
+        self.update_component(id, new_component);
+    }
+
     /// Record a snapshot for undo/redo
-    pub fn record_snapshot(&self) {
-        let snapshot = Snapshot::new(self.components.get(), self.selected.get());
+    pub fn record_snapshot(&self, description: &str) {
+        let snapshot = Snapshot::new(self.components.get(), self.selected.get(), description.to_string());
         self.history.update(|h| h.push(snapshot));
     }
 
@@ -292,6 +305,7 @@ pub struct AppState {
     pub ui: UiState,
     pub settings: RwSignal<SettingsState>,
     pub project_name: RwSignal<String>,
+    pub last_modified: RwSignal<f64>,
 }
 
 impl AppState {
@@ -299,12 +313,23 @@ impl AppState {
         // Try to load settings from LocalStorage
         let settings = SettingsState::load_or_default();
 
-        Self {
+        let state = Self {
             canvas: CanvasState::new(),
             ui: UiState::new(),
             settings: RwSignal::new(settings),
             project_name: RwSignal::new("Untitled Project".to_string()),
-        }
+            last_modified: RwSignal::new(js_sys::Date::now()),
+        };
+
+        // Setup reactivity for last_modified
+        let components = state.canvas.components;
+        let last_modified = state.last_modified;
+        Effect::new(move |_| {
+            components.track();
+            last_modified.set(js_sys::Date::now());
+        });
+
+        state
     }
 
     /// Provide AppState as context
@@ -358,6 +383,11 @@ impl AppState {
         self.canvas.selected.set(None);
         self.canvas.history.update(|h| h.clear());
         self.settings.set(project.settings);
+        self.update_last_modified();
+    }
+
+    fn update_last_modified(&self) {
+        self.last_modified.set(js_sys::Date::now());
     }
 }
 

@@ -41,6 +41,7 @@ pub trait GitBackend {
     fn commit(&self, project: &Project, message: &str) -> AppResult<()>;
     fn push(&self) -> AppResult<Option<String>>;
     fn clone_repo(&self, json: &str) -> AppResult<()>;
+    fn restore_head(&self) -> AppResult<Option<Project>>;
 }
 
 /// No-op Git backend used in pure browser mode where no real Git integration
@@ -72,5 +73,9 @@ impl GitBackend for NoopGitBackend {
 
     fn clone_repo(&self, _json: &str) -> AppResult<()> {
         Ok(())
+    }
+
+    fn restore_head(&self) -> AppResult<Option<Project>> {
+        Ok(None)
     }
 }

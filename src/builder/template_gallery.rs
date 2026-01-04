@@ -182,9 +182,9 @@ pub fn TemplateGalleryToggle() -> impl IntoView {
                         <TemplateGallery
                             on_close=move || show_gallery.set(false)
                             on_apply=move |template: Template| {
-                                app_state.canvas.record_snapshot();
+                                app_state.canvas.record_snapshot(&format!("Apply Template: {}", template.name));
                                 for component in template.components {
-                                    app_state.canvas.add_component(component);
+                                    app_state.canvas.add_component_without_snapshot(component);
                                 }
                                 app_state.ui.notification.set(Some(Notification::success(
                                     format!("✅ Template '{}' applied!", template.name),

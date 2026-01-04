@@ -59,7 +59,7 @@ pub fn use_keyboard_actions(
             }
             KeyboardAction::Delete => {
                 if let Some(selected_id) = app_state.canvas.selected.get() {
-                    app_state.canvas.record_snapshot();
+                    // remove_component already records snapshot
                     app_state.canvas.remove_component(&selected_id);
                     app_state.canvas.selected.set(None);
                     app_state.ui.notification.set(Some(Notification::success(
@@ -113,7 +113,7 @@ pub fn use_keyboard_actions(
                     match read_from_clipboard().await {
                         Ok(text) => match serde_json::from_str::<CanvasComponent>(&text) {
                             Ok(comp) => {
-                                app_state_clone.canvas.record_snapshot();
+                                // add_component already records snapshot
                                 app_state_clone.canvas.add_component(comp);
                                 app_state_clone
                                     .ui
@@ -146,7 +146,7 @@ pub fn use_keyboard_actions(
             KeyboardAction::Duplicate => {
                 if let Some(selected_id) = app_state.canvas.selected.get() {
                     if let Some(comp) = app_state.canvas.get_component(&selected_id) {
-                        app_state.canvas.record_snapshot();
+                        // add_component already records snapshot
                         app_state.canvas.add_component(comp);
                         app_state.ui.notification.set(Some(Notification::success(
                             "🔄 Component duplicated!".to_string(),

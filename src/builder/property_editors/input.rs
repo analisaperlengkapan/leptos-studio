@@ -25,11 +25,11 @@ pub fn InputPropertyEditor(
 
     let comp_id = id;
 
-    let apply_update = move |id: ComponentId, updated: CanvasComponent| {
+    let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component(&id, updated);
+            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Input {}", prop_name));
         }
     };
 
@@ -49,13 +49,14 @@ pub fn InputPropertyEditor(
                             "placeholder" => inp_for_field.placeholder.clone(),
                             _ => String::new(),
                         };
+                        let prop_name_closure = prop_name.clone();
                         view! {
                             <StringInput
                                 value=value
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
+                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()
@@ -71,6 +72,7 @@ pub fn InputPropertyEditor(
                             }.to_string(),
                             _ => String::new(),
                         };
+                        let prop_name_closure = prop_name.clone();
                         view! {
                             <EnumSelect
                                 value=value
@@ -78,7 +80,7 @@ pub fn InputPropertyEditor(
                                 options=options
                                 on_change=move |new_val| {
                                     let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
+                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()
@@ -89,13 +91,14 @@ pub fn InputPropertyEditor(
                             "disabled" => inp_for_field.disabled,
                             _ => false,
                         };
+                        let prop_name_closure = prop_name.clone();
                             view! {
                             <BoolCheckbox
                                 checked=checked
                                 label=label_text
                                 on_change=move |new_val| {
                                     let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp));
+                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
                                 }
                             />
                         }.into_any()
