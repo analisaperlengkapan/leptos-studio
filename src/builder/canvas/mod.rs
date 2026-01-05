@@ -34,7 +34,7 @@ pub fn Canvas() -> impl IntoView {
 
     // Optimization: Track render time in an effect to avoid side effects during render
     // Use a Memo to capture the start time when the dependency changes (before render)
-    let render_tracker = Memo::new(move |_| {
+    let render_tracker = Memo::new(move |_: Option<&Option<f64>>| {
         canvas_state.components.track(); // Track changes
 
         #[cfg(target_arch = "wasm32")]
@@ -48,10 +48,10 @@ pub fn Canvas() -> impl IntoView {
 
     Effect::new(move |_| {
         // Dependencies
-        let start_time = render_tracker.get();
+        let _start_time = render_tracker.get();
 
         #[cfg(target_arch = "wasm32")]
-        if let Some(start) = start_time {
+        if let Some(start) = _start_time {
              if let Some(window) = web_sys::window() {
                 if let Some(perf) = window.performance() {
                     let end = perf.now();
