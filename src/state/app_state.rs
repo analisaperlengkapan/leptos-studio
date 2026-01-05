@@ -52,12 +52,12 @@ impl CanvasState {
         component: CanvasComponent,
     ) {
         self.components.update(|components| {
-            Self::add_child_recursive(components, parent_id, component);
+            Self::add_child_recursive(&mut components[..], parent_id, component);
         });
     }
 
     fn add_child_recursive(
-        components: &mut Vec<CanvasComponent>,
+        components: &mut [CanvasComponent],
         parent_id: &ComponentId,
         child: CanvasComponent,
     ) -> bool {
@@ -69,10 +69,8 @@ impl CanvasState {
                 }
                 return false;
             }
-            if let CanvasComponent::Container(container) = comp {
-                if Self::add_child_recursive(&mut container.children, parent_id, child.clone()) {
-                    return true;
-                }
+            if let CanvasComponent::Container(container) = comp && Self::add_child_recursive(&mut container.children[..], parent_id, child.clone()) {
+                return true;
             }
         }
         false
@@ -106,10 +104,8 @@ impl CanvasState {
             if comp.id() == id {
                 return Some(comp.clone());
             }
-            if let CanvasComponent::Container(container) = comp {
-                if let Some(found) = Self::get_recursive(&container.children, id) {
-                    return Some(found);
-                }
+            if let CanvasComponent::Container(container) = comp && let Some(found) = Self::get_recursive(&container.children, id) {
+                return Some(found);
             }
         }
         None
@@ -123,7 +119,7 @@ impl CanvasState {
     }
 
     fn update_recursive(
-        components: &mut Vec<CanvasComponent>,
+        components: &mut [CanvasComponent],
         id: &ComponentId,
         new_component: CanvasComponent,
     ) -> bool {
@@ -132,10 +128,8 @@ impl CanvasState {
                 *comp = new_component;
                 return true;
             }
-            if let CanvasComponent::Container(container) = comp {
-                if Self::update_recursive(&mut container.children, id, new_component.clone()) {
-                    return true;
-                }
+            if let CanvasComponent::Container(container) = comp && Self::update_recursive(&mut container.children[..], id, new_component.clone()) {
+                return true;
             }
         }
         false

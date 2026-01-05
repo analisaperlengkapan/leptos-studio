@@ -24,34 +24,30 @@ pub fn download_file(content: &str, filename: &str, mime_type: &str) -> AppResul
         )
     })?;
 
-    if let Some(window) = web_sys::window() {
-        if let Some(document) = window.document() {
-            if let Ok(a) = document.create_element("a") {
-                let _ = a.set_attribute("href", &url);
-                let _ = a.set_attribute("download", filename);
+if let Some(window) = web_sys::window() && let Some(document) = window.document() && let Ok(a) = document.create_element("a") {
+        let _ = a.set_attribute("href", &url);
+        let _ = a.set_attribute("download", filename);
 
-                // Required for Firefox
-                // Use set_attribute for style since set_style_property is on HtmlElement style object
-                let _ = a.set_attribute("style", "display: none");
+        // Required for Firefox
+        // Use set_attribute for style since set_style_property is on HtmlElement style object
+        let _ = a.set_attribute("style", "display: none");
 
-                if let Some(body) = document.body() {
-                    let _ = body.append_child(&a);
-                }
-
-                if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
-                    html_element.click();
-                }
-
-                if let Some(body) = document.body() {
-                    let _ = body.remove_child(&a);
-                }
-
-                // Revoke URL to free memory
-                let _ = web_sys::Url::revoke_object_url(&url);
-
-                return Ok(());
-            }
+        if let Some(body) = document.body() {
+            let _ = body.append_child(&a);
         }
+
+        if let Some(html_element) = a.dyn_ref::<web_sys::HtmlElement>() {
+            html_element.click();
+        }
+
+        if let Some(body) = document.body() {
+           let _ = body.remove_child(&a);
+        }
+
+        // Revoke URL to free memory
+        let _ = web_sys::Url::revoke_object_url(&url);
+
+        return Ok(());
     }
 
     Err(AppError::Export(

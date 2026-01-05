@@ -1,7 +1,6 @@
 use crate::domain::AppResult;
 use crate::state::{AppState, Notification};
-use leptos::prelude::*;
-use std::future::Future;
+use std::future::Future; 
 
 /// Spawns a local future that returns an AppResult.
 /// Automatically handles the Err case by showing an error notification.

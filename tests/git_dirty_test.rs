@@ -32,7 +32,7 @@ async fn test_dirty_state_logic() {
     // else { has_changes = false }
     // So if we pass None, has_changes is false, so clean is true.
 
-    assert_eq!(status.clean, true);
+    assert!(status.clean);
     assert_eq!(status.commit_count, 0);
 }
 

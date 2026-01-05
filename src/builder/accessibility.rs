@@ -226,14 +226,8 @@ pub fn get_focusable_elements(container: &HtmlElement) -> Vec<HtmlElement> {
 
     if let Ok(node_list) = container.query_selector_all(selector) {
         for i in 0..node_list.length() {
-            if let Some(node) = node_list.item(i) {
-                if let Ok(el) = node.dyn_into::<HtmlElement>() {
-                    // Check if element is visible (has dimensions)
-                    // This excludes display: none elements
-                    if el.offset_width() > 0 || el.offset_height() > 0 {
-                        elements.push(el);
-                    }
-                }
+            if let Some(node) = node_list.item(i) && let Ok(el) = node.dyn_into::<HtmlElement>() && (el.offset_width() > 0 || el.offset_height() > 0) {
+                elements.push(el);
             }
         }
     }

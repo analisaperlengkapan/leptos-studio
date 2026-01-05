@@ -80,7 +80,7 @@ pub fn GitPanel() -> impl IntoView {
                 </button>
             </div>
 
-            <GitStatusDisplay status=status.into() is_loading=is_loading_status.into() />
+            <GitStatusDisplay status=status is_loading=is_loading_status />
 
             <div class="git-commit-area">
                 <input
@@ -116,7 +116,7 @@ pub fn GitPanel() -> impl IntoView {
                 on:change=on_file_select
             />
 
-            <GitLogList logs=logs.into() is_loading=is_loading_log.into() />
+            <GitLogList logs=logs is_loading=is_loading_log />
         </div>
     }
 }

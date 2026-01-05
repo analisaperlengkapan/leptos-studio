@@ -110,10 +110,8 @@ pub fn use_git() -> UseGitReturn {
                     }
                     // Refresh logs if they are already loaded/visible
                     // (Simple heuristic: if logs vector is not empty or we just want to ensure consistency)
-                    if !log_data.get().is_empty() {
-                        if let Ok(logs) = backend.log().await {
-                            log_data.set(logs);
-                        }
+                    if let Ok(logs) = backend.log().await && !log_data.get().is_empty() {
+                        log_data.set(logs);
                     }
                 }
                 Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
@@ -224,10 +222,10 @@ pub fn use_git() -> UseGitReturn {
         is_committing: is_committing.into(),
         load_status: Callback::new(move |_| load_status_fn()),
         load_log: Callback::new(move |_| load_log_fn()),
-        commit: Callback::new(move |msg| commit_fn(msg)),
+        commit: Callback::new(commit_fn),
         discard: Callback::new(move |_| discard_fn()),
         reset: Callback::new(move |_| reset_fn()),
         push: Callback::new(move |_| push_fn()),
-        import: Callback::new(move |file| import_fn(file)),
+        import: Callback::new(import_fn),
     }
 }
