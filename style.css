@@ -2830,3 +2830,36 @@ input::placeholder, textarea::placeholder {
     margin: 0 var(--spacing-1);
     font-size: 12px;
 }
+
+/* Enhanced Selection Label */
+.selected-label {
+    position: absolute;
+    top: -24px;
+    right: -2px;
+    background: var(--color-primary-500);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px 4px 0 0;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Empty Container Placeholder */
+.empty-container-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px dashed var(--color-gray-400);
+    border-radius: var(--border-radius-sm);
+    color: var(--color-gray-500);
+    font-size: 12px;
+    font-style: italic;
+    pointer-events: none;
+    margin: 4px;
+}

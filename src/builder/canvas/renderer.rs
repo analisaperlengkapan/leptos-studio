@@ -39,12 +39,25 @@ pub fn ComponentRenderer(
         }
     };
 
+    let component_type_label = match component.component_type() {
+        crate::domain::ComponentType::Button => "Button",
+        crate::domain::ComponentType::Text => "Text",
+        crate::domain::ComponentType::Input => "Input",
+        crate::domain::ComponentType::Container => "Container",
+        crate::domain::ComponentType::Custom => "Custom",
+    };
+
     view! {
         <div
             class=class
             on:click=on_click
             data-component-id=component_id.to_string()
         >
+            {move || if is_selected.get() {
+                view! { <div class="selected-label">{component_type_label}</div> }.into_any()
+            } else {
+                view! { }.into_any()
+            }}
             {match component {
                 CanvasComponent::Button(btn) => render_button(btn).into_any(),
                 CanvasComponent::Text(txt) => render_text(txt).into_any(),
@@ -159,6 +172,8 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
         handle_drop(ev, canvas_state, Some(container_id));
     };
 
+    let has_children = !container.children.is_empty();
+
     view! {
         <DropZone
             zone_name=format!("container-{}", container_id)
@@ -178,18 +193,28 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
                 }
                 style=style
             >
-                <For
-                    each=move || container.children.clone()
-                    key=|comp| *comp.id()
-                    children=move |comp| {
-                        view! {
-                            <ComponentRenderer
-                                component=comp
-                                canvas_state=canvas_state
-                            />
-                        }
-                    }
-                />
+                {if has_children {
+                    view! {
+                        <For
+                            each=move || container.children.clone()
+                            key=|comp| *comp.id()
+                            children=move |comp| {
+                                view! {
+                                    <ComponentRenderer
+                                        component=comp
+                                        canvas_state=canvas_state
+                                    />
+                                }
+                            }
+                        />
+                    }.into_any()
+                } else {
+                    view! {
+                        <div class="empty-container-placeholder">
+                            "Drop items here"
+                        </div>
+                    }.into_any()
+                }}
             </div>
         </DropZone>
     }
