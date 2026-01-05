@@ -6,6 +6,7 @@ use crate::builder::canvas::Canvas;
 use crate::builder::code_panel::CodePanel;
 use crate::builder::command_palette::CommandPalette;
 use crate::builder::component_palette::ComponentPalette;
+use crate::builder::tree_view::TreeView;
 use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
@@ -68,6 +69,15 @@ pub fn App() -> impl IntoView {
 
     let active_right_tab = RwSignal::new(RightPanelTab::Properties);
 
+    // Left panel tabs state
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum LeftPanelTab {
+        Add,
+        Layers,
+    }
+
+    let active_left_tab = RwSignal::new(LeftPanelTab::Add);
+
     view! {
         <DesignTokenProvider tokens=design_tokens>
             <AccessibilityProvider>
@@ -98,7 +108,26 @@ pub fn App() -> impl IntoView {
 
                     <div class="app-layout">
                         <aside class="sidebar-panel" role="navigation" aria-label="Component library">
-                            <ComponentPalette />
+                            <div class="panel-tabs">
+                                <button
+                                    class=move || if active_left_tab.get() == LeftPanelTab::Add { "tab active" } else { "tab" }
+                                    on:click=move |_| active_left_tab.set(LeftPanelTab::Add)
+                                >
+                                    "Add"
+                                </button>
+                                <button
+                                    class=move || if active_left_tab.get() == LeftPanelTab::Layers { "tab active" } else { "tab" }
+                                    on:click=move |_| active_left_tab.set(LeftPanelTab::Layers)
+                                >
+                                    "Layers"
+                                </button>
+                            </div>
+                            <div class="panel-content">
+                                {move || match active_left_tab.get() {
+                                    LeftPanelTab::Add => view! { <ComponentPalette /> }.into_any(),
+                                    LeftPanelTab::Layers => view! { <TreeView /> }.into_any(),
+                                }}
+                            </div>
                         </aside>
 
                         <main role="main">
