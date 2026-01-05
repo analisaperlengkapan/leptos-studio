@@ -4,13 +4,12 @@ pub mod empty_state;
 pub use renderer::ComponentRenderer;
 pub use empty_state::CanvasEmptyState;
 
-use js_sys::Date;
 use leptos::prelude::*;
 use web_sys::DragEvent;
 
 use crate::builder::component_library::create_canvas_component;
 use crate::builder::drag_drop::DropZone;
-use crate::domain::CanvasComponent;
+use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::{AppState, CanvasState, Snapshot};
 
 /// Main Canvas component for the UI builder
@@ -25,7 +24,7 @@ pub fn Canvas() -> impl IntoView {
 
     // Drag and drop handlers
     let drop_zone_on_drop = move |ev: leptos::ev::DragEvent| {
-        handle_drop(ev, canvas_state);
+        handle_drop(ev, canvas_state, None);
     };
 
     // Clear selection when clicking on empty canvas area
@@ -34,19 +33,34 @@ pub fn Canvas() -> impl IntoView {
     };
 
     // Optimization: Track render time in an effect to avoid side effects during render
+    // Use a Memo to capture the start time when the dependency changes (before render)
+    let render_tracker = Memo::new(move |_: Option<&Option<f64>>| {
+        canvas_state.components.track(); // Track changes
+
+        #[cfg(target_arch = "wasm32")]
+        if let Some(window) = web_sys::window() {
+            if let Some(perf) = window.performance() {
+                return Some(perf.now());
+            }
+        }
+        None
+    });
+
     Effect::new(move |_| {
-        // Track components change
-        let _ = canvas_state.components.get();
-        let start = Date::now();
+        // Dependencies
+        let _start_time = render_tracker.get();
 
-        // This effect runs after render, so we just update the stats
-        // In a real scenario we'd measure actual render time via performance API or similar,
-        // but here we just update the timestamp.
-        let end = Date::now();
-        let duration = (end - start).max(0.0);
+        #[cfg(target_arch = "wasm32")]
+        if let Some(start) = _start_time {
+             if let Some(window) = web_sys::window() {
+                if let Some(perf) = window.performance() {
+                    let end = perf.now();
+                    let duration = (end - start).max(0.0);
+                    app_state.ui.render_time.set(duration);
+                }
+            }
+        }
 
-        // We use batch to avoid double triggers if possible, though Signal updates are fine
-        app_state.ui.render_time.set(duration);
         app_state.ui.render_count.update(|count| {
             *count = count.saturating_add(1);
         });
@@ -68,6 +82,9 @@ pub fn Canvas() -> impl IntoView {
             >
                 <div class="canvas-content">
                     {move || {
+                        // Force evaluation of render_tracker during render phase
+                        let _ = render_tracker.get();
+
                         if is_empty.get() {
                             view! { <CanvasEmptyState /> }.into_any()
                         } else {
@@ -94,8 +111,9 @@ pub fn Canvas() -> impl IntoView {
 }
 
 /// Handle drop event on canvas
-fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
+pub fn handle_drop(ev: DragEvent, canvas_state: CanvasState, parent_id: Option<ComponentId>) {
     ev.prevent_default();
+    ev.stop_propagation(); // Stop event bubbling to avoid double drops
 
     if let Some(data_transfer) = ev.data_transfer()
         && let Ok(component_type) = data_transfer.get_data("component")
@@ -108,7 +126,7 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
         let snapshot = Snapshot::new(
             canvas_state.components.get(),
             canvas_state.selected.get(),
-            "Drag and Drop Component".to_string(),
+            if parent_id.is_some() { "Add Child Component" } else { "Add Component" }.to_string(),
         );
         canvas_state.history.update(|h| h.push(snapshot));
 
@@ -116,7 +134,11 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
         let new_component = create_component_from_type(&component_type);
 
         if let Some(component) = new_component {
-            canvas_state.add_component_without_snapshot(component);
+            if let Some(parent) = parent_id {
+                canvas_state.add_child_component_without_snapshot(&parent, component);
+            } else {
+                canvas_state.add_component_without_snapshot(component);
+            }
         }
     }
 }
