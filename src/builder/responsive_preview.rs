@@ -18,11 +18,27 @@ impl ViewportSize {
         }
     }
 
+    pub fn mobile_landscape() -> Self {
+        Self {
+            width: 667,
+            height: 375,
+            label: "Mobile Landscape (667px)",
+        }
+    }
+
     pub fn tablet() -> Self {
         Self {
             width: 768,
             height: 1024,
             label: "Tablet (768px)",
+        }
+    }
+
+    pub fn tablet_landscape() -> Self {
+        Self {
+            width: 1024,
+            height: 768,
+            label: "Tablet Landscape (1024px)",
         }
     }
 
@@ -37,7 +53,9 @@ impl ViewportSize {
     pub fn from_mode(mode: ResponsiveMode) -> Self {
         match mode {
             ResponsiveMode::Mobile => Self::mobile(),
+            ResponsiveMode::MobileLandscape => Self::mobile_landscape(),
             ResponsiveMode::Tablet => Self::tablet(),
+            ResponsiveMode::TabletLandscape => Self::tablet_landscape(),
             ResponsiveMode::Desktop => Self::desktop(),
         }
     }
@@ -53,47 +71,71 @@ pub fn ResponsivePreviewControls() -> impl IntoView {
     view! {
         <div class="responsive-controls">
             <span class="responsive-label">Viewport:</span>
+            <div class="btn-group">
+                <button
+                    class={move || {
+                        let is_active = matches!(responsive_mode.get(), ResponsiveMode::Mobile | ResponsiveMode::MobileLandscape);
+                        format!("responsive-btn {}", if is_active { "active" } else { "" })
+                    }}
+                    on:click=move |_| {
+                        responsive_mode.set(ResponsiveMode::Mobile);
+                        app_state.ui.notification.set(Some(crate::state::app_state::Notification::info(
+                            "📱 Mobile preview".to_string()
+                        )));
+                    }
+                    title="Mobile View"
+                >
+                    "📱"
+                </button>
+                <button
+                    class={move || {
+                        let is_active = matches!(responsive_mode.get(), ResponsiveMode::Tablet | ResponsiveMode::TabletLandscape);
+                        format!("responsive-btn {}", if is_active { "active" } else { "" })
+                    }}
+                    on:click=move |_| {
+                        responsive_mode.set(ResponsiveMode::Tablet);
+                        app_state.ui.notification.set(Some(crate::state::app_state::Notification::info(
+                            "📱 Tablet preview".to_string()
+                        )));
+                    }
+                    title="Tablet View"
+                >
+                    "📟"
+                </button>
+                <button
+                    class={move || {
+                        let is_active = responsive_mode.get() == ResponsiveMode::Desktop;
+                        format!("responsive-btn {}", if is_active { "active" } else { "" })
+                    }}
+                    on:click=move |_| {
+                        responsive_mode.set(ResponsiveMode::Desktop);
+                        app_state.ui.notification.set(Some(crate::state::app_state::Notification::info(
+                            "🖥️ Desktop preview".to_string()
+                        )));
+                    }
+                    title="Desktop View"
+                >
+                    "🖥️"
+                </button>
+            </div>
+
+            <span class="responsive-sep">"|"</span>
+
             <button
-                class={move || {
-                    let is_active = responsive_mode.get() == ResponsiveMode::Mobile;
-                    format!("responsive-btn {}", if is_active { "active" } else { "" })
-                }}
+                class="responsive-btn"
+                disabled=move || responsive_mode.get() == ResponsiveMode::Desktop
                 on:click=move |_| {
-                    responsive_mode.set(ResponsiveMode::Mobile);
-                    app_state.ui.notification.set(Some(crate::state::app_state::Notification::info(
-                        "📱 Mobile preview".to_string()
-                    )));
+                    match responsive_mode.get() {
+                        ResponsiveMode::Mobile => responsive_mode.set(ResponsiveMode::MobileLandscape),
+                        ResponsiveMode::MobileLandscape => responsive_mode.set(ResponsiveMode::Mobile),
+                        ResponsiveMode::Tablet => responsive_mode.set(ResponsiveMode::TabletLandscape),
+                        ResponsiveMode::TabletLandscape => responsive_mode.set(ResponsiveMode::Tablet),
+                        _ => {}
+                    }
                 }
+                title="Rotate Viewport"
             >
-                "📱 Mobile"
-            </button>
-            <button
-                class={move || {
-                    let is_active = responsive_mode.get() == ResponsiveMode::Tablet;
-                    format!("responsive-btn {}", if is_active { "active" } else { "" })
-                }}
-                on:click=move |_| {
-                    responsive_mode.set(ResponsiveMode::Tablet);
-                    app_state.ui.notification.set(Some(crate::state::app_state::Notification::info(
-                        "📱 Tablet preview".to_string()
-                    )));
-                }
-            >
-                "📱 Tablet"
-            </button>
-            <button
-                class={move || {
-                    let is_active = responsive_mode.get() == ResponsiveMode::Desktop;
-                    format!("responsive-btn {}", if is_active { "active" } else { "" })
-                }}
-                on:click=move |_| {
-                    responsive_mode.set(ResponsiveMode::Desktop);
-                    app_state.ui.notification.set(Some(crate::state::app_state::Notification::info(
-                        "🖥️ Desktop preview".to_string()
-                    )));
-                }
-            >
-                "🖥️ Desktop"
+                "🔄 Rotate"
             </button>
         </div>
     }

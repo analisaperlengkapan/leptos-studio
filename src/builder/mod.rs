@@ -2,6 +2,7 @@ pub mod accessibility;
 pub mod breadcrumb;
 pub mod breakpoint_editor;
 pub mod canvas; // Modular canvas structure (canvas.rs + renderer.rs)
+pub mod code_panel;
 pub mod command_palette;
 pub mod component_constraints;
 pub mod component_library;

@@ -3,6 +3,7 @@ use leptos::prelude::*;
 use crate::builder::accessibility::{AccessibilityProvider, SkipLink, announce};
 use crate::builder::breadcrumb::BreadcrumbNavigation;
 use crate::builder::canvas::Canvas;
+use crate::builder::code_panel::CodePanel;
 use crate::builder::command_palette::CommandPalette;
 use crate::builder::component_palette::ComponentPalette;
 use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
@@ -126,6 +127,7 @@ pub fn App() -> impl IntoView {
     enum RightPanelTab {
         Properties,
         Git,
+        Code,
     }
 
     let active_right_tab = RwSignal::new(RightPanelTab::Properties);
@@ -206,16 +208,23 @@ pub fn App() -> impl IntoView {
                                             "Properties"
                                         </button>
                                         <button
+                                            class=move || if active_right_tab.get() == RightPanelTab::Code { "tab active" } else { "tab" }
+                                            on:click=move |_| active_right_tab.set(RightPanelTab::Code)
+                                        >
+                                            "Code"
+                                        </button>
+                                        <button
                                             class=move || if active_right_tab.get() == RightPanelTab::Git { "tab active" } else { "tab" }
                                             on:click=move |_| active_right_tab.set(RightPanelTab::Git)
                                         >
-                                            "Git / History"
+                                            "Git"
                                         </button>
                                     </div>
 
                                     <div class="panel-content">
                                         {move || match active_right_tab.get() {
                                             RightPanelTab::Git => view! { <GitPanel /> }.into_any(),
+                                            RightPanelTab::Code => view! { <CodePanel /> }.into_any(),
                                             RightPanelTab::Properties => view! {
                                                 <div class="property-editor-container">
                                                     <PropertyEditor />

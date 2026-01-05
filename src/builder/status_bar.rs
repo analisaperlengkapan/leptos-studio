@@ -98,8 +98,8 @@ pub fn StatusBar() -> impl IntoView {
                         {move || {
                             match app_state.ui.responsive_mode.get() {
                                 crate::state::ResponsiveMode::Desktop => "🖥️",
-                                crate::state::ResponsiveMode::Tablet => "📱",
-                                crate::state::ResponsiveMode::Mobile => "📲",
+                                crate::state::ResponsiveMode::Tablet | crate::state::ResponsiveMode::TabletLandscape => "📱",
+                                crate::state::ResponsiveMode::Mobile | crate::state::ResponsiveMode::MobileLandscape => "📲",
                             }
                         }}
                     </span>
