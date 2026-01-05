@@ -7,6 +7,7 @@ use crate::services::export_service::{
 };
 use crate::state::app_state::{AppState, Notification};
 use crate::utils::copy_to_clipboard;
+use crate::utils::file::download_file;
 use leptos::prelude::*;
 
 #[component]
@@ -105,6 +106,37 @@ pub fn CodePanel() -> impl IntoView {
         });
     };
 
+    let download_handler = move |_| {
+        let code_text = code.get();
+        let selected_format = format.get();
+
+        let (ext, mime) = match selected_format.as_str() {
+            "leptos" => ("rs", "text/plain"),
+            "html" | "tailwind" => ("html", "text/html"),
+            "markdown" => ("md", "text/markdown"),
+            "json" | "jsonschema" => ("json", "application/json"),
+            "typescript" => ("ts", "application/typescript"),
+            "react" => ("tsx", "text/plain"),
+            "vue" => ("vue", "text/plain"),
+            "svelte" => ("svelte", "text/plain"),
+            "css" => ("css", "text/css"),
+            _ => ("txt", "text/plain"),
+        };
+
+        let filename = format!("leptos-layout.{}", ext);
+
+        if let Err(e) = download_file(&code_text, &filename, mime) {
+             app_state.ui.notification.set(Some(Notification::error(format!(
+                "❌ Download failed: {}",
+                e.user_message()
+            ))));
+        } else {
+             app_state.ui.notification.set(Some(Notification::success(
+                format!("⬇️ Downloaded {}", filename)
+            )));
+        }
+    };
+
     view! {
         <div class="code-panel">
             <div class="code-panel-header">
@@ -134,9 +166,14 @@ pub fn CodePanel() -> impl IntoView {
                         <option value="markdown">{"Markdown"}</option>
                     </optgroup>
                 </select>
-                <button on:click=copy_handler class="btn btn-sm btn-secondary" title="Copy to Clipboard">
-                    "📋 Copy"
-                </button>
+                <div class="code-actions" style="display: flex; gap: 8px;">
+                    <button on:click=copy_handler class="btn btn-sm btn-secondary" title="Copy to Clipboard">
+                        "📋 Copy"
+                    </button>
+                    <button on:click=download_handler class="btn btn-sm btn-secondary" title="Download File">
+                        "⬇️ Download"
+                    </button>
+                </div>
             </div>
             <div class="code-preview-container">
                 <pre class="code-preview">
