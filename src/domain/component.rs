@@ -222,7 +222,9 @@ pub enum LayoutType {
     Flex {
         direction: FlexDirection,
         wrap: bool,
+        #[serde(default)]
         align_items: FlexAlign,
+        #[serde(default)]
         justify_content: FlexJustify,
     },
     Grid {
