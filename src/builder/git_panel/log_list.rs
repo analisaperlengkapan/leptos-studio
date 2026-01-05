@@ -1,11 +1,8 @@
-use leptos::prelude::*;
 use crate::services::CommitInfo;
+use leptos::prelude::*;
 
 #[component]
-pub fn GitLogList(
-    logs: Signal<Vec<CommitInfo>>,
-    is_loading: Signal<bool>,
-) -> impl IntoView {
+pub fn GitLogList(logs: Signal<Vec<CommitInfo>>, is_loading: Signal<bool>) -> impl IntoView {
     view! {
         <div class="git-log-container">
             <h4>"Commit History"</h4>

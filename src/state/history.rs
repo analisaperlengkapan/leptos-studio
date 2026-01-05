@@ -119,9 +119,13 @@ mod tests {
 
     fn create_test_snapshot(label: &str) -> Snapshot {
         let button = ButtonComponent::new(label.to_string());
-        let button_id = button.id.clone();
+        let button_id = button.id;
         let component = CanvasComponent::Button(button.clone());
-        Snapshot::new(vec![component], Some(button_id), format!("Update {}", label))
+        Snapshot::new(
+            vec![component],
+            Some(button_id),
+            format!("Update {}", label),
+        )
     }
 
     #[test]

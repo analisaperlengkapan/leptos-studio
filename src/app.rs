@@ -4,15 +4,15 @@ use crate::builder::accessibility::{AccessibilityProvider, SkipLink, announce};
 use crate::builder::breadcrumb::BreadcrumbNavigation;
 use crate::builder::canvas::Canvas;
 use crate::builder::command_palette::CommandPalette;
+use crate::builder::component_palette::ComponentPalette;
 use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
-use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
+use crate::builder::git_panel::GitPanel;
 use crate::builder::hooks::use_export_actions::use_export_actions;
+use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
 use crate::builder::preview::Preview;
-use crate::builder::component_palette::ComponentPalette;
-use crate::builder::git_panel::GitPanel;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
 use crate::builder::snackbar::Snackbar;
@@ -50,10 +50,18 @@ pub fn App() -> impl IntoView {
     let show_template_gallery = RwSignal::new(false);
 
     // Keyboard action handler
-    let keyboard_action_handler = use_keyboard_actions(show_export.write_only(), export_code.write_only(), show_template_gallery.write_only());
+    let keyboard_action_handler = use_keyboard_actions(
+        show_export.write_only(),
+        export_code.write_only(),
+        show_template_gallery.write_only(),
+    );
 
     // Export handler
-    let do_export = use_export_actions(show_export.write_only(), export_code.write_only(), export_template.read_only());
+    let do_export = use_export_actions(
+        show_export.write_only(),
+        export_code.write_only(),
+        export_template.read_only(),
+    );
 
     // Save/Load handlers
     let save_layout = move |_| {

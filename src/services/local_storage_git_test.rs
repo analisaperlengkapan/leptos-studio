@@ -1,11 +1,11 @@
 #[cfg(test)]
-use crate::services::{RepoStatus};
+use crate::services::RepoStatus;
 #[cfg(test)]
-use crate::state::project::Project;
-#[cfg(test)]
-use crate::services::local_storage_git::{RepositoryState, LocalCommit};
+use crate::services::local_storage_git::{LocalCommit, RepositoryState};
 #[cfg(test)]
 use crate::state::app_state::SettingsState;
+#[cfg(test)]
+use crate::state::project::Project;
 #[cfg(test)]
 use chrono::Utc;
 
@@ -22,14 +22,12 @@ fn test_repository_state_serialization() {
     );
 
     let repo = RepositoryState {
-        commits: vec![
-            LocalCommit {
-                id: commit_id.to_string(),
-                message: message.to_string(),
-                timestamp,
-                project_snapshot: project.clone(),
-            }
-        ],
+        commits: vec![LocalCommit {
+            id: commit_id.to_string(),
+            message: message.to_string(),
+            timestamp,
+            project_snapshot: project.clone(),
+        }],
         head: Some(commit_id.to_string()),
     };
 

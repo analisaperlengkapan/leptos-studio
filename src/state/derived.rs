@@ -277,7 +277,7 @@ mod tests {
     #[test]
     fn test_find_component() {
         let button = ButtonComponent::new("Test".to_string());
-        let button_id = button.id.clone();
+        let button_id = button.id;
         let component = CanvasComponent::Button(button);
         let components = vec![component.clone()];
 

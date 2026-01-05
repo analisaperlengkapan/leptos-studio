@@ -6,8 +6,8 @@ pub mod services;
 pub mod state;
 pub mod utils;
 
+#[allow(unused_imports)]
 use wasm_bindgen::prelude::*;
-use web_sys::{HtmlElement, window};
 
 #[wasm_bindgen(start)]
 #[cfg(not(test))]
@@ -15,7 +15,7 @@ pub fn main() {
     console_error_panic_hook::set_once();
 
     // Get the #leptos element to mount to
-    let document = window()
+    let document = web_sys::window()
         .expect("Failed to get window")
         .document()
         .expect("Failed to get document");
@@ -23,7 +23,7 @@ pub fn main() {
     let target = document
         .get_element_by_id("leptos")
         .expect("Failed to find #leptos element")
-        .dyn_into::<HtmlElement>()
+        .dyn_into::<web_sys::HtmlElement>()
         .expect("Failed to cast to HtmlElement");
 
     // Clear the loading spinner content before mounting

@@ -1,6 +1,6 @@
-use wasm_bindgen_test::*;
-use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
 use leptos_studio::services::git_service::GitBackend;
+use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
+use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -32,7 +32,7 @@ async fn test_dirty_state_logic() {
     // else { has_changes = false }
     // So if we pass None, has_changes is false, so clean is true.
 
-    assert_eq!(status.clean, true);
+    assert!(status.clean);
     assert_eq!(status.commit_count, 0);
 }
 

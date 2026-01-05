@@ -1,8 +1,8 @@
-pub mod renderer;
 pub mod empty_state;
+pub mod renderer;
 
-pub use renderer::ComponentRenderer;
 pub use empty_state::CanvasEmptyState;
+pub use renderer::ComponentRenderer;
 
 use leptos::prelude::*;
 use web_sys::DragEvent;
@@ -52,7 +52,7 @@ pub fn Canvas() -> impl IntoView {
 
         #[cfg(target_arch = "wasm32")]
         if let Some(start) = _start_time {
-             if let Some(window) = web_sys::window() {
+            if let Some(window) = web_sys::window() {
                 if let Some(perf) = window.performance() {
                     let end = perf.now();
                     let duration = (end - start).max(0.0);
@@ -126,7 +126,12 @@ pub fn handle_drop(ev: DragEvent, canvas_state: CanvasState, parent_id: Option<C
         let snapshot = Snapshot::new(
             canvas_state.components.get(),
             canvas_state.selected.get(),
-            if parent_id.is_some() { "Add Child Component" } else { "Add Component" }.to_string(),
+            if parent_id.is_some() {
+                "Add Child Component"
+            } else {
+                "Add Component"
+            }
+            .to_string(),
         );
         canvas_state.history.update(|h| h.push(snapshot));
 

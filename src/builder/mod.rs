@@ -2,7 +2,6 @@ pub mod accessibility;
 pub mod breadcrumb;
 pub mod breakpoint_editor;
 pub mod canvas; // Modular canvas structure (canvas.rs + renderer.rs)
-pub mod hooks;
 pub mod command_palette;
 pub mod component_constraints;
 pub mod component_library;
@@ -12,6 +11,7 @@ pub mod design_tokens;
 pub mod drag_drop;
 pub mod export_modal;
 pub mod git_panel;
+pub mod hooks;
 pub mod keyboard;
 pub mod preview;
 pub mod project;

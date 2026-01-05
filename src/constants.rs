@@ -161,6 +161,7 @@ pub const RENDER_TIME_WARNING_MS: f64 = 16.0; // Target 60fps
 pub const RENDER_TIME_CRITICAL_MS: f64 = 100.0;
 
 #[cfg(test)]
+#[allow(clippy::assertions_on_constants)]
 mod tests {
     use super::*;
 
