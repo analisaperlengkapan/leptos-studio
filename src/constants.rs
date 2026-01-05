@@ -58,6 +58,28 @@ pub const MIN_CANVAS_WIDTH: u32 = 400;
 pub const MIN_CANVAS_HEIGHT: u32 = 300;
 
 // ============================================================================
+// Layout & Resizing
+// ============================================================================
+
+/// Default Left Sidebar Width
+pub const DEFAULT_LEFT_SIDEBAR_WIDTH: i32 = 280;
+
+/// Default Right Sidebar Width
+pub const DEFAULT_RIGHT_SIDEBAR_WIDTH: i32 = 320;
+
+/// Min Sidebar Width
+pub const MIN_SIDEBAR_WIDTH: i32 = 200;
+
+/// Max Sidebar Width
+pub const MAX_SIDEBAR_WIDTH: i32 = 600;
+
+/// LocalStorage key for left sidebar width
+pub const STORAGE_KEY_LEFT_SIDEBAR_WIDTH: &str = "leptos_studio_left_sidebar_width";
+
+/// LocalStorage key for right sidebar width
+pub const STORAGE_KEY_RIGHT_SIDEBAR_WIDTH: &str = "leptos_studio_right_sidebar_width";
+
+// ============================================================================
 // Responsive Breakpoints
 // ============================================================================
 

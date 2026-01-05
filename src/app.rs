@@ -12,7 +12,12 @@ use crate::builder::export_modal::ExportModal;
 use crate::builder::git_panel::GitPanel;
 use crate::builder::history_panel::HistoryPanel;
 use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
+use crate::builder::hooks::use_resize::use_resizable_sidebar;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
+use crate::constants::{
+    DEFAULT_LEFT_SIDEBAR_WIDTH, DEFAULT_RIGHT_SIDEBAR_WIDTH, STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
+    STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
+};
 use crate::builder::preview::Preview;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
@@ -59,35 +64,33 @@ pub fn App() -> impl IntoView {
         show_template_gallery.write_only(),
     );
 
-    // Layout resizing state
-    let left_sidebar_width = RwSignal::new(280);
-    let right_sidebar_width = RwSignal::new(320);
-    let is_dragging_left = RwSignal::new(false);
-    let is_dragging_right = RwSignal::new(false);
+    // Resizable Sidebars
+    let left_sidebar = use_resizable_sidebar(
+        DEFAULT_LEFT_SIDEBAR_WIDTH,
+        STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
+        true,
+    );
+    let right_sidebar = use_resizable_sidebar(
+        DEFAULT_RIGHT_SIDEBAR_WIDTH,
+        STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
+        false,
+    );
 
-    // Global resize handlers
+    // Global resize cursor handler
     Effect::new(move |_| {
-        if is_dragging_left.get() || is_dragging_right.get() {
-            let _ = document().body().expect("body").style().set_property("cursor", "col-resize");
+        if left_sidebar.is_dragging.get() || right_sidebar.is_dragging.get() {
+            let _ = document()
+                .body()
+                .expect("body")
+                .style()
+                .set_property("cursor", "col-resize");
         } else {
-            let _ = document().body().expect("body").style().remove_property("cursor");
+            let _ = document()
+                .body()
+                .expect("body")
+                .style()
+                .remove_property("cursor");
         }
-    });
-
-    let _ = window_event_listener(leptos::ev::mousemove, move |ev| {
-        if is_dragging_left.get() {
-            let new_width = ev.client_x().max(200).min(600);
-            left_sidebar_width.set(new_width);
-        } else if is_dragging_right.get() {
-            let window_width = window().inner_width().unwrap().as_f64().unwrap() as i32;
-            let new_width = (window_width - ev.client_x()).max(240).min(600);
-            right_sidebar_width.set(new_width);
-        }
-    });
-
-    let _ = window_event_listener(leptos::ev::mouseup, move |_| {
-        is_dragging_left.set(false);
-        is_dragging_right.set(false);
     });
 
     // Right panel tabs state
@@ -143,7 +146,7 @@ pub fn App() -> impl IntoView {
                             class="sidebar-panel"
                             role="navigation"
                             aria-label="Component library"
-                            style=move || format!("width: {}px", left_sidebar_width.get())
+                            style=move || format!("width: {}px", left_sidebar.width.get())
                         >
                             <div class="panel-tabs">
                                 <button
@@ -168,8 +171,8 @@ pub fn App() -> impl IntoView {
                         </aside>
 
                         <div
-                            class=move || if is_dragging_left.get() { "resize-handle active" } else { "resize-handle" }
-                            on:mousedown=move |_| is_dragging_left.set(true)
+                            class=move || if left_sidebar.is_dragging.get() { "resize-handle active" } else { "resize-handle" }
+                            on:mousedown=move |ev| left_sidebar.start_drag.run(ev)
                         />
 
                         <main role="main">
@@ -184,15 +187,15 @@ pub fn App() -> impl IntoView {
                                 </section>
 
                                 <div
-                                    class=move || if is_dragging_right.get() { "resize-handle active" } else { "resize-handle" }
-                                    on:mousedown=move |_| is_dragging_right.set(true)
+                                    class=move || if right_sidebar.is_dragging.get() { "resize-handle active" } else { "resize-handle" }
+                                    on:mousedown=move |ev| right_sidebar.start_drag.run(ev)
                                 />
 
                                 <aside
                                     class="property-panel"
                                     role="complementary"
                                     aria-label="Right Panel"
-                                    style=move || format!("width: {}px", right_sidebar_width.get())
+                                    style=move || format!("width: {}px", right_sidebar.width.get())
                                 >
                                     <div class="panel-tabs">
                                         <button
