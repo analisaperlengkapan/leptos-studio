@@ -40,27 +40,93 @@ impl CanvasState {
         self.add_component_without_snapshot(component);
     }
 
+    /// Add a child component to a specific parent
+    pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) {
+        self.record_snapshot("Add Child Component");
+        self.add_child_component_without_snapshot(parent_id, component);
+    }
+
+    pub fn add_child_component_without_snapshot(&self, parent_id: &ComponentId, component: CanvasComponent) {
+        self.components.update(|components| {
+            Self::add_child_recursive(components, parent_id, component);
+        });
+    }
+
+    fn add_child_recursive(components: &mut Vec<CanvasComponent>, parent_id: &ComponentId, child: CanvasComponent) -> bool {
+        for comp in components.iter_mut() {
+            if comp.id() == parent_id {
+                if let CanvasComponent::Container(container) = comp {
+                    container.children.push(child);
+                    return true;
+                }
+                return false;
+            }
+            if let CanvasComponent::Container(container) = comp {
+                if Self::add_child_recursive(&mut container.children, parent_id, child.clone()) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     /// Remove a component by ID
     pub fn remove_component(&self, id: &ComponentId) {
         self.record_snapshot("Remove Component");
         self.components.update(|components| {
-            components.retain(|c| c.id() != id);
+            Self::remove_recursive(components, id);
         });
+    }
+
+    fn remove_recursive(components: &mut Vec<CanvasComponent>, id: &ComponentId) {
+        components.retain(|c| c.id() != id);
+        for comp in components.iter_mut() {
+            if let CanvasComponent::Container(container) = comp {
+                Self::remove_recursive(&mut container.children, id);
+            }
+        }
     }
 
     /// Get a component by ID
     pub fn get_component(&self, id: &ComponentId) -> Option<CanvasComponent> {
         self.components
-            .with(|components| components.iter().find(|c| c.id() == id).cloned())
+            .with(|components| Self::get_recursive(components, id))
+    }
+
+    fn get_recursive(components: &[CanvasComponent], id: &ComponentId) -> Option<CanvasComponent> {
+        for comp in components {
+            if comp.id() == id {
+                return Some(comp.clone());
+            }
+            if let CanvasComponent::Container(container) = comp {
+                if let Some(found) = Self::get_recursive(&container.children, id) {
+                    return Some(found);
+                }
+            }
+        }
+        None
     }
 
     /// Update a component
     pub fn update_component(&self, id: &ComponentId, new_component: CanvasComponent) {
         self.components.update(|components| {
-            if let Some(component) = components.iter_mut().find(|c| c.id() == id) {
-                *component = new_component;
-            }
+            Self::update_recursive(components, id, new_component);
         });
+    }
+
+    fn update_recursive(components: &mut Vec<CanvasComponent>, id: &ComponentId, new_component: CanvasComponent) -> bool {
+        for comp in components.iter_mut() {
+            if comp.id() == id {
+                *comp = new_component;
+                return true;
+            }
+            if let CanvasComponent::Container(container) = comp {
+                if Self::update_recursive(&mut container.children, id, new_component.clone()) {
+                    return true;
+                }
+            }
+        }
+        false
     }
 
     /// Update a component and record a snapshot

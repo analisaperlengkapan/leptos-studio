@@ -2671,3 +2671,74 @@ input::placeholder, textarea::placeholder {
     max-width: 800px;
     width: 80vw;
 }
+
+/* Panel Tabs */
+.panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-gray-50);
+}
+
+.panel-tabs .tab {
+    flex: 1;
+    padding: var(--spacing-3);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.panel-tabs .tab:hover {
+    color: var(--color-text);
+    background: var(--color-gray-100);
+}
+
+.panel-tabs .tab.active {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    background: white;
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    background: #ffffff;
+}
+
+/* Header Adjustments */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-4);
+}
+
+.header-actions {
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Property Editor Container to fit in tab */
+.property-editor-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.preview-section-min {
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--spacing-2);
+    margin-top: auto; /* Push to bottom if space allows */
+    max-height: 200px;
+    overflow: auto;
+}

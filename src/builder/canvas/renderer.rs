@@ -1,3 +1,5 @@
+use crate::builder::drag_drop::DropZone;
+use crate::builder::canvas::handle_drop;
 use crate::domain::{
     ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
     TextComponent,
@@ -152,24 +154,46 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
         container.padding.left
     );
 
+    let container_id = container.id;
+
+    // Handle dropping items into this container
+    let on_drop = move |ev: leptos::ev::DragEvent| {
+        handle_drop(ev, canvas_state, Some(container_id));
+    };
+
     view! {
-        <div
-            class=format!("canvas-container {}", layout_class)
-            style=style
+        <DropZone
+            zone_name=format!("container-{}", container_id)
+            drag_state=canvas_state.drag_state
+            on_drop=on_drop
+            config=None
         >
-            <For
-                each=move || container.children.clone()
-                key=|comp| *comp.id()
-                children=move |comp| {
-                    view! {
-                        <ComponentRenderer
-                            component=comp
-                            canvas_state=canvas_state
-                        />
-                    }
+            <div
+                class=format!("canvas-container {}", layout_class)
+                class:hovered=move || {
+                     // Check if this container is being dragged over
+                     if let crate::builder::drag_drop::DragState::DraggingOver { drop_zone, .. } = canvas_state.drag_state.get() {
+                         drop_zone == format!("container-{}", container_id)
+                     } else {
+                         false
+                     }
                 }
-            />
-        </div>
+                style=style
+            >
+                <For
+                    each=move || container.children.clone()
+                    key=|comp| *comp.id()
+                    children=move |comp| {
+                        view! {
+                            <ComponentRenderer
+                                component=comp
+                                canvas_state=canvas_state
+                            />
+                        }
+                    }
+                />
+            </div>
+        </DropZone>
     }
 }
 
