@@ -146,7 +146,7 @@ fn TreeNode(
                     </div>
                 }.into_any()
             } else {
-                view! {}.into_any()
+                view! { <div></div> }.into_any()
             }
         }}
     }

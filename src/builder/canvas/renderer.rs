@@ -61,7 +61,7 @@ pub fn ComponentRenderer(
             {move || if is_selected.get() {
                 view! { <div class="selected-label">{component_type_label}</div> }.into_any()
             } else {
-                view! { }.into_any()
+                view! { <div></div> }.into_any()
             }}
             {match component {
                 CanvasComponent::Button(btn) => render_button(btn).into_any(),
