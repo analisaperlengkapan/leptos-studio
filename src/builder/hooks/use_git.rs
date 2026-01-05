@@ -110,7 +110,9 @@ pub fn use_git() -> UseGitReturn {
                     }
                     // Refresh logs if they are already loaded/visible
                     // (Simple heuristic: if logs vector is not empty or we just want to ensure consistency)
-                    if let Ok(logs) = backend.log().await && !log_data.get().is_empty() {
+                    if let Ok(logs) = backend.log().await
+                        && !log_data.get().is_empty()
+                    {
                         log_data.set(logs);
                     }
                 }

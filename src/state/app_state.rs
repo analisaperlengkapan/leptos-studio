@@ -69,7 +69,9 @@ impl CanvasState {
                 }
                 return false;
             }
-            if let CanvasComponent::Container(container) = comp && Self::add_child_recursive(&mut container.children[..], parent_id, child.clone()) {
+            if let CanvasComponent::Container(container) = comp
+                && Self::add_child_recursive(&mut container.children[..], parent_id, child.clone())
+            {
                 return true;
             }
         }
@@ -104,7 +106,9 @@ impl CanvasState {
             if comp.id() == id {
                 return Some(comp.clone());
             }
-            if let CanvasComponent::Container(container) = comp && let Some(found) = Self::get_recursive(&container.children, id) {
+            if let CanvasComponent::Container(container) = comp
+                && let Some(found) = Self::get_recursive(&container.children, id)
+            {
                 return Some(found);
             }
         }
@@ -128,7 +132,9 @@ impl CanvasState {
                 *comp = new_component;
                 return true;
             }
-            if let CanvasComponent::Container(container) = comp && Self::update_recursive(&mut container.children[..], id, new_component.clone()) {
+            if let CanvasComponent::Container(container) = comp
+                && Self::update_recursive(&mut container.children[..], id, new_component.clone())
+            {
                 return true;
             }
         }

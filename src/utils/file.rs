@@ -24,7 +24,10 @@ pub fn download_file(content: &str, filename: &str, mime_type: &str) -> AppResul
         )
     })?;
 
-if let Some(window) = web_sys::window() && let Some(document) = window.document() && let Ok(a) = document.create_element("a") {
+    if let Some(window) = web_sys::window()
+        && let Some(document) = window.document()
+        && let Ok(a) = document.create_element("a")
+    {
         let _ = a.set_attribute("href", &url);
         let _ = a.set_attribute("download", filename);
 
@@ -41,7 +44,7 @@ if let Some(window) = web_sys::window() && let Some(document) = window.document(
         }
 
         if let Some(body) = document.body() {
-           let _ = body.remove_child(&a);
+            let _ = body.remove_child(&a);
         }
 
         // Revoke URL to free memory

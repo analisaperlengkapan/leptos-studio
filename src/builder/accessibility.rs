@@ -226,7 +226,10 @@ pub fn get_focusable_elements(container: &HtmlElement) -> Vec<HtmlElement> {
 
     if let Ok(node_list) = container.query_selector_all(selector) {
         for i in 0..node_list.length() {
-            if let Some(node) = node_list.item(i) && let Ok(el) = node.dyn_into::<HtmlElement>() && (el.offset_width() > 0 || el.offset_height() > 0) {
+            if let Some(node) = node_list.item(i)
+                && let Ok(el) = node.dyn_into::<HtmlElement>()
+                && (el.offset_width() > 0 || el.offset_height() > 0)
+            {
                 elements.push(el);
             }
         }
