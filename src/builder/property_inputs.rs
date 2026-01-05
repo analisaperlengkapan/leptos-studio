@@ -23,6 +23,41 @@ where
 }
 
 #[component]
+pub fn ColorInput<F>(value: String, label: String, on_change: F) -> impl IntoView
+where
+    F: Fn(String) + 'static + Clone + Send + Sync,
+{
+    let on_change = on_change.clone();
+    // Clone per-control so each closure gets its own copy and we avoid moving the
+    // same callback into multiple closures.
+    let on_change_picker = on_change.clone();
+    let on_change_text = on_change.clone();
+    view! {
+        <div class="property-field">
+            <label>
+                {label}
+                <div class="color-input-wrapper" style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                    <input
+                        type="color"
+                        class="color-picker-input"
+                        prop:value=value.clone()
+                        on:input=move |ev| on_change_picker(event_target_value(&ev))
+                        style="width: 32px; height: 32px; padding: 0; border: none; background: none; cursor: pointer;"
+                    />
+                    <input
+                        type="text"
+                        class="color-text-input"
+                        prop:value=value
+                        on:input=move |ev| on_change_text(event_target_value(&ev))
+                        style="flex: 1;"
+                    />
+                </div>
+            </label>
+        </div>
+    }
+}
+
+#[component]
 pub fn NumberInput<F>(value: f64, label: String, on_change: F) -> impl IntoView
 where
     F: Fn(f64) + 'static + Clone + Send + Sync,

@@ -308,7 +308,9 @@ body {
 .app-layout > aside:first-child {
     flex-shrink: 0;
     width: 280px;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background: #ffffff;
     border-right: 1px solid #e2e8f0;
     box-shadow: 2px 0 8px rgba(0,0,0,0.04);
@@ -2862,4 +2864,94 @@ input::placeholder, textarea::placeholder {
     font-style: italic;
     pointer-events: none;
     margin: 4px;
+}
+
+/* Tree View */
+.tree-view {
+    padding: 0;
+    height: 100%;
+}
+
+.tree-view-empty {
+    padding: var(--spacing-4);
+    color: var(--color-text-secondary);
+    text-align: center;
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+.tree-view-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.tree-node-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.tree-node {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background-color 0.1s;
+    border-left: 2px solid transparent;
+}
+
+.tree-node:hover {
+    background-color: var(--color-gray-100);
+}
+
+.tree-node.selected {
+    background-color: var(--color-primary-100);
+    border-left-color: var(--color-primary);
+    color: var(--color-primary-700);
+}
+
+.tree-node-icon {
+    font-size: 14px;
+    width: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tree-node-label {
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.tree-node-children {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Color Input */
+.color-input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.color-picker-input {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.color-picker-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.color-picker-input::-webkit-color-swatch {
+    border: none;
 }
