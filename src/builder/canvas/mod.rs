@@ -33,35 +33,36 @@ pub fn Canvas() -> impl IntoView {
     };
 
     // Optimization: Track render time in an effect to avoid side effects during render
-    // We use StoredValue to persist the start time across effect runs/re-renders
-    let start_time = StoredValue::new(0.0);
+    // Use a Memo to capture the start time when the dependency changes (before render)
+    let render_tracker = Memo::new(move |_| {
+        canvas_state.components.track(); // Track changes
+
+        #[cfg(target_arch = "wasm32")]
+        if let Some(window) = web_sys::window() {
+            if let Some(perf) = window.performance() {
+                return Some(perf.now());
+            }
+        }
+        None
+    });
 
     Effect::new(move |_| {
-        // Track components change
-        let _ = canvas_state.components.get();
+        // Dependencies
+        let start_time = render_tracker.get();
 
-        let window = web_sys::window().expect("should have a window");
-        let performance = window.performance().expect("should have performance");
-        let now = performance.now();
-
-        // Calculate duration from the start time set in the previous cleanup
-        // For the first run, start_time is 0.0, so we skip update
-        let start = start_time.get_value();
-        if start > 0.0 {
-            let duration = (now - start).max(0.0);
-            app_state.ui.render_time.set(duration);
+        #[cfg(target_arch = "wasm32")]
+        if let Some(start) = start_time {
+             if let Some(window) = web_sys::window() {
+                if let Some(perf) = window.performance() {
+                    let end = perf.now();
+                    let duration = (end - start).max(0.0);
+                    app_state.ui.render_time.set(duration);
+                }
+            }
         }
 
         app_state.ui.render_count.update(|count| {
             *count = count.saturating_add(1);
-        });
-
-        // Set the start time for the next render cycle
-        // on_cleanup runs before the next effect execution (i.e., when components change)
-        on_cleanup(move || {
-             let window = web_sys::window().expect("should have a window");
-             let performance = window.performance().expect("should have performance");
-             start_time.set_value(performance.now());
         });
     });
 
@@ -81,6 +82,9 @@ pub fn Canvas() -> impl IntoView {
             >
                 <div class="canvas-content">
                     {move || {
+                        // Force evaluation of render_tracker during render phase
+                        let _ = render_tracker.get();
+
                         if is_empty.get() {
                             view! { <CanvasEmptyState /> }.into_any()
                         } else {
