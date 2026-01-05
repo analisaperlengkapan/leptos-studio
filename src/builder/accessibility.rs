@@ -5,7 +5,7 @@
 
 use leptos::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys::{Element, HtmlElement};
+use web_sys::HtmlElement;
 
 /// Accessibility announcer for screen readers
 #[derive(Clone, Copy)]
@@ -162,22 +162,38 @@ pub fn FocusTrap(
                 // Shift+Tab: wrap to last if at first
                 if let Some(document) = web_sys::window().and_then(|w| w.document())
                     && let Some(active) = document.active_element()
-                    && Some(&active) == first.as_ref()
                 {
-                    ev.prevent_default();
-                    if let Some(el) = last {
-                        let _ = el.dyn_into::<HtmlElement>().map(|h| h.focus());
+                    // Check if active element is the first focusable element
+                    // We compare the underlying JS objects
+                    let is_first = if let Some(first_el) = first.as_ref() {
+                        &active == first_el.as_ref()
+                    } else {
+                        false
+                    };
+
+                    if is_first {
+                        ev.prevent_default();
+                        if let Some(el) = last {
+                            let _ = el.focus();
+                        }
                     }
                 }
             } else {
                 // Tab: wrap to first if at last
                 if let Some(document) = web_sys::window().and_then(|w| w.document())
                     && let Some(active) = document.active_element()
-                    && Some(&active) == last.as_ref()
                 {
-                    ev.prevent_default();
-                    if let Some(el) = first {
-                        let _ = el.dyn_into::<HtmlElement>().map(|h| h.focus());
+                    let is_last = if let Some(last_el) = last.as_ref() {
+                        &active == last_el.as_ref()
+                    } else {
+                        false
+                    };
+
+                    if is_last {
+                        ev.prevent_default();
+                        if let Some(el) = first {
+                            let _ = el.focus();
+                        }
                     }
                 }
             }
@@ -201,11 +217,24 @@ pub fn FocusTrap(
 }
 
 /// Get all focusable elements within a container
-/// Note: This is a simplified implementation
-fn get_focusable_elements(_container: &HtmlElement) -> Vec<Element> {
-    // Simplified: return empty vec since query_selector_all requires web-sys feature
-    // In production, you would enable the web-sys feature for query_selector_all
-    Vec::new()
+pub fn get_focusable_elements(container: &HtmlElement) -> Vec<HtmlElement> {
+    let selector = "a[href], button:not([disabled]), textarea:not([disabled]), \
+                    input:not([disabled]):not([type='hidden']), select:not([disabled]), \
+                    [tabindex]:not([tabindex='-1'])";
+
+    let mut elements = Vec::new();
+
+    if let Ok(node_list) = container.query_selector_all(selector) {
+        for i in 0..node_list.length() {
+            if let Some(node) = node_list.item(i) {
+                if let Ok(el) = node.dyn_into::<HtmlElement>() {
+                    elements.push(el);
+                }
+            }
+        }
+    }
+
+    elements
 }
 
 /// ARIA-based progress indicator
