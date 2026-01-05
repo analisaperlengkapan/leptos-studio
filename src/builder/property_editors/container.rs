@@ -407,8 +407,8 @@ pub fn ContainerPropertyEditor(
             .box-content {
                 width: 40px;
                 height: 24px;
-                background: rgba(59, 130, 246, 0.2);
-                border: 1px solid rgba(59, 130, 246, 0.4);
+                background: rgba(59, 130, 246, 0.1);
+                border: 1px solid rgba(59, 130, 246, 0.3);
                 border-radius: 2px;
             }
             /* Override NumberInput styling for the box model to make it compact/transparent */
@@ -416,10 +416,14 @@ pub fn ContainerPropertyEditor(
                 text-align: center;
                 background: transparent;
                 border: none;
-                color: white;
+                color: #ddd;
                 width: 100%;
                 font-size: 0.85rem;
                 padding: 0;
+            }
+             .box-model-editor input:hover {
+                color: #fff;
+                font-weight: bold;
             }
             .box-model-editor .property-field label {
                 display: none; /* Hide standard labels inside the box model */
