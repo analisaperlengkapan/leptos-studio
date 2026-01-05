@@ -1,8 +1,8 @@
 use crate::builder::canvas::handle_drop;
 use crate::builder::drag_drop::DropZone;
 use crate::domain::{
-    ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
-    TextComponent,
+    ButtonComponent, CanvasComponent, CardComponent, ContainerComponent, CustomComponent,
+    ImageComponent, InputComponent, TextComponent,
 };
 use crate::state::{AppState, CanvasState};
 use leptos::prelude::*;
@@ -49,6 +49,8 @@ pub fn ComponentRenderer(
         crate::domain::ComponentType::Text => "Text",
         crate::domain::ComponentType::Input => "Input",
         crate::domain::ComponentType::Container => "Container",
+        crate::domain::ComponentType::Image => "Image",
+        crate::domain::ComponentType::Card => "Card",
         crate::domain::ComponentType::Custom => "Custom",
     };
 
@@ -68,6 +70,8 @@ pub fn ComponentRenderer(
                 CanvasComponent::Text(txt) => render_text(txt).into_any(),
                 CanvasComponent::Input(inp) => render_input(inp).into_any(),
                 CanvasComponent::Container(container) => render_container(container, canvas_state).into_any(),
+                CanvasComponent::Image(img) => render_image(img).into_any(),
+                CanvasComponent::Card(card) => render_card(card, canvas_state).into_any(),
                 CanvasComponent::Custom(custom) => render_custom(custom).into_any(),
             }}
         </div>
@@ -259,6 +263,112 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
             } else {
                 view! {
                     <div class=format!("canvas-container {}", layout_class) style=style>
+                         <For
+                            each=move || children.clone()
+                            key=|comp| *comp.id()
+                            children=move |comp| {
+                                view! {
+                                    <ComponentRenderer
+                                        component=comp
+                                        canvas_state=canvas_state
+                                    />
+                                }
+                            }
+                        />
+                    </div>
+                }.into_any()
+            }
+        }}
+    }
+}
+
+fn render_image(image: ImageComponent) -> impl IntoView {
+    view! {
+        <img
+            src=image.src
+            alt=image.alt
+            class="canvas-image"
+            style:width=image.width
+            style:height=image.height
+            style:max-width="100%"
+        />
+    }
+}
+
+fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView {
+    let padding = card.padding;
+    let border_radius = card.border_radius;
+    let card_id = card.id;
+    let children = card.children.clone();
+    let has_children = !children.is_empty();
+    let preview_mode = AppState::expect_context().ui.preview_mode;
+
+    let style = format!(
+        "padding: {}px; border-radius: {}px; {}",
+        padding,
+        border_radius,
+        if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);" } else { "" }
+    );
+
+    let border_class = if card.border { "border border-gray-200" } else { "" };
+
+    // Handle dropping items into this card
+    let on_drop = move |ev: leptos::ev::DragEvent| {
+        handle_drop(ev, canvas_state, Some(card_id));
+    };
+
+    view! {
+        {move || {
+            let style = style.clone();
+            let children = children.clone();
+
+            if !preview_mode.get() {
+                view! {
+                    <DropZone
+                        zone_name=format!("container-{}", card_id)
+                        drag_state=canvas_state.drag_state
+                        on_drop=on_drop
+                        config=None
+                    >
+                        <div
+                            class=format!("canvas-card bg-white {} {}", border_class, if !has_children { "min-h-[100px]" } else { "" })
+                            class:hovered=move || {
+                                if let crate::builder::drag_drop::DragState::DraggingOver { drop_zone, .. } = canvas_state.drag_state.get() {
+                                    drop_zone == format!("container-{}", card_id)
+                                } else {
+                                    false
+                                }
+                            }
+                            style=style
+                        >
+                            {if has_children {
+                                view! {
+                                    <For
+                                        each=move || children.clone()
+                                        key=|comp| *comp.id()
+                                        children=move |comp| {
+                                            view! {
+                                                <ComponentRenderer
+                                                    component=comp
+                                                    canvas_state=canvas_state
+                                                />
+                                            }
+                                        }
+                                    />
+                                }.into_any()
+                            } else {
+                                view! {
+                                    <div class="empty-container-placeholder">
+                                        "Drop content here"
+                                    </div>
+                                }.into_any()
+                            }}
+                        </div>
+                    </DropZone>
+                }.into_any()
+            } else {
+                view! {
+                    <div class=format!("canvas-card bg-white {}", border_class) style=style>
                          <For
                             each=move || children.clone()
                             key=|comp| *comp.id()

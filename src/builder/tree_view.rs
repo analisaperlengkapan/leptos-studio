@@ -14,8 +14,10 @@ pub fn TreeView() -> impl IntoView {
         fn traverse(comps: &[CanvasComponent], map: &mut HashMap<ComponentId, CanvasComponent>) {
             for c in comps {
                 map.insert(*c.id(), c.clone());
-                if let CanvasComponent::Container(cont) = c {
-                    traverse(&cont.children, map);
+                match c {
+                    CanvasComponent::Container(cont) => traverse(&cont.children, map),
+                    CanvasComponent::Card(card) => traverse(&card.children, map),
+                    _ => {}
                 }
             }
         }
@@ -78,6 +80,8 @@ fn TreeNode(
                     CanvasComponent::Text(c) => format!("Text: {:.20}", c.content),
                     CanvasComponent::Input(c) => format!("Input ({:?})", c.input_type),
                     CanvasComponent::Container(_) => "Container".to_string(),
+                    CanvasComponent::Image(_) => "Image".to_string(),
+                    CanvasComponent::Card(_) => "Card".to_string(),
                     CanvasComponent::Custom(c) => format!("Custom: {}", c.name),
                 };
 
@@ -86,6 +90,8 @@ fn TreeNode(
                     CanvasComponent::Text(_) => "📝",
                     CanvasComponent::Input(_) => "📥",
                     CanvasComponent::Container(_) => "📦",
+                    CanvasComponent::Image(_) => "🖼️",
+                    CanvasComponent::Card(_) => "🃏",
                     CanvasComponent::Custom(_) => "⚙️",
                 };
 
@@ -102,10 +108,10 @@ fn TreeNode(
                     }
                 };
 
-                let children = if let CanvasComponent::Container(c) = &comp {
-                    c.children.clone()
-                } else {
-                    Vec::new()
+                let children = match &comp {
+                    CanvasComponent::Container(c) => c.children.clone(),
+                    CanvasComponent::Card(c) => c.children.clone(),
+                    _ => Vec::new(),
                 };
 
                 view! {

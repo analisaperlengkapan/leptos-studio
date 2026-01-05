@@ -39,12 +39,20 @@ pub struct TypeCounts {
     pub texts: usize,
     pub inputs: usize,
     pub containers: usize,
+    pub images: usize,
+    pub cards: usize,
     pub customs: usize,
 }
 
 impl TypeCounts {
     pub fn total(&self) -> usize {
-        self.buttons + self.texts + self.inputs + self.containers + self.customs
+        self.buttons
+            + self.texts
+            + self.inputs
+            + self.containers
+            + self.images
+            + self.cards
+            + self.customs
     }
 }
 
@@ -115,8 +123,14 @@ impl DerivedState {
 fn count_components_recursive(components: &[CanvasComponent]) -> usize {
     let mut count = components.len();
     for comp in components {
-        if let CanvasComponent::Container(container) = comp {
-            count += count_components_recursive(&container.children);
+        match comp {
+            CanvasComponent::Container(container) => {
+                count += count_components_recursive(&container.children);
+            }
+            CanvasComponent::Card(card) => {
+                count += count_components_recursive(&card.children);
+            }
+            _ => {}
         }
     }
     count
@@ -138,6 +152,20 @@ fn count_types_recursive(components: &[CanvasComponent]) -> TypeCounts {
                 counts.texts += child_counts.texts;
                 counts.inputs += child_counts.inputs;
                 counts.containers += child_counts.containers;
+                counts.images += child_counts.images;
+                counts.cards += child_counts.cards;
+                counts.customs += child_counts.customs;
+            }
+            CanvasComponent::Image(_) => counts.images += 1,
+            CanvasComponent::Card(card) => {
+                counts.cards += 1;
+                let child_counts = count_types_recursive(&card.children);
+                counts.buttons += child_counts.buttons;
+                counts.texts += child_counts.texts;
+                counts.inputs += child_counts.inputs;
+                counts.containers += child_counts.containers;
+                counts.images += child_counts.images;
+                counts.cards += child_counts.cards;
                 counts.customs += child_counts.customs;
             }
             CanvasComponent::Custom(_) => counts.customs += 1,
@@ -156,10 +184,18 @@ fn find_component_by_id(
         if comp.id() == id {
             return Some(comp.clone());
         }
-        if let CanvasComponent::Container(container) = comp
-            && let Some(found) = find_component_by_id(&container.children, id)
-        {
-            return Some(found);
+        match comp {
+            CanvasComponent::Container(container) => {
+                if let Some(found) = find_component_by_id(&container.children, id) {
+                    return Some(found);
+                }
+            }
+            CanvasComponent::Card(card) => {
+                if let Some(found) = find_component_by_id(&card.children, id) {
+                    return Some(found);
+                }
+            }
+            _ => {}
         }
     }
     None
@@ -170,9 +206,16 @@ fn calculate_max_depth(components: &[CanvasComponent], current_depth: usize) -> 
     let mut max_depth = current_depth;
 
     for comp in components {
-        if let CanvasComponent::Container(container) = comp {
-            let child_depth = calculate_max_depth(&container.children, current_depth + 1);
-            max_depth = max_depth.max(child_depth);
+        match comp {
+            CanvasComponent::Container(container) => {
+                let child_depth = calculate_max_depth(&container.children, current_depth + 1);
+                max_depth = max_depth.max(child_depth);
+            }
+            CanvasComponent::Card(card) => {
+                let child_depth = calculate_max_depth(&card.children, current_depth + 1);
+                max_depth = max_depth.max(child_depth);
+            }
+            _ => {}
         }
     }
 
@@ -188,6 +231,9 @@ fn count_custom_components(components: &[CanvasComponent]) -> usize {
             CanvasComponent::Custom(_) => count += 1,
             CanvasComponent::Container(container) => {
                 count += count_custom_components(&container.children);
+            }
+            CanvasComponent::Card(card) => {
+                count += count_custom_components(&card.children);
             }
             _ => {}
         }

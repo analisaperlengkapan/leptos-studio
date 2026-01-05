@@ -38,6 +38,8 @@ pub enum ComponentType {
     Text,
     Input,
     Container,
+    Image,
+    Card,
     Custom,
 }
 
@@ -321,6 +323,95 @@ impl Component for ContainerComponent {
     }
 }
 
+/// Image component
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ImageComponent {
+    pub id: ComponentId,
+    pub src: String,
+    pub alt: String,
+    pub width: Option<String>,
+    pub height: Option<String>,
+}
+
+impl ImageComponent {
+    pub fn new(src: String, alt: String) -> Self {
+        Self {
+            id: ComponentId::new(),
+            src,
+            alt,
+            width: None,
+            height: None,
+        }
+    }
+}
+
+impl Component for ImageComponent {
+    fn component_type(&self) -> ComponentType {
+        ComponentType::Image
+    }
+
+    fn id(&self) -> &ComponentId {
+        &self.id
+    }
+
+    fn validate(&self) -> Result<(), ValidationError> {
+        if self.src.trim().is_empty() {
+            return Err(ValidationError::InvalidPropertyValue(
+                "src".to_string(),
+                "Image source URL cannot be empty".to_string(),
+            ));
+        }
+        Ok(())
+    }
+}
+
+/// Card component - A pre-styled container
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct CardComponent {
+    pub id: ComponentId,
+    pub children: Vec<CanvasComponent>,
+    pub padding: u32,
+    pub shadow: bool,
+    pub border: bool,
+    pub border_radius: u32,
+}
+
+impl CardComponent {
+    pub fn new() -> Self {
+        Self {
+            id: ComponentId::new(),
+            children: Vec::new(),
+            padding: 16,
+            shadow: true,
+            border: true,
+            border_radius: 8,
+        }
+    }
+}
+
+impl Default for CardComponent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Component for CardComponent {
+    fn component_type(&self) -> ComponentType {
+        ComponentType::Card
+    }
+
+    fn id(&self) -> &ComponentId {
+        &self.id
+    }
+
+    fn validate(&self) -> Result<(), ValidationError> {
+        for child in &self.children {
+            child.validate()?;
+        }
+        Ok(())
+    }
+}
+
 /// Property value types
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum PropValue {
@@ -381,6 +472,8 @@ pub enum CanvasComponent {
     Text(TextComponent),
     Input(InputComponent),
     Container(ContainerComponent),
+    Image(ImageComponent),
+    Card(CardComponent),
     Custom(CustomComponent),
 }
 
@@ -391,6 +484,8 @@ impl CanvasComponent {
             CanvasComponent::Text(c) => c.id(),
             CanvasComponent::Input(c) => c.id(),
             CanvasComponent::Container(c) => c.id(),
+            CanvasComponent::Image(c) => c.id(),
+            CanvasComponent::Card(c) => c.id(),
             CanvasComponent::Custom(c) => c.id(),
         }
     }
@@ -401,6 +496,8 @@ impl CanvasComponent {
             CanvasComponent::Text(c) => c.component_type(),
             CanvasComponent::Input(c) => c.component_type(),
             CanvasComponent::Container(c) => c.component_type(),
+            CanvasComponent::Image(c) => c.component_type(),
+            CanvasComponent::Card(c) => c.component_type(),
             CanvasComponent::Custom(c) => c.component_type(),
         }
     }
@@ -411,6 +508,8 @@ impl CanvasComponent {
             CanvasComponent::Text(c) => c.validate(),
             CanvasComponent::Input(c) => c.validate(),
             CanvasComponent::Container(c) => c.validate(),
+            CanvasComponent::Image(c) => c.validate(),
+            CanvasComponent::Card(c) => c.validate(),
             CanvasComponent::Custom(c) => c.validate(),
         }
     }

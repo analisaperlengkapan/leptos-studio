@@ -28,6 +28,8 @@ impl CodeGenerator for JsonSchemaGenerator {
                         { "$ref": "#/definitions/TextComponent" },
                         { "$ref": "#/definitions/InputComponent" },
                         { "$ref": "#/definitions/ContainerComponent" },
+                        { "$ref": "#/definitions/ImageComponent" },
+                        { "$ref": "#/definitions/CardComponent" },
                         { "$ref": "#/definitions/CustomComponent" }
                     ]
                 },
@@ -113,6 +115,44 @@ impl CodeGenerator for JsonSchemaGenerator {
                                 "layout": { "$ref": "#/definitions/LayoutType" },
                                 "gap": { "type": "integer", "minimum": 0 },
                                 "padding": { "$ref": "#/definitions/Spacing" }
+                            }
+                        }
+                    }
+                },
+                "ImageComponent": {
+                    "type": "object",
+                    "required": ["Image"],
+                    "properties": {
+                        "Image": {
+                            "type": "object",
+                            "required": ["id", "src", "alt"],
+                            "properties": {
+                                "id": { "type": "string", "format": "uuid" },
+                                "src": { "type": "string" },
+                                "alt": { "type": "string" },
+                                "width": { "type": ["string", "null"] },
+                                "height": { "type": ["string", "null"] }
+                            }
+                        }
+                    }
+                },
+                "CardComponent": {
+                    "type": "object",
+                    "required": ["Card"],
+                    "properties": {
+                        "Card": {
+                            "type": "object",
+                            "required": ["id", "children", "padding", "shadow", "border", "border_radius"],
+                            "properties": {
+                                "id": { "type": "string", "format": "uuid" },
+                                "children": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/definitions/CanvasComponent" }
+                                },
+                                "padding": { "type": "integer", "minimum": 0 },
+                                "shadow": { "type": "boolean" },
+                                "border": { "type": "boolean" },
+                                "border_radius": { "type": "integer", "minimum": 0 }
                             }
                         }
                     }
@@ -282,12 +322,33 @@ export type PropValue =
   | { Boolean: boolean }
   | 'Null';
 
+// Image component
+export interface ImageComponent {
+  id: ComponentId;
+  src: string;
+  alt: string;
+  width?: string | null;
+  height?: string | null;
+}
+
+// Card component
+export interface CardComponent {
+  id: ComponentId;
+  children: CanvasComponent[];
+  padding: number;
+  shadow: boolean;
+  border: boolean;
+  border_radius: number;
+}
+
 // Canvas component union type
 export type CanvasComponent = 
   | { Button: ButtonComponent }
   | { Text: TextComponent }
   | { Input: InputComponent }
   | { Container: ContainerComponent }
+  | { Image: ImageComponent }
+  | { Card: CardComponent }
   | { Custom: CustomComponent };
 
 // Layout type (array of components)
@@ -318,6 +379,14 @@ export function isInput(c: CanvasComponent): c is { Input: InputComponent } {
 
 export function isContainer(c: CanvasComponent): c is { Container: ContainerComponent } {
   return 'Container' in c;
+}
+
+export function isImage(c: CanvasComponent): c is { Image: ImageComponent } {
+  return 'Image' in c;
+}
+
+export function isCard(c: CanvasComponent): c is { Card: CardComponent } {
+  return 'Card' in c;
 }
 
 export function isCustom(c: CanvasComponent): c is { Custom: CustomComponent } {
@@ -479,6 +548,35 @@ impl ReactGenerator {
 
                 output.push_str(&format!("{}</div>\n", indent));
             }
+            CanvasComponent::Image(img) => {
+                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                output.push_str(&format!(
+                    "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
+                    indent, img.src, img.alt, width_attr, height_attr
+                ));
+            }
+            CanvasComponent::Card(card) => {
+                let mut style_parts = vec![
+                    format!("padding: '{}px'", card.padding),
+                    format!("borderRadius: '{}px'", card.border_radius),
+                ];
+                if card.shadow {
+                    style_parts.push("boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'".to_string());
+                }
+                if card.border {
+                    style_parts.push("border: '1px solid #e5e7eb'".to_string());
+                }
+                let style_str = style_parts.join(", ");
+                output.push_str(&format!(
+                    "{}<div style={{{{ {} }}}}>\n",
+                    indent, style_str
+                ));
+                for child in &card.children {
+                    Self::generate_react(child, output, indent_level + 1)?;
+                }
+                output.push_str(&format!("{}</div>\n", indent));
+            }
             CanvasComponent::Custom(custom) => {
                 output.push_str(&format!("{}<!-- Custom: {} -->\n", indent, custom.name));
                 output.push_str(&format!(
@@ -567,6 +665,26 @@ impl VueGenerator {
             CanvasComponent::Container(container) => {
                 output.push_str(&format!("{}<div>\n", indent));
                 for child in &container.children {
+                    Self::generate_vue(child, output, indent_level + 1)?;
+                }
+                output.push_str(&format!("{}</div>\n", indent));
+            }
+            CanvasComponent::Image(img) => {
+                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                output.push_str(&format!(
+                    "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
+                    indent, img.src, img.alt, width_attr, height_attr
+                ));
+            }
+            CanvasComponent::Card(card) => {
+                let shadow_class = if card.shadow { "shadow-md" } else { "" };
+                let border_class = if card.border { "border" } else { "" };
+                output.push_str(&format!(
+                    "{}<div class=\"card {} {}\" style=\"padding: {}px; border-radius: {}px;\">\n",
+                    indent, shadow_class, border_class, card.padding, card.border_radius
+                ));
+                for child in &card.children {
                     Self::generate_vue(child, output, indent_level + 1)?;
                 }
                 output.push_str(&format!("{}</div>\n", indent));
@@ -719,6 +837,22 @@ impl CssGenerator {
 
                 // Recurse into children
                 Self::extract_container_styles(&container.children, css);
+            } else if let CanvasComponent::Card(card) = component {
+                let id = card.id.as_string();
+                let class_name = format!("card-{}", &id[..8]);
+
+                css.push_str(&format!(".{} {{\n", class_name));
+                css.push_str(&format!("  padding: {}px;\n", card.padding));
+                css.push_str(&format!("  border-radius: {}px;\n", card.border_radius));
+                if card.shadow {
+                    css.push_str("  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);\n");
+                }
+                if card.border {
+                    css.push_str("  border: 1px solid #e5e7eb;\n");
+                }
+                css.push_str("}\n\n");
+
+                Self::extract_container_styles(&card.children, css);
             }
         }
     }
@@ -983,6 +1117,35 @@ impl TailwindHtmlGenerator {
 
                 output.push_str(&format!("{}</div>\n", indent));
             }
+            CanvasComponent::Image(img) => {
+                output.push_str(&format!(
+                    "{}<img src=\"{}\" alt=\"{}\" class=\"max-w-full h-auto\" />\n",
+                    indent, img.src, img.alt
+                ));
+            }
+            CanvasComponent::Card(card) => {
+                let shadow_class = if card.shadow { "shadow-md" } else { "" };
+                let border_class = if card.border { "border border-gray-200" } else { "" };
+                let padding_class = format!("p-{}", (card.padding / 4).max(1));
+                let rounded_class = match card.border_radius {
+                    0 => "rounded-none",
+                    1..=4 => "rounded-sm",
+                    5..=8 => "rounded",
+                    9..=12 => "rounded-md",
+                    _ => "rounded-lg",
+                };
+
+                output.push_str(&format!(
+                    "{}<div class=\"bg-white {} {} {} {}\">\n",
+                    indent, shadow_class, border_class, padding_class, rounded_class
+                ));
+
+                for child in &card.children {
+                    Self::generate_tailwind(child, output, indent_level + 1)?;
+                }
+
+                output.push_str(&format!("{}</div>\n", indent));
+            }
             CanvasComponent::Custom(custom) => {
                 output.push_str(&format!("{}<!-- Custom: {} -->\n", indent, custom.name));
                 output.push_str(&format!("{}<div class=\"custom-component\">\n", indent));
@@ -1132,6 +1295,29 @@ impl SvelteGenerator {
                 output.push_str(&format!("{}<div style=\"{}\">\n", indent, style));
 
                 for child in &container.children {
+                    Self::generate_svelte(child, output, indent_level + 1)?;
+                }
+
+                output.push_str(&format!("{}</div>\n", indent));
+            }
+            CanvasComponent::Image(img) => {
+                output.push_str(&format!(
+                    "{}<img src=\"{}\" alt=\"{}\" />\n",
+                    indent, img.src, img.alt
+                ));
+            }
+            CanvasComponent::Card(card) => {
+                let style = format!(
+                    "padding: {}px; border-radius: {}px; {}; {}",
+                    card.padding,
+                    card.border_radius,
+                    if card.shadow { "box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1)" } else { "" },
+                    if card.border { "border: 1px solid #e5e7eb" } else { "" }
+                );
+
+                output.push_str(&format!("{}<div style=\"{}\">\n", indent, style));
+
+                for child in &card.children {
                     Self::generate_svelte(child, output, indent_level + 1)?;
                 }
 

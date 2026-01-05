@@ -187,7 +187,15 @@ pub fn CodePanel() -> impl IntoView {
             </div>
             <div class="code-preview-container">
                 <pre class="code-preview">
-                    <code>{move || code.get()}</code>
+                    <code>
+                        {move || {
+                            let text = code.get();
+                            text.lines().map(|line| {
+                                let line_string = line.to_string();
+                                view! { <span class="line">{line_string}</span> }
+                            }).collect_view()
+                        }}
+                    </code>
                 </pre>
             </div>
         </div>

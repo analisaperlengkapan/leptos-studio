@@ -16,6 +16,8 @@ impl BreadcrumbItem {
             "Text" => "📝",
             "Input" => "📝",
             "Container" => "📦",
+            "Image" => "🖼️",
+            "Card" => "🃏",
             "Custom" => "⚡",
             _ => "📄",
         }
@@ -35,6 +37,8 @@ fn component_type(component: &CanvasComponent) -> String {
         CanvasComponent::Text(_) => "Text".to_string(),
         CanvasComponent::Input(_) => "Input".to_string(),
         CanvasComponent::Container(_) => "Container".to_string(),
+        CanvasComponent::Image(_) => "Image".to_string(),
+        CanvasComponent::Card(_) => "Card".to_string(),
         CanvasComponent::Custom(_) => "Custom".to_string(),
     }
 }
@@ -51,6 +55,8 @@ fn component_name(component: &CanvasComponent) -> String {
             }
         }
         CanvasComponent::Container(_) => "Container".to_string(),
+        CanvasComponent::Image(img) => img.alt.clone(),
+        CanvasComponent::Card(_) => "Card".to_string(),
         CanvasComponent::Custom(custom) => custom.name.clone(),
     }
 }

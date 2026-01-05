@@ -12,6 +12,7 @@ pub mod design_tokens;
 pub mod drag_drop;
 pub mod export_modal;
 pub mod git_panel;
+pub mod history_panel;
 pub mod hooks;
 pub mod keyboard;
 pub mod preview;

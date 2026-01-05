@@ -149,6 +149,26 @@ impl LeptosCodeGenerator {
 
                 output.push_str(&format!("{}        </div>\n", indent));
             }
+            CanvasComponent::Image(img) => {
+                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                output.push_str(&format!(
+                    "{}        <img src=\"{}\" alt=\"{}\"{}{} />\n",
+                    indent, img.src, img.alt, width_attr, height_attr
+                ));
+            }
+            CanvasComponent::Card(card) => {
+                let shadow_style = if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" } else { "" };
+                let border_class = if card.border { "border border-gray-200" } else { "" };
+                output.push_str(&format!(
+                    "{}        <div class=\"card {}\" style=\"padding: {}px; border-radius: {}px; {}\">\n",
+                    indent, border_class, card.padding, card.border_radius, shadow_style
+                ));
+                for child in &card.children {
+                    self.generate_component(child, output, indent_level + 1)?;
+                }
+                output.push_str(&format!("{}        </div>\n", indent));
+            }
             CanvasComponent::Custom(custom) => {
                 output.push_str(&format!(
                     "{}        // Custom component: {}\n",
@@ -266,6 +286,26 @@ impl HtmlCodeGenerator {
                 }
                 output.push_str(&format!("{}</div>\n", indent));
             }
+            CanvasComponent::Image(img) => {
+                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                output.push_str(&format!(
+                    "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
+                    indent, img.src, img.alt, width_attr, height_attr
+                ));
+            }
+            CanvasComponent::Card(card) => {
+                let shadow_style = if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" } else { "" };
+                let border_style = if card.border { "border: 1px solid #e5e7eb;" } else { "" };
+                output.push_str(&format!(
+                    "{}<div style=\"padding: {}px; border-radius: {}px; {} {}\">\n",
+                    indent, card.padding, card.border_radius, shadow_style, border_style
+                ));
+                for child in &card.children {
+                    self.generate_html(child, output, indent_level + 1)?;
+                }
+                output.push_str(&format!("{}</div>\n", indent));
+            }
             CanvasComponent::Custom(custom) => {
                 output.push_str(&format!("{}<!-- {} -->\n", indent, custom.name));
                 output.push_str(&format!("{}{}\n", indent, custom.template));
@@ -348,6 +388,18 @@ impl MarkdownCodeGenerator {
                     container.children.len()
                 ));
                 for child in &container.children {
+                    self.generate_markdown(child, output, depth + 1)?;
+                }
+            }
+            CanvasComponent::Image(img) => {
+                output.push_str(&format!("{}- **Image**\n", indent));
+                output.push_str(&format!("{}  - Src: {}\n", indent, img.src));
+                output.push_str(&format!("{}  - Alt: {}\n", indent, img.alt));
+            }
+            CanvasComponent::Card(card) => {
+                output.push_str(&format!("{}- **Card**\n", indent));
+                output.push_str(&format!("{}  - Padding: {}\n", indent, card.padding));
+                for child in &card.children {
                     self.generate_markdown(child, output, depth + 1)?;
                 }
             }

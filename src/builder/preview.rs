@@ -58,6 +58,12 @@ pub fn Preview() -> impl IntoView {
                         CanvasComponent::Container(_) => view! {
                             <div class="container preview-inline-margin">{"Container"}</div>
                         }.into_any(),
+                        CanvasComponent::Image(img) => view! {
+                            <div><img src=img.src alt=img.alt style="max-width: 100px" /></div>
+                        }.into_any(),
+                        CanvasComponent::Card(_) => view! {
+                            <div class="card preview-inline-margin">{"Card"}</div>
+                        }.into_any(),
                     }
                 }
             />

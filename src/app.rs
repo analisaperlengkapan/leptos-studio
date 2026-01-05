@@ -10,6 +10,7 @@ use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
 use crate::builder::git_panel::GitPanel;
+use crate::builder::history_panel::HistoryPanel;
 use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
 use crate::builder::preview::Preview;
@@ -64,6 +65,7 @@ pub fn App() -> impl IntoView {
         Properties,
         Git,
         Code,
+        History,
     }
 
     let active_right_tab = RwSignal::new(RightPanelTab::Properties);
@@ -155,6 +157,12 @@ pub fn App() -> impl IntoView {
                                             "Code"
                                         </button>
                                         <button
+                                            class=move || if active_right_tab.get() == RightPanelTab::History { "tab active" } else { "tab" }
+                                            on:click=move |_| active_right_tab.set(RightPanelTab::History)
+                                        >
+                                            "History"
+                                        </button>
+                                        <button
                                             class=move || if active_right_tab.get() == RightPanelTab::Git { "tab active" } else { "tab" }
                                             on:click=move |_| active_right_tab.set(RightPanelTab::Git)
                                         >
@@ -166,6 +174,7 @@ pub fn App() -> impl IntoView {
                                         {move || match active_right_tab.get() {
                                             RightPanelTab::Git => view! { <GitPanel /> }.into_any(),
                                             RightPanelTab::Code => view! { <CodePanel /> }.into_any(),
+                                            RightPanelTab::History => view! { <HistoryPanel /> }.into_any(),
                                             RightPanelTab::Properties => view! {
                                                 <div class="property-editor-container">
                                                     <PropertyEditor />
