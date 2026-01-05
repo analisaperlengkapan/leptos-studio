@@ -13,9 +13,9 @@ pub fn update_button_prop(
     name: &str,
     value: PropValue,
 ) -> ButtonComponent {
-    match (name, value) {
+    match (name, &value) {
         ("label", PropValue::String(s)) => {
-            button.label = s;
+            button.label = s.clone();
         }
         ("variant", PropValue::String(s)) => {
             button.variant = match s.as_str() {
@@ -35,15 +35,10 @@ pub fn update_button_prop(
             };
         }
         ("disabled", PropValue::Boolean(b)) => {
-            button.disabled = b;
+            button.disabled = *b;
         }
         // Ignore mismatched types or unknown property names for now.
-        _ => {
-            #[cfg(target_arch = "wasm32")]
-            web_sys::console::warn_1(
-                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
-            );
-        }
+        _ => log_property_mismatch(name, &value),
     }
 
     button
@@ -51,9 +46,9 @@ pub fn update_button_prop(
 
 /// Update a TextComponent based on a property name and value.
 pub fn update_text_prop(mut text: TextComponent, name: &str, value: PropValue) -> TextComponent {
-    match (name, value) {
+    match (name, &value) {
         ("content", PropValue::String(s)) => {
-            text.content = s;
+            text.content = s.clone();
         }
         ("style", PropValue::String(s)) => {
             text.style = match s.as_str() {
@@ -75,12 +70,7 @@ pub fn update_text_prop(mut text: TextComponent, name: &str, value: PropValue) -
                 _ => text.tag,
             };
         }
-        _ => {
-            #[cfg(target_arch = "wasm32")]
-            web_sys::console::warn_1(
-                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
-            );
-        }
+        _ => log_property_mismatch(name, &value),
     }
 
     text
@@ -92,9 +82,9 @@ pub fn update_input_prop(
     name: &str,
     value: PropValue,
 ) -> InputComponent {
-    match (name, value) {
+    match (name, &value) {
         ("placeholder", PropValue::String(s)) => {
-            input.placeholder = s;
+            input.placeholder = s.clone();
         }
         ("input_type", PropValue::String(s)) => {
             input.input_type = match s.as_str() {
@@ -107,17 +97,12 @@ pub fn update_input_prop(
             };
         }
         ("required", PropValue::Boolean(b)) => {
-            input.required = b;
+            input.required = *b;
         }
         ("disabled", PropValue::Boolean(b)) => {
-            input.disabled = b;
+            input.disabled = *b;
         }
-        _ => {
-            #[cfg(target_arch = "wasm32")]
-            web_sys::console::warn_1(
-                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
-            );
-        }
+        _ => log_property_mismatch(name, &value),
     }
 
     input
@@ -129,7 +114,7 @@ pub fn update_container_prop(
     name: &str,
     value: PropValue,
 ) -> ContainerComponent {
-    match (name, value) {
+    match (name, &value) {
         ("layout", PropValue::String(s)) => {
             let current_layout = container.layout.clone();
             container.layout = match s.as_str() {
@@ -165,7 +150,7 @@ pub fn update_container_prop(
             };
         }
         ("gap", PropValue::Number(n)) => {
-            let value = if n.is_finite() && n >= 0.0 {
+            let value = if n.is_finite() && *n >= 0.0 {
                 n.round() as u32
             } else {
                 container.gap
@@ -173,34 +158,43 @@ pub fn update_container_prop(
             container.gap = value;
         }
         ("padding_top", PropValue::Number(n)) => {
-            if n.is_finite() && n >= 0.0 {
+            if n.is_finite() && *n >= 0.0 {
                 container.padding.top = n.round() as u32;
             }
         }
         ("padding_right", PropValue::Number(n)) => {
-            if n.is_finite() && n >= 0.0 {
+            if n.is_finite() && *n >= 0.0 {
                 container.padding.right = n.round() as u32;
             }
         }
         ("padding_bottom", PropValue::Number(n)) => {
-            if n.is_finite() && n >= 0.0 {
+            if n.is_finite() && *n >= 0.0 {
                 container.padding.bottom = n.round() as u32;
             }
         }
         ("padding_left", PropValue::Number(n)) => {
-            if n.is_finite() && n >= 0.0 {
+            if n.is_finite() && *n >= 0.0 {
                 container.padding.left = n.round() as u32;
             }
         }
-        _ => {
-            #[cfg(target_arch = "wasm32")]
-            web_sys::console::warn_1(
-                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
-            );
-        }
+        _ => log_property_mismatch(name, &value),
     }
 
     container
+}
+
+/// Helper to log warning for mismatched types or unknown properties.
+fn log_property_mismatch(name: &str, value: &PropValue) {
+    #[cfg(target_arch = "wasm32")]
+    web_sys::console::warn_1(
+        &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
+    );
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        // Suppress unused variable warnings on non-wasm targets
+        let _ = name;
+        let _ = value;
+    }
 }
 
 #[cfg(test)]
