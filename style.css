@@ -2742,3 +2742,16 @@ input::placeholder, textarea::placeholder {
     max-height: 200px;
     overflow: auto;
 }
+
+/* Button Danger */
+.btn-danger {
+    background: white;
+    color: var(--color-error-500);
+    border-color: var(--color-error-500);
+}
+
+.btn-danger:hover {
+    background: #fef2f2;
+    border-color: #dc2626;
+    color: #dc2626;
+}
