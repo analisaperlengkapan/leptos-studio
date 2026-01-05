@@ -68,26 +68,57 @@ pub fn Canvas() -> impl IntoView {
 
     // Memoize the empty check to prevent unnecessary re-evaluations
     let is_empty = Memo::new(move |_| canvas_state.components.with(|c| c.is_empty()));
+    let preview_mode = app_state.ui.preview_mode;
 
     view! {
-        <DropZone
-            zone_name="canvas-root".to_string()
-            drag_state=app_state.canvas.drag_state
-            on_drop=drop_zone_on_drop
-            config=None
-        >
-            <div
-                class="canvas"
-                on:click=on_canvas_click
-            >
-                <div class="canvas-content">
-                    {move || {
-                        // Force evaluation of render_tracker during render phase
-                        let _ = render_tracker.get();
+        {move || if !preview_mode.get() {
+            view! {
+                <DropZone
+                    zone_name="canvas-root".to_string()
+                    drag_state=app_state.canvas.drag_state
+                    on_drop=drop_zone_on_drop
+                    config=None
+                >
+                    <div
+                        class="canvas"
+                        on:click=on_canvas_click
+                    >
+                        <div class="canvas-content">
+                            {move || {
+                                // Force evaluation of render_tracker during render phase
+                                let _ = render_tracker.get();
 
-                        if is_empty.get() {
-                            view! { <CanvasEmptyState /> }.into_any()
-                        } else {
+                                if is_empty.get() {
+                                    view! { <CanvasEmptyState /> }.into_any()
+                                } else {
+                                    view! {
+                                        <For
+                                            each=move || canvas_state.components.get()
+                                            key=|comp| *comp.id()
+                                            children=move |comp| {
+                                                view! {
+                                                    <ComponentRenderer
+                                                        component=comp
+                                                        canvas_state=canvas_state
+                                                    />
+                                                }
+                                            }
+                                        />
+                                    }.into_any()
+                                }
+                            }}
+                        </div>
+                    </div>
+                </DropZone>
+            }.into_any()
+        } else {
+            view! {
+                <div class="canvas preview-mode">
+                    <div class="canvas-content">
+                        {move || {
+                            // Force evaluation of render_tracker during render phase
+                            let _ = render_tracker.get();
+
                             view! {
                                 <For
                                     each=move || canvas_state.components.get()
@@ -101,12 +132,12 @@ pub fn Canvas() -> impl IntoView {
                                         }
                                     }
                                 />
-                            }.into_any()
-                        }
-                    }}
+                            }
+                        }}
+                    </div>
                 </div>
-            </div>
-        </DropZone>
+            }.into_any()
+        }}
     }
 }
 

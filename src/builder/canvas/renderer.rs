@@ -4,7 +4,7 @@ use crate::domain::{
     ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
     TextComponent,
 };
-use crate::state::CanvasState;
+use crate::state::{AppState, CanvasState};
 use leptos::prelude::*;
 
 /// Component renderer for displaying canvas components
@@ -15,10 +15,12 @@ pub fn ComponentRenderer(
     /// Canvas state for selection tracking
     canvas_state: CanvasState,
 ) -> impl IntoView {
+    let app_state = AppState::expect_context();
     let component_id = *component.id();
+    let preview_mode = app_state.ui.preview_mode;
 
     let is_selected = Memo::new(move |_| {
-        canvas_state
+        !preview_mode.get() && canvas_state
             .selected
             .get()
             .as_ref()
@@ -28,7 +30,9 @@ pub fn ComponentRenderer(
 
     let on_click = move |ev: leptos::ev::MouseEvent| {
         ev.stop_propagation();
-        canvas_state.selected.set(Some(component_id));
+        if !preview_mode.get() {
+            canvas_state.selected.set(Some(component_id));
+        }
     };
 
     let class = move || {
@@ -173,30 +177,69 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
     };
 
     let has_children = !container.children.is_empty();
+    let preview_mode = AppState::expect_context().ui.preview_mode;
+
+    // We need to clone these for the closures to use
+    let children = container.children.clone();
+    let container_id = container.id;
 
     view! {
-        <DropZone
-            zone_name=format!("container-{}", container_id)
-            drag_state=canvas_state.drag_state
-            on_drop=on_drop
-            config=None
-        >
-            <div
-                class=format!("canvas-container {}", layout_class)
-                class:hovered=move || {
-                     // Check if this container is being dragged over
-                     if let crate::builder::drag_drop::DragState::DraggingOver { drop_zone, .. } = canvas_state.drag_state.get() {
-                         drop_zone == format!("container-{}", container_id)
-                     } else {
-                         false
-                     }
-                }
-                style=style
-            >
-                {if has_children {
-                    view! {
-                        <For
-                            each=move || container.children.clone()
+        {move || {
+            let style = style.clone();
+            let layout_class = layout_class.clone();
+            let children = children.clone();
+
+            if !preview_mode.get() {
+                view! {
+                    <DropZone
+                        zone_name=format!("container-{}", container_id)
+                        drag_state=canvas_state.drag_state
+                        on_drop=on_drop
+                        config=None
+                    >
+                        <div
+                            class=format!("canvas-container {}", layout_class)
+                            class:hovered=move || {
+                                 // Check if this container is being dragged over
+                                 if let crate::builder::drag_drop::DragState::DraggingOver { drop_zone, .. } = canvas_state.drag_state.get() {
+                                     drop_zone == format!("container-{}", container_id)
+                                 } else {
+                                     false
+                                 }
+                            }
+                            style=style
+                        >
+                            {if has_children {
+                                 let children = children.clone();
+                                view! {
+                                    <For
+                                        each=move || children.clone()
+                                        key=|comp| *comp.id()
+                                        children=move |comp| {
+                                            view! {
+                                                <ComponentRenderer
+                                                    component=comp
+                                                    canvas_state=canvas_state
+                                                />
+                                            }
+                                        }
+                                    />
+                                }.into_any()
+                            } else {
+                                view! {
+                                    <div class="empty-container-placeholder">
+                                        "Drop items here"
+                                    </div>
+                                }.into_any()
+                            }}
+                        </div>
+                    </DropZone>
+                }.into_any()
+            } else {
+                view! {
+                    <div class=format!("canvas-container {}", layout_class) style=style>
+                         <For
+                            each=move || children.clone()
                             key=|comp| *comp.id()
                             children=move |comp| {
                                 view! {
@@ -207,16 +250,10 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
                                 }
                             }
                         />
-                    }.into_any()
-                } else {
-                    view! {
-                        <div class="empty-container-placeholder">
-                            "Drop items here"
-                        </div>
-                    }.into_any()
-                }}
-            </div>
-        </DropZone>
+                    </div>
+                }.into_any()
+            }
+        }}
     }
 }
 

@@ -19,6 +19,7 @@ use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewContro
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
+use crate::builder::toolbar::Toolbar;
 use crate::services::analytics_service::AnalyticsService;
 use crate::services::event_bus::EventBus;
 use crate::services::template_service::TemplateService;
@@ -57,71 +58,6 @@ pub fn App() -> impl IntoView {
         show_template_gallery.write_only(),
     );
 
-    // Export handler
-    let do_export = use_export_actions(
-        show_export.write_only(),
-        export_code.write_only(),
-        export_template.read_only(),
-    );
-
-    // Save/Load handlers
-    let save_layout = move |_| {
-        if let Err(e) = app_state.save() {
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::error(format!(
-                    "❌ {}",
-                    e.user_message()
-                ))));
-        } else {
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::success("💾 Layout saved!".to_string())));
-        }
-    };
-
-    let load_layout = move |_| {
-        if let Err(e) = app_state.load() {
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::error(format!(
-                    "❌ {}",
-                    e.user_message()
-                ))));
-        } else {
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::success("📂 Layout loaded!".to_string())));
-        }
-    };
-
-    // Undo/Redo handlers
-    let do_undo = move |_| {
-        if let Some(snapshot) = app_state.canvas.history.write().undo() {
-            app_state.canvas.components.set(snapshot.components);
-            app_state.canvas.selected.set(snapshot.selected);
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::info("↩️ Undo".to_string())));
-        }
-    };
-
-    let do_redo = move |_| {
-        if let Some(snapshot) = app_state.canvas.history.write().redo() {
-            app_state.canvas.components.set(snapshot.components);
-            app_state.canvas.selected.set(snapshot.selected);
-            app_state
-                .ui
-                .notification
-                .set(Some(Notification::info("↪️ Redo".to_string())));
-        }
-    };
-
     // Right panel tabs state
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum RightPanelTab {
@@ -151,35 +87,12 @@ pub fn App() -> impl IntoView {
                         on_action=keyboard_action_handler
                     />
 
-                    <header class="app-header">
-                        <div class="header-left">
-                            <h1>{"Leptos Studio"}</h1>
-                            <div class="header-actions">
-                                <button on:click=save_layout class="btn btn-primary btn-sm" aria-label="Save layout">{"Save"}</button>
-                                <button on:click=load_layout class="btn btn-secondary btn-sm" aria-label="Load layout">{"Load"}</button>
-                                <button on:click=do_export class="btn btn-success btn-sm" aria-label="Export code">{"Export"}</button>
-                                <button
-                                    on:click=do_undo
-                                    class="btn btn-outline btn-sm"
-                                    aria-label="Undo last action"
-                                >{"Undo"}</button>
-                                <button
-                                    on:click=do_redo
-                                    class="btn btn-outline btn-sm"
-                                    aria-label="Redo last action"
-                                >{"Redo"}</button>
-                            </div>
-                        </div>
-                        <div class="header-right">
-                             <button
-                                class="btn btn-outline btn-sm"
-                                on:click=move |_| show_template_gallery.set(true)
-                                aria-label="Open template gallery"
-                            >
-                                {"📑 Templates"}
-                            </button>
-                        </div>
-                    </header>
+                    <Toolbar
+                        show_template_gallery=show_template_gallery.write_only()
+                        show_export=show_export.write_only()
+                        export_code=export_code.write_only()
+                        export_template=export_template.read_only()
+                    />
 
                     <BreadcrumbNavigation />
 
