@@ -1,11 +1,8 @@
 use leptos::prelude::*;
 use leptos::html::Input;
-use wasm_bindgen::closure::Closure;
-use wasm_bindgen::JsCast;
 
-use crate::services::{GitBackend, CommitInfo, RepoStatus};
-use crate::services::git_factory::get_git_backend;
-use crate::state::{AppState, Notification};
+use crate::services::{RepoStatus, CommitInfo}; // We still need the types for the props if passed down
+use crate::builder::hooks::use_git::{use_git, UseGitReturn}; // Import the hook
 
 mod status_display;
 mod log_list;
@@ -15,190 +12,32 @@ use log_list::GitLogList;
 #[component]
 #[allow(clippy::collapsible_if)]
 pub fn GitPanel() -> impl IntoView {
-    // Uses get_git_backend factory.
-    let status_data = RwSignal::new(Option::<RepoStatus>::None);
-    let log_data = RwSignal::new(Vec::<CommitInfo>::new());
+    // Consume the hook
+    let UseGitReturn {
+        status,
+        logs,
+        is_loading_status,
+        is_loading_log,
+        is_committing,
+        load_status,
+        load_log,
+        commit,
+        discard,
+        reset,
+        push,
+        import
+    } = use_git();
+
     let commit_message = RwSignal::new(String::new());
-
-    // Loading states for better UX
-    let is_loading_status = RwSignal::new(false);
-    let is_loading_log = RwSignal::new(false);
-    let is_committing = RwSignal::new(false);
-
-    // For file input (import)
     let file_input_ref = NodeRef::<Input>::new();
 
-    // Access global UI state for notifications
-    let app_state = expect_context::<AppState>();
-
-    // Debounced status check using generation token pattern
-    // This avoids storing non-Send/Sync types like Timeout/Closure in StoredValue
-    let debounce_token = StoredValue::new(0usize);
-
-    Effect::new(move |_| {
-        // Track dependencies via last_modified signal (Optimization)
-        let _ = app_state.last_modified.get();
-
-        // Increment token
-        debounce_token.update_value(|t| *t = t.wrapping_add(1));
-        let current_token = debounce_token.get_value();
-
-        // Spawn async wait
-        wasm_bindgen_futures::spawn_local(async move {
-            gloo_timers::future::TimeoutFuture::new(500).await;
-
-            // Check if we are still the latest generation
-            if debounce_token.get_value() == current_token {
-                let backend = get_git_backend();
-                let project = app_state.to_project();
-
-                // Don't show global spinner for background status check,
-                // but we could set a local one if we wanted.
-                match backend.status(Some(&project)).await {
-                    Ok(status) => status_data.set(Some(status)),
-                    Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
-                }
-            }
-        });
-    });
-
-    let load_status = move |_| {
-        is_loading_status.set(true);
-        let backend = get_git_backend();
-        let project = app_state.to_project();
-
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.status(Some(&project)).await {
-                Ok(status) => status_data.set(Some(status)),
-                Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
-            }
-            is_loading_status.set(false);
-        });
-    };
-
-    let load_log = move |_| {
-        is_loading_log.set(true);
-        let backend = get_git_backend();
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.log().await {
-                Ok(logs) => log_data.set(logs),
-                Err(e) => {
-                    app_state.ui.notify(Notification::error(e.user_message()));
-                }
-            }
-            is_loading_log.set(false);
-        });
-    };
-
+    // Handlers that bridge UI events to Hook actions
     let do_commit = move |_| {
-        let message = commit_message.get().trim().to_string();
-        if message.is_empty() {
-            app_state.ui.notify(Notification::warning("Commit message cannot be empty".to_string()));
-            return;
+        let msg = commit_message.get();
+        if !msg.trim().is_empty() {
+            commit.run(msg);
+            commit_message.set(String::new());
         }
-
-        is_committing.set(true);
-        let backend = get_git_backend();
-        let project = app_state.to_project();
-
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.commit(&project, &message).await {
-                Ok(()) => {
-                    app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
-                    commit_message.set(String::new());
-                    // Refresh status automatically
-                    if let Ok(status) = backend.status(Some(&project)).await {
-                        status_data.set(Some(status));
-                    }
-                    // If log is showing, refresh it too
-                    if !log_data.get().is_empty() {
-                        if let Ok(logs) = backend.log().await {
-                            log_data.set(logs);
-                        }
-                    }
-                }
-                Err(e) => {
-                    app_state.ui.notify(Notification::error(e.user_message()));
-                }
-            }
-            is_committing.set(false);
-        });
-    };
-
-    let do_discard = move |_| {
-        let backend = get_git_backend();
-
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.restore_head().await {
-                Ok(Some(project)) => {
-                     app_state.apply_project(project);
-                     app_state.ui.notify(Notification::success("Changes discarded. Reverted to HEAD.".to_string()));
-                     // Refresh status
-                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
-                         status_data.set(Some(status));
-                     }
-                }
-                Ok(None) => {
-                     app_state.ui.notify(Notification::warning("No commits to revert to.".to_string()));
-                }
-                Err(e) => {
-                     app_state.ui.notify(Notification::error(e.user_message()));
-                }
-            }
-        });
-    };
-
-    let do_reset_repo = move |_| {
-        let backend = get_git_backend();
-
-        // In a real app we'd show a confirmation modal here.
-        // For now, we rely on the button text or assume user intent.
-
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.reset().await {
-                 Ok(()) => {
-                     app_state.ui.notify(Notification::success("Repository reset successfully.".to_string()));
-
-                     // Refresh status and log
-                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
-                         status_data.set(Some(status));
-                     }
-                     if let Ok(logs) = backend.log().await {
-                         log_data.set(logs);
-                     }
-                 }
-                 Err(e) => {
-                     app_state.ui.notify(Notification::error(e.user_message()));
-                 }
-            }
-        });
-    };
-
-    let do_push = move |_| {
-        let backend = get_git_backend();
-
-        wasm_bindgen_futures::spawn_local(async move {
-            match backend.push().await {
-                Ok(Some(json)) => {
-                    // Trigger download using shared utility (Best Practice)
-                    let filename = "leptos_studio_repo.json";
-                    match crate::utils::file::download_file(&json, filename, "application/json") {
-                        Ok(_) => {
-                            app_state.ui.notify(Notification::success("Repository downloaded".to_string()));
-                        }
-                        Err(e) => {
-                             app_state.ui.notify(Notification::error(e.user_message()));
-                        }
-                    }
-                }
-                Ok(None) => {
-                    app_state.ui.notify(Notification::success("Push successful".to_string()));
-                }
-                Err(e) => {
-                    app_state.ui.notify(Notification::error(e.user_message()));
-                }
-            }
-        });
     };
 
     let on_file_select = move |_ev: web_sys::Event| {
@@ -206,53 +45,7 @@ pub fn GitPanel() -> impl IntoView {
         if let Some(input) = input {
             if let Some(files) = input.files() {
                 if let Some(file) = files.get(0) {
-                    match web_sys::FileReader::new() {
-                        Ok(reader) => {
-                            let reader_c = reader.clone();
-                            let on_load = Closure::wrap(Box::new(move |_e: web_sys::Event| {
-                                if let Ok(result) = reader_c.result() {
-                                    if let Some(text) = result.as_string() {
-                                        let backend = get_git_backend();
-
-                                        wasm_bindgen_futures::spawn_local(async move {
-                                            match backend.clone_repo(&text).await {
-                                                Ok(_) => {
-                                                    app_state.ui.notify(Notification::success(
-                                                        "Repository imported successfully".to_string(),
-                                                    ));
-                                                    // Refresh status and log
-                                                    let project = app_state.to_project();
-                                                    if let Ok(status) = backend.status(Some(&project)).await {
-                                                        status_data.set(Some(status));
-                                                    }
-                                                    if let Ok(logs) = backend.log().await {
-                                                        log_data.set(logs);
-                                                    }
-                                                }
-                                                Err(e) => {
-                                                    app_state.ui.notify(Notification::error(format!(
-                                                        "Import failed: {}",
-                                                        e.user_message()
-                                                    )));
-                                                }
-                                            }
-                                        });
-                                    }
-                                }
-                            }) as Box<dyn FnMut(_)>);
-
-                            reader.set_onload(Some(on_load.as_ref().unchecked_ref()));
-                            on_load.forget(); // Leak memory to keep closure alive until callback
-                            if let Err(e) = reader.read_as_text(&file) {
-                                let err_str = e.as_string().unwrap_or("Unknown File API error".to_string());
-                                app_state.ui.notify(Notification::error(format!("Failed to read file: {}", err_str)));
-                            }
-                        },
-                        Err(e) => {
-                            let err_str = e.as_string().unwrap_or("Unknown FileReader error".to_string());
-                            app_state.ui.notify(Notification::error(format!("Failed to create FileReader: {}", err_str)));
-                        }
-                    }
+                     import.run(file);
                 }
             }
         }
@@ -264,18 +57,23 @@ pub fn GitPanel() -> impl IntoView {
         }
     };
 
+    // Load initial data is handled by the hook's Effect or we can trigger it manually here if needed.
+    // The hook has an Effect that runs on mount/updates, so we don't need to duplicate it here.
+    // But we might want to trigger `load_status` on mount explicitly?
+    // The hook's effect waits 500ms.
+
     view! {
         <div class="git-panel-content">
             <div class="git-actions">
                 <button
-                    on:click=load_status
+                    on:click=move |_| load_status.run(())
                     class="btn btn-secondary"
                     disabled=move || is_loading_status.get()
                 >
                     {move || if is_loading_status.get() { "Checking..." } else { "Status" }}
                 </button>
                 <button
-                    on:click=load_log
+                    on:click=move |_| load_log.run(())
                     class="btn btn-secondary"
                     disabled=move || is_loading_log.get()
                 >
@@ -283,7 +81,7 @@ pub fn GitPanel() -> impl IntoView {
                 </button>
             </div>
 
-            <GitStatusDisplay status=status_data.into() is_loading=is_loading_status.into() />
+            <GitStatusDisplay status=status.into() is_loading=is_loading_status.into() />
 
             <div class="git-commit-area">
                 <input
@@ -303,9 +101,9 @@ pub fn GitPanel() -> impl IntoView {
                     >
                         {move || if is_committing.get() { "Committing..." } else { "Commit" }}
                     </button>
-                    <button on:click=do_discard class="btn btn-danger" title="Discard all uncommitted changes">"Discard Changes"</button>
-                    <button on:click=do_reset_repo class="btn btn-danger" title="Reset repository (delete all history)">"Reset Repo"</button>
-                    <button on:click=do_push class="btn btn-secondary" title="Download Repository JSON">"Push (Download)"</button>
+                    <button on:click=move |_| discard.run(()) class="btn btn-danger" title="Discard all uncommitted changes">"Discard Changes"</button>
+                    <button on:click=move |_| reset.run(()) class="btn btn-danger" title="Reset repository (delete all history)">"Reset Repo"</button>
+                    <button on:click=move |_| push.run(()) class="btn btn-secondary" title="Download Repository JSON">"Push (Download)"</button>
                     <button on:click=trigger_import class="btn btn-secondary" title="Import Repository JSON">"Clone (Import)"</button>
                 </div>
             </div>
@@ -319,7 +117,7 @@ pub fn GitPanel() -> impl IntoView {
                 on:change=on_file_select
             />
 
-            <GitLogList logs=log_data.into() is_loading=is_loading_log.into() />
+            <GitLogList logs=logs.into() is_loading=is_loading_log.into() />
         </div>
     }
 }
