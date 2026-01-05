@@ -4,7 +4,6 @@ pub mod empty_state;
 pub use renderer::ComponentRenderer;
 pub use empty_state::CanvasEmptyState;
 
-use js_sys::Date;
 use leptos::prelude::*;
 use web_sys::DragEvent;
 
@@ -34,21 +33,35 @@ pub fn Canvas() -> impl IntoView {
     };
 
     // Optimization: Track render time in an effect to avoid side effects during render
+    // We use StoredValue to persist the start time across effect runs/re-renders
+    let start_time = StoredValue::new(0.0);
+
     Effect::new(move |_| {
         // Track components change
         let _ = canvas_state.components.get();
-        let start = Date::now();
 
-        // This effect runs after render, so we just update the stats
-        // In a real scenario we'd measure actual render time via performance API or similar,
-        // but here we just update the timestamp.
-        let end = Date::now();
-        let duration = (end - start).max(0.0);
+        let window = web_sys::window().expect("should have a window");
+        let performance = window.performance().expect("should have performance");
+        let now = performance.now();
 
-        // We use batch to avoid double triggers if possible, though Signal updates are fine
-        app_state.ui.render_time.set(duration);
+        // Calculate duration from the start time set in the previous cleanup
+        // For the first run, start_time is 0.0, so we skip update
+        let start = start_time.get_value();
+        if start > 0.0 {
+            let duration = (now - start).max(0.0);
+            app_state.ui.render_time.set(duration);
+        }
+
         app_state.ui.render_count.update(|count| {
             *count = count.saturating_add(1);
+        });
+
+        // Set the start time for the next render cycle
+        // on_cleanup runs before the next effect execution (i.e., when components change)
+        on_cleanup(move || {
+             let window = web_sys::window().expect("should have a window");
+             let performance = window.performance().expect("should have performance");
+             start_time.set_value(performance.now());
         });
     });
 
