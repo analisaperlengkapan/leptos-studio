@@ -1,7 +1,7 @@
-use leptos::prelude::*;
-use std::collections::HashMap;
 use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::AppState;
+use leptos::prelude::*;
+use std::collections::HashMap;
 
 #[component]
 pub fn TreeView() -> impl IntoView {
@@ -60,14 +60,12 @@ pub fn TreeView() -> impl IntoView {
 fn TreeNode(
     id: ComponentId,
     component_map: Memo<HashMap<ComponentId, CanvasComponent>>,
-    level: usize
+    level: usize,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
 
     // Reactively look up the component. If not found (deleted), return None (view! {} handles it)
-    let component = Memo::new(move |_| {
-        component_map.with(|m| m.get(&id).cloned())
-    });
+    let component = Memo::new(move |_| component_map.with(|m| m.get(&id).cloned()));
 
     let selected_id = app_state.canvas.selected;
     let is_selected = move || selected_id.get() == Some(id);

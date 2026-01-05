@@ -43,9 +43,9 @@ pub use component_library_enhanced::{
 pub use component_palette::ComponentPalette;
 pub use preview::Preview;
 pub use property_editor::PropertyEditor;
-pub use tree_view::TreeView;
 pub use responsive_preview::{CanvasViewport, ResponsiveIndicator, ResponsivePreviewControls};
 pub use status_bar::{StatusBar, StatusIndicator};
 pub use styling_system::{ComponentStyle, StyleEditor, ThemePreset, ThemeSelector};
 pub use template_gallery::TemplateGallery;
+pub use tree_view::TreeView;
 pub mod debug_panel;

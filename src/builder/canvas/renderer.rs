@@ -20,12 +20,13 @@ pub fn ComponentRenderer(
     let preview_mode = app_state.ui.preview_mode;
 
     let is_selected = Memo::new(move |_| {
-        !preview_mode.get() && canvas_state
-            .selected
-            .get()
-            .as_ref()
-            .map(|id| id == &component_id)
-            .unwrap_or(false)
+        !preview_mode.get()
+            && canvas_state
+                .selected
+                .get()
+                .as_ref()
+                .map(|id| id == &component_id)
+                .unwrap_or(false)
     });
 
     let on_click = move |ev: leptos::ev::MouseEvent| {
