@@ -1,6 +1,4 @@
-
 use wasm_bindgen::JsCast;
-use wasm_bindgen::closure::Closure;
 use crate::domain::{AppResult, AppError};
 
 /// Download a string content as a file
@@ -52,47 +50,7 @@ pub fn download_file(content: &str, filename: &str, mime_type: &str) -> AppResul
 
 /// Reads the content of a File object as text
 pub async fn read_file_as_text(file: &web_sys::File) -> AppResult<String> {
-    // Better approach: wrap in Promise so we can use JsFuture
-    let promise = js_sys::Promise::new(&mut |resolve, reject| {
-        let reader = match web_sys::FileReader::new() {
-            Ok(r) => r,
-            Err(_) => {
-                let _ = reject.call1(&wasm_bindgen::JsValue::NULL, &wasm_bindgen::JsValue::from_str("Failed to create FileReader"));
-                return;
-            }
-        };
-
-        let reader_clone = reader.clone();
-
-        let onload = Closure::wrap(Box::new(move || {
-            let result = reader_clone.result().expect("result");
-            let _ = resolve.call1(&wasm_bindgen::JsValue::NULL, &result);
-        }) as Box<dyn FnMut()>);
-
-        let reject_clone = reject.clone();
-        let onerror = Closure::wrap(Box::new(move || {
-             let _ = reject_clone.call1(&wasm_bindgen::JsValue::NULL, &wasm_bindgen::JsValue::from_str("Failed to read file"));
-        }) as Box<dyn FnMut()>);
-
-        reader.set_onload(Some(onload.as_ref().unchecked_ref()));
-        reader.set_onerror(Some(onerror.as_ref().unchecked_ref()));
-
-        // We need to keep closures alive until callback
-        // This is tricky with Promise constructor since we can't easily attach them to the reader lifetime without managing them.
-        // But since we are inside the Promise executor, they will be dropped when this function ends, which is WRONG.
-        // They need to live as long as the read.
-
-        // Standard "leak" pattern for one-off event listeners, or attaching to the object.
-        // But we can't attach arbitrary props to FileReader in Rust easily.
-
-        onload.forget();
-        onerror.forget();
-
-        if let Err(_) = reader.read_as_text(file) {
-             let _ = reject.call1(&wasm_bindgen::JsValue::NULL, &wasm_bindgen::JsValue::from_str("Failed to start read"));
-        }
-    });
-
+    let promise = file.text();
     let result = wasm_bindgen_futures::JsFuture::from(promise).await
         .map_err(|e| AppError::Export(e.as_string().unwrap_or_else(|| "File read error".to_string())))?;
 
