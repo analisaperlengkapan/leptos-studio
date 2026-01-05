@@ -38,7 +38,12 @@ pub fn update_button_prop(
             button.disabled = b;
         }
         // Ignore mismatched types or unknown property names for now.
-        _ => {}
+        _ => {
+            #[cfg(target_arch = "wasm32")]
+            web_sys::console::warn_1(
+                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
+            );
+        }
     }
 
     button
@@ -70,7 +75,12 @@ pub fn update_text_prop(mut text: TextComponent, name: &str, value: PropValue) -
                 _ => text.tag,
             };
         }
-        _ => {}
+        _ => {
+            #[cfg(target_arch = "wasm32")]
+            web_sys::console::warn_1(
+                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
+            );
+        }
     }
 
     text
@@ -102,7 +112,12 @@ pub fn update_input_prop(
         ("disabled", PropValue::Boolean(b)) => {
             input.disabled = b;
         }
-        _ => {}
+        _ => {
+            #[cfg(target_arch = "wasm32")]
+            web_sys::console::warn_1(
+                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
+            );
+        }
     }
 
     input
@@ -177,7 +192,12 @@ pub fn update_container_prop(
                 container.padding.left = n.round() as u32;
             }
         }
-        _ => {}
+        _ => {
+            #[cfg(target_arch = "wasm32")]
+            web_sys::console::warn_1(
+                &format!("Unknown property or type mismatch: {} = {:?}", name, value).into(),
+            );
+        }
     }
 
     container
