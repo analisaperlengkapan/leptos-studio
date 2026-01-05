@@ -1,15 +1,14 @@
-use leptos::prelude::*;
+use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::domain::{ButtonSize, ButtonVariant, CanvasComponent, ComponentId, PropValue};
 use crate::services::update_button_prop;
 use crate::state::AppState;
-use crate::builder::component_library::PropType;
+use leptos::prelude::*;
 
 #[component]
 pub fn ButtonPropertyEditor(
     id: ComponentId,
-    #[prop(into)]
-    button: crate::domain::ButtonComponent,
+    #[prop(into)] button: crate::domain::ButtonComponent,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
@@ -32,7 +31,11 @@ pub fn ButtonPropertyEditor(
             // For now, let's assume we can notify here
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Button {}", prop_name));
+            canvas_state.update_component_with_snapshot(
+                &id,
+                updated,
+                &format!("Update Button {}", prop_name),
+            );
         }
     };
 

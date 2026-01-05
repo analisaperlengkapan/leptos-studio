@@ -1,15 +1,14 @@
-use leptos::prelude::*;
+use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{EnumSelect, StringInput};
 use crate::domain::{CanvasComponent, ComponentId, PropValue, TextStyle, TextTag};
 use crate::services::update_text_prop;
 use crate::state::AppState;
-use crate::builder::component_library::PropType;
+use leptos::prelude::*;
 
 #[component]
 pub fn TextPropertyEditor(
     id: ComponentId,
-    #[prop(into)]
-    text: crate::domain::TextComponent,
+    #[prop(into)] text: crate::domain::TextComponent,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
@@ -29,7 +28,11 @@ pub fn TextPropertyEditor(
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Text {}", prop_name));
+            canvas_state.update_component_with_snapshot(
+                &id,
+                updated,
+                &format!("Update Text {}", prop_name),
+            );
         }
     };
 

@@ -1,8 +1,8 @@
-use wasm_bindgen_test::*;
 use leptos_studio::services::GitBackend;
 use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
-use leptos_studio::state::project::Project;
 use leptos_studio::state::app_state::SettingsState;
+use leptos_studio::state::project::Project;
+use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -22,11 +22,17 @@ async fn test_git_flow_end_to_end() {
     // Actually, in LocalStorageGitBackend, if HEAD is None, it's considered dirty if project is not default?
     // Let's verify behavior. If HEAD is None, has_changes = true.
     let status = backend.status(Some(&project)).await.expect("status check");
-    assert!(status.has_changes, "New project should be considered dirty before first commit");
+    assert!(
+        status.has_changes,
+        "New project should be considered dirty before first commit"
+    );
 
     // 4. First Commit
     let commit_msg = "Initial commit";
-    backend.commit(&project, commit_msg).await.expect("commit failed");
+    backend
+        .commit(&project, commit_msg)
+        .await
+        .expect("commit failed");
 
     // 5. Check Status after Commit (Should be clean)
     let status = backend.status(Some(&project)).await.expect("status check");
@@ -39,11 +45,17 @@ async fn test_git_flow_end_to_end() {
 
     // 7. Check Status (Should be dirty)
     let status = backend.status(Some(&project)).await.expect("status check");
-    assert!(status.has_changes, "Project should be dirty after modification");
+    assert!(
+        status.has_changes,
+        "Project should be dirty after modification"
+    );
     assert!(!status.clean);
 
     // 8. Commit Changes
-    backend.commit(&project, "Second commit").await.expect("commit failed");
+    backend
+        .commit(&project, "Second commit")
+        .await
+        .expect("commit failed");
 
     // 9. Check Log
     let log = backend.log().await.expect("log check");
@@ -58,21 +70,38 @@ async fn test_git_flow_end_to_end() {
     assert!(status.has_changes);
 
     // Restore HEAD
-    let restored_project = backend.restore_head().await.expect("restore head").expect("should return project");
-    assert_eq!(restored_project.name, "Modified Project", "Should restore to last commit state");
+    let restored_project = backend
+        .restore_head()
+        .await
+        .expect("restore head")
+        .expect("should return project");
+    assert_eq!(
+        restored_project.name, "Modified Project",
+        "Should restore to last commit state"
+    );
 
     // Check status with restored project
-    let status = backend.status(Some(&restored_project)).await.expect("status check");
+    let status = backend
+        .status(Some(&restored_project))
+        .await
+        .expect("status check");
     assert!(!status.has_changes, "Restored project should be clean");
 }
 
 #[wasm_bindgen_test]
 async fn test_git_reset_flow() {
     let backend = LocalStorageGitBackend::new();
-    let project = Project::new("Reset Test".to_string(), Vec::new(), SettingsState::default());
+    let project = Project::new(
+        "Reset Test".to_string(),
+        Vec::new(),
+        SettingsState::default(),
+    );
 
     // Make a commit
-    backend.commit(&project, "First commit").await.expect("commit");
+    backend
+        .commit(&project, "First commit")
+        .await
+        .expect("commit");
 
     // Verify log has entries
     let log = backend.log().await.expect("log");

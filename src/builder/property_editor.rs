@@ -1,9 +1,10 @@
+use super::property_editors::{
+    ButtonPropertyEditor, ContainerPropertyEditor, CustomPropertyEditor, InputPropertyEditor,
+    TextPropertyEditor,
+};
 use crate::domain::CanvasComponent;
 use crate::state::AppState;
 use leptos::prelude::*;
-use super::property_editors::{
-    ButtonPropertyEditor, TextPropertyEditor, InputPropertyEditor, ContainerPropertyEditor, CustomPropertyEditor
-};
 
 #[component]
 pub fn PropertyEditor() -> impl IntoView {
@@ -15,7 +16,9 @@ pub fn PropertyEditor() -> impl IntoView {
         if let Some(id) = canvas_state.selected.get() {
             canvas_state.remove_component(&id);
             canvas_state.selected.set(None);
-            app_state.ui.notify(crate::state::Notification::info("Component removed".to_string()));
+            app_state.ui.notify(crate::state::Notification::info(
+                "Component removed".to_string(),
+            ));
         }
     };
 

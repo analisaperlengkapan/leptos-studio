@@ -1,5 +1,5 @@
-use crate::builder::drag_drop::DropZone;
 use crate::builder::canvas::handle_drop;
+use crate::builder::drag_drop::DropZone;
 use crate::domain::{
     ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
     TextComponent,
@@ -28,9 +28,7 @@ pub fn ComponentRenderer(
 
     let on_click = move |ev: leptos::ev::MouseEvent| {
         ev.stop_propagation();
-        canvas_state
-            .selected
-            .set(Some(component_id));
+        canvas_state.selected.set(Some(component_id));
     };
 
     let class = move || {

@@ -1,15 +1,15 @@
-use leptos::prelude::*;
 use crate::builder::keyboard::KeyboardAction;
-use crate::state::app_state::{AppState, Notification};
-use crate::state::ExportPreset;
-use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
 use crate::domain::CanvasComponent;
+use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
+use crate::state::ExportPreset;
+use crate::state::app_state::{AppState, Notification};
 use crate::utils::{copy_to_clipboard, read_from_clipboard};
+use leptos::prelude::*;
 
 pub fn use_keyboard_actions(
     show_export: WriteSignal<bool>,
     export_code: WriteSignal<String>,
-    _show_template_gallery: WriteSignal<bool>
+    _show_template_gallery: WriteSignal<bool>,
 ) -> impl Fn(KeyboardAction) + Clone + 'static {
     let app_state = AppState::expect_context();
 
@@ -88,7 +88,10 @@ pub fn use_keyboard_actions(
                                         }
                                         Err(e) => {
                                             app_state_clone.ui.notification.set(Some(
-                                                Notification::error(format!("❌ {}", e.user_message())),
+                                                Notification::error(format!(
+                                                    "❌ {}",
+                                                    e.user_message()
+                                                )),
                                             ));
                                         }
                                     }
@@ -111,26 +114,25 @@ pub fn use_keyboard_actions(
                 let app_state_clone = app_state;
                 wasm_bindgen_futures::spawn_local(async move {
                     match read_from_clipboard().await {
-                        Ok(text) => match serde_json::from_str::<CanvasComponent>(&text) {
-                            Ok(comp) => {
-                                // add_component already records snapshot
-                                app_state_clone.canvas.add_component(comp);
-                                app_state_clone
-                                    .ui
-                                    .notification
-                                    .set(Some(Notification::success(
-                                        "📋 Component pasted!".to_string(),
-                                    )));
+                        Ok(text) => {
+                            match serde_json::from_str::<CanvasComponent>(&text) {
+                                Ok(comp) => {
+                                    // add_component already records snapshot
+                                    app_state_clone.canvas.add_component(comp);
+                                    app_state_clone.ui.notification.set(Some(
+                                        Notification::success("📋 Component pasted!".to_string()),
+                                    ));
+                                }
+                                Err(_) => {
+                                    app_state_clone
+                                        .ui
+                                        .notification
+                                        .set(Some(Notification::error(
+                                            "⚠️ Invalid clipboard content".to_string(),
+                                        )));
+                                }
                             }
-                            Err(_) => {
-                                app_state_clone
-                                    .ui
-                                    .notification
-                                    .set(Some(Notification::error(
-                                        "⚠️ Invalid clipboard content".to_string(),
-                                    )));
-                            }
-                        },
+                        }
                         Err(e) => {
                             app_state_clone
                                 .ui

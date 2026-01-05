@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::services::RepoStatus;
+use leptos::prelude::*;
 
 #[component]
 pub fn GitStatusDisplay(

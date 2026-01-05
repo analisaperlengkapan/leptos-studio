@@ -1,7 +1,7 @@
-use wasm_bindgen_test::*;
 use leptos_studio::builder::accessibility::get_focusable_elements;
-use web_sys::{window, HtmlElement};
 use wasm_bindgen::JsCast;
+use wasm_bindgen_test::*;
+use web_sys::{HtmlElement, window};
 
 wasm_bindgen_test_configure!(run_in_browser);
 
@@ -35,15 +35,27 @@ fn test_get_focusable_elements() {
     let div = document.create_element("div").expect("create div");
     container.append_child(&div).expect("append div");
 
-    let disabled_btn = document.create_element("button").expect("create disabled btn");
-    disabled_btn.set_attribute("disabled", "").expect("set disabled");
-    container.append_child(&disabled_btn).expect("append disabled btn");
+    let disabled_btn = document
+        .create_element("button")
+        .expect("create disabled btn");
+    disabled_btn
+        .set_attribute("disabled", "")
+        .expect("set disabled");
+    container
+        .append_child(&disabled_btn)
+        .expect("append disabled btn");
 
     // Create hidden element (focusable type but hidden)
-    let hidden_btn = document.create_element("button").expect("create hidden btn");
+    let hidden_btn = document
+        .create_element("button")
+        .expect("create hidden btn");
     hidden_btn.set_inner_html("Hidden");
-    hidden_btn.set_attribute("style", "display: none;").expect("set style");
-    container.append_child(&hidden_btn).expect("append hidden btn");
+    hidden_btn
+        .set_attribute("style", "display: none;")
+        .expect("set style");
+    container
+        .append_child(&hidden_btn)
+        .expect("append hidden btn");
 
     // Test
     let focusable = get_focusable_elements(&container);

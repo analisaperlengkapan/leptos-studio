@@ -1,11 +1,7 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn StringInput<F>(
-    value: String,
-    label: String,
-    on_change: F,
-) -> impl IntoView
+pub fn StringInput<F>(value: String, label: String, on_change: F) -> impl IntoView
 where
     F: Fn(String) + 'static + Clone + Send + Sync,
 {
@@ -27,11 +23,7 @@ where
 }
 
 #[component]
-pub fn NumberInput<F>(
-    value: f64,
-    label: String,
-    on_change: F,
-) -> impl IntoView
+pub fn NumberInput<F>(value: f64, label: String, on_change: F) -> impl IntoView
 where
     F: Fn(f64) + 'static + Clone + Send + Sync,
 {
@@ -56,11 +48,7 @@ where
 }
 
 #[component]
-pub fn BoolCheckbox<F>(
-    checked: bool,
-    label: String,
-    on_change: F,
-) -> impl IntoView
+pub fn BoolCheckbox<F>(checked: bool, label: String, on_change: F) -> impl IntoView
 where
     F: Fn(bool) + 'static + Clone + Send + Sync,
 {

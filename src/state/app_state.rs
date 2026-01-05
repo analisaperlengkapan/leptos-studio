@@ -46,13 +46,21 @@ impl CanvasState {
         self.add_child_component_without_snapshot(parent_id, component);
     }
 
-    pub fn add_child_component_without_snapshot(&self, parent_id: &ComponentId, component: CanvasComponent) {
+    pub fn add_child_component_without_snapshot(
+        &self,
+        parent_id: &ComponentId,
+        component: CanvasComponent,
+    ) {
         self.components.update(|components| {
             Self::add_child_recursive(components, parent_id, component);
         });
     }
 
-    fn add_child_recursive(components: &mut Vec<CanvasComponent>, parent_id: &ComponentId, child: CanvasComponent) -> bool {
+    fn add_child_recursive(
+        components: &mut Vec<CanvasComponent>,
+        parent_id: &ComponentId,
+        child: CanvasComponent,
+    ) -> bool {
         for comp in components.iter_mut() {
             if comp.id() == parent_id {
                 if let CanvasComponent::Container(container) = comp {
@@ -114,7 +122,11 @@ impl CanvasState {
         });
     }
 
-    fn update_recursive(components: &mut Vec<CanvasComponent>, id: &ComponentId, new_component: CanvasComponent) -> bool {
+    fn update_recursive(
+        components: &mut Vec<CanvasComponent>,
+        id: &ComponentId,
+        new_component: CanvasComponent,
+    ) -> bool {
         for comp in components.iter_mut() {
             if comp.id() == id {
                 *comp = new_component;
@@ -130,14 +142,23 @@ impl CanvasState {
     }
 
     /// Update a component and record a snapshot
-    pub fn update_component_with_snapshot(&self, id: &ComponentId, new_component: CanvasComponent, description: &str) {
+    pub fn update_component_with_snapshot(
+        &self,
+        id: &ComponentId,
+        new_component: CanvasComponent,
+        description: &str,
+    ) {
         self.record_snapshot(description);
         self.update_component(id, new_component);
     }
 
     /// Record a snapshot for undo/redo
     pub fn record_snapshot(&self, description: &str) {
-        let snapshot = Snapshot::new(self.components.get(), self.selected.get(), description.to_string());
+        let snapshot = Snapshot::new(
+            self.components.get(),
+            self.selected.get(),
+            description.to_string(),
+        );
         self.history.update(|h| h.push(snapshot));
     }
 

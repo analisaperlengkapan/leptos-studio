@@ -1,12 +1,12 @@
-use leptos::prelude::*;
 use leptos::html::Input;
+use leptos::prelude::*;
 
-use crate::builder::hooks::use_git::{use_git, UseGitReturn}; // Import the hook
+use crate::builder::hooks::use_git::{UseGitReturn, use_git}; // Import the hook
 
-mod status_display;
 mod log_list;
-use status_display::GitStatusDisplay;
+mod status_display;
 use log_list::GitLogList;
+use status_display::GitStatusDisplay;
 
 #[component]
 #[allow(clippy::collapsible_if)]
@@ -24,7 +24,7 @@ pub fn GitPanel() -> impl IntoView {
         discard,
         reset,
         push,
-        import
+        import,
     } = use_git();
 
     let commit_message = RwSignal::new(String::new());
@@ -44,7 +44,7 @@ pub fn GitPanel() -> impl IntoView {
         if let Some(input) = input {
             if let Some(files) = input.files() {
                 if let Some(file) = files.get(0) {
-                     import.run(file);
+                    import.run(file);
                 }
             }
         }

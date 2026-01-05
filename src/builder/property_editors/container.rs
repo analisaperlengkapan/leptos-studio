@@ -1,15 +1,14 @@
-use leptos::prelude::*;
+use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{EnumSelect, NumberInput};
 use crate::domain::{CanvasComponent, ComponentId, PropValue};
 use crate::services::update_container_prop;
 use crate::state::AppState;
-use crate::builder::component_library::PropType;
+use leptos::prelude::*;
 
 #[component]
 pub fn ContainerPropertyEditor(
     id: ComponentId,
-    #[prop(into)]
-    container: crate::domain::ContainerComponent,
+    #[prop(into)] container: crate::domain::ContainerComponent,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
@@ -29,7 +28,11 @@ pub fn ContainerPropertyEditor(
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Container {}", prop_name));
+            canvas_state.update_component_with_snapshot(
+                &id,
+                updated,
+                &format!("Update Container {}", prop_name),
+            );
         }
     };
 

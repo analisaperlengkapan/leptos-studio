@@ -1,7 +1,7 @@
-use leptos::prelude::*;
-use crate::services::{GitBackend, CommitInfo, RepoStatus};
 use crate::services::git_factory::get_git_backend;
+use crate::services::{CommitInfo, GitBackend, RepoStatus};
 use crate::state::{AppState, Notification};
+use leptos::prelude::*;
 
 #[derive(Clone, Copy)]
 pub struct UseGitReturn {
@@ -86,7 +86,9 @@ pub fn use_git() -> UseGitReturn {
     let commit_fn = move |message: String| {
         let message = message.trim().to_string();
         if message.is_empty() {
-            app_state.ui.notify(Notification::warning("Commit message cannot be empty".to_string()));
+            app_state.ui.notify(Notification::warning(
+                "Commit message cannot be empty".to_string(),
+            ));
             return;
         }
 
@@ -97,7 +99,10 @@ pub fn use_git() -> UseGitReturn {
         wasm_bindgen_futures::spawn_local(async move {
             match backend.commit(&project, &message).await {
                 Ok(()) => {
-                    app_state.ui.notify(Notification::success(format!("Commit recorded: {}", message)));
+                    app_state.ui.notify(Notification::success(format!(
+                        "Commit recorded: {}",
+                        message
+                    )));
 
                     // Refresh status
                     if let Ok(status) = backend.status(Some(&project)).await {
@@ -106,7 +111,7 @@ pub fn use_git() -> UseGitReturn {
                     // Refresh logs if they are already loaded/visible
                     // (Simple heuristic: if logs vector is not empty or we just want to ensure consistency)
                     if !log_data.get().is_empty() {
-                         if let Ok(logs) = backend.log().await {
+                        if let Ok(logs) = backend.log().await {
                             log_data.set(logs);
                         }
                     }
@@ -122,14 +127,18 @@ pub fn use_git() -> UseGitReturn {
         wasm_bindgen_futures::spawn_local(async move {
             match backend.restore_head().await {
                 Ok(Some(project)) => {
-                     app_state.apply_project(project);
-                     app_state.ui.notify(Notification::success("Changes discarded. Reverted to HEAD.".to_string()));
-                     // Refresh status
-                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
-                         status_data.set(Some(status));
-                     }
+                    app_state.apply_project(project);
+                    app_state.ui.notify(Notification::success(
+                        "Changes discarded. Reverted to HEAD.".to_string(),
+                    ));
+                    // Refresh status
+                    if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
+                        status_data.set(Some(status));
+                    }
                 }
-                Ok(None) => app_state.ui.notify(Notification::warning("No commits to revert to.".to_string())),
+                Ok(None) => app_state.ui.notify(Notification::warning(
+                    "No commits to revert to.".to_string(),
+                )),
                 Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
             }
         });
@@ -139,14 +148,16 @@ pub fn use_git() -> UseGitReturn {
         let backend = get_git_backend();
         wasm_bindgen_futures::spawn_local(async move {
             match backend.reset().await {
-                 Ok(()) => {
-                     app_state.ui.notify(Notification::success("Repository reset successfully.".to_string()));
-                     if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
-                         status_data.set(Some(status));
-                     }
-                     log_data.set(Vec::new()); // Clear logs
-                 }
-                 Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
+                Ok(()) => {
+                    app_state.ui.notify(Notification::success(
+                        "Repository reset successfully.".to_string(),
+                    ));
+                    if let Ok(status) = backend.status(Some(&app_state.to_project())).await {
+                        status_data.set(Some(status));
+                    }
+                    log_data.set(Vec::new()); // Clear logs
+                }
+                Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
             }
         });
     };
@@ -158,11 +169,15 @@ pub fn use_git() -> UseGitReturn {
                 Ok(Some(json)) => {
                     let filename = "leptos_studio_repo.json";
                     match crate::utils::file::download_file(&json, filename, "application/json") {
-                        Ok(_) => app_state.ui.notify(Notification::success("Repository downloaded".to_string())),
+                        Ok(_) => app_state
+                            .ui
+                            .notify(Notification::success("Repository downloaded".to_string())),
                         Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
                     }
                 }
-                Ok(None) => app_state.ui.notify(Notification::success("Push successful".to_string())),
+                Ok(None) => app_state
+                    .ui
+                    .notify(Notification::success("Push successful".to_string())),
                 Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
             }
         });
@@ -175,7 +190,9 @@ pub fn use_git() -> UseGitReturn {
                 Ok(text) => {
                     match backend.clone_repo(&text).await {
                         Ok(_) => {
-                            app_state.ui.notify(Notification::success("Repository imported successfully".to_string()));
+                            app_state.ui.notify(Notification::success(
+                                "Repository imported successfully".to_string(),
+                            ));
                             // Refresh
                             let project = app_state.to_project();
                             if let Ok(status) = backend.status(Some(&project)).await {
@@ -185,10 +202,16 @@ pub fn use_git() -> UseGitReturn {
                                 log_data.set(logs);
                             }
                         }
-                        Err(e) => app_state.ui.notify(Notification::error(format!("Import failed: {}", e.user_message()))),
+                        Err(e) => app_state.ui.notify(Notification::error(format!(
+                            "Import failed: {}",
+                            e.user_message()
+                        ))),
                     }
                 }
-                Err(e) => app_state.ui.notify(Notification::error(format!("Failed to read file: {}", e.user_message()))),
+                Err(e) => app_state.ui.notify(Notification::error(format!(
+                    "Failed to read file: {}",
+                    e.user_message()
+                ))),
             }
         });
     };

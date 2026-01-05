@@ -5,7 +5,7 @@ use crate::domain::{AppError, AppResult};
 use crate::state::persistence::Persistable;
 use crate::state::project::Project;
 
-use super::git_service::{GitBackend, CommitInfo, RepoStatus};
+use super::git_service::{CommitInfo, GitBackend, RepoStatus};
 
 /// Represents a single commit in our LocalStorageGit backend
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -115,11 +115,16 @@ impl GitBackend for LocalStorageGitBackend {
         }
 
         // Return commits reversed (newest first)
-        let commits = repo.commits.iter().rev().map(|c| CommitInfo {
-            id: c.id.clone(),
-            message: c.message.clone(),
-            timestamp: c.timestamp,
-        }).collect();
+        let commits = repo
+            .commits
+            .iter()
+            .rev()
+            .map(|c| CommitInfo {
+                id: c.id.clone(),
+                message: c.message.clone(),
+                timestamp: c.timestamp,
+            })
+            .collect();
 
         Ok(commits)
     }
@@ -142,7 +147,7 @@ impl GitBackend for LocalStorageGitBackend {
         let mut repo = Self::get_repo()?;
 
         if !Self::is_dirty(&repo, project) {
-             return Err(AppError::Validation(
+            return Err(AppError::Validation(
                 crate::domain::error::ValidationError::Generic(
                     "Nothing to commit (working directory clean)".to_string(),
                 ),

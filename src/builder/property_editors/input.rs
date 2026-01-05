@@ -1,15 +1,14 @@
-use leptos::prelude::*;
+use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::domain::{CanvasComponent, ComponentId, InputType, PropValue};
 use crate::services::update_input_prop;
 use crate::state::AppState;
-use crate::builder::component_library::PropType;
+use leptos::prelude::*;
 
 #[component]
 pub fn InputPropertyEditor(
     id: ComponentId,
-    #[prop(into)]
-    input: crate::domain::InputComponent,
+    #[prop(into)] input: crate::domain::InputComponent,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
@@ -29,7 +28,11 @@ pub fn InputPropertyEditor(
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Input {}", prop_name));
+            canvas_state.update_component_with_snapshot(
+                &id,
+                updated,
+                &format!("Update Input {}", prop_name),
+            );
         }
     };
 

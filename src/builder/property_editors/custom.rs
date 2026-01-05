@@ -1,14 +1,12 @@
-use leptos::prelude::*;
 use crate::builder::property_inputs::StringInput;
 use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
 pub fn CustomPropertyEditor(
-    #[prop(into)]
-    _id: ComponentId,
-    #[prop(into)]
-    custom: crate::domain::CustomComponent,
+    #[prop(into)] _id: ComponentId,
+    #[prop(into)] custom: crate::domain::CustomComponent,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
     let ui_state = app_state.ui;
@@ -18,7 +16,11 @@ pub fn CustomPropertyEditor(
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
-            canvas_state.update_component_with_snapshot(&id, updated, &format!("Update Custom {}", prop_name));
+            canvas_state.update_component_with_snapshot(
+                &id,
+                updated,
+                &format!("Update Custom {}", prop_name),
+            );
         }
     };
 
