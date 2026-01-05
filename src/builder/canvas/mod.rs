@@ -4,7 +4,6 @@ pub mod empty_state;
 pub use renderer::ComponentRenderer;
 pub use empty_state::CanvasEmptyState;
 
-use js_sys::Date;
 use leptos::prelude::*;
 use web_sys::DragEvent;
 
@@ -34,19 +33,34 @@ pub fn Canvas() -> impl IntoView {
     };
 
     // Optimization: Track render time in an effect to avoid side effects during render
+    // Use a Memo to capture the start time when the dependency changes (before render)
+    let render_tracker = Memo::new(move |_| {
+        canvas_state.components.track(); // Track changes
+
+        #[cfg(target_arch = "wasm32")]
+        if let Some(window) = web_sys::window() {
+            if let Some(perf) = window.performance() {
+                return Some(perf.now());
+            }
+        }
+        None
+    });
+
     Effect::new(move |_| {
-        // Track components change
-        let _ = canvas_state.components.get();
-        let start = Date::now();
+        // Dependencies
+        let start_time = render_tracker.get();
 
-        // This effect runs after render, so we just update the stats
-        // In a real scenario we'd measure actual render time via performance API or similar,
-        // but here we just update the timestamp.
-        let end = Date::now();
-        let duration = (end - start).max(0.0);
+        #[cfg(target_arch = "wasm32")]
+        if let Some(start) = start_time {
+             if let Some(window) = web_sys::window() {
+                if let Some(perf) = window.performance() {
+                    let end = perf.now();
+                    let duration = (end - start).max(0.0);
+                    app_state.ui.render_time.set(duration);
+                }
+            }
+        }
 
-        // We use batch to avoid double triggers if possible, though Signal updates are fine
-        app_state.ui.render_time.set(duration);
         app_state.ui.render_count.update(|count| {
             *count = count.saturating_add(1);
         });
@@ -68,6 +82,9 @@ pub fn Canvas() -> impl IntoView {
             >
                 <div class="canvas-content">
                     {move || {
+                        // Force evaluation of render_tracker during render phase
+                        let _ = render_tracker.get();
+
                         if is_empty.get() {
                             view! { <CanvasEmptyState /> }.into_any()
                         } else {
