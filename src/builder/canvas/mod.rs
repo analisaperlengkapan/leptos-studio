@@ -10,7 +10,7 @@ use web_sys::DragEvent;
 
 use crate::builder::component_library::create_canvas_component;
 use crate::builder::drag_drop::DropZone;
-use crate::domain::CanvasComponent;
+use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::{AppState, CanvasState, Snapshot};
 
 /// Main Canvas component for the UI builder
@@ -25,7 +25,7 @@ pub fn Canvas() -> impl IntoView {
 
     // Drag and drop handlers
     let drop_zone_on_drop = move |ev: leptos::ev::DragEvent| {
-        handle_drop(ev, canvas_state);
+        handle_drop(ev, canvas_state, None);
     };
 
     // Clear selection when clicking on empty canvas area
@@ -94,8 +94,9 @@ pub fn Canvas() -> impl IntoView {
 }
 
 /// Handle drop event on canvas
-fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
+pub fn handle_drop(ev: DragEvent, canvas_state: CanvasState, parent_id: Option<ComponentId>) {
     ev.prevent_default();
+    ev.stop_propagation(); // Stop event bubbling to avoid double drops
 
     if let Some(data_transfer) = ev.data_transfer()
         && let Ok(component_type) = data_transfer.get_data("component")
@@ -108,7 +109,7 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
         let snapshot = Snapshot::new(
             canvas_state.components.get(),
             canvas_state.selected.get(),
-            "Drag and Drop Component".to_string(),
+            if parent_id.is_some() { "Add Child Component" } else { "Add Component" }.to_string(),
         );
         canvas_state.history.update(|h| h.push(snapshot));
 
@@ -116,7 +117,11 @@ fn handle_drop(ev: DragEvent, canvas_state: CanvasState) {
         let new_component = create_component_from_type(&component_type);
 
         if let Some(component) = new_component {
-            canvas_state.add_component_without_snapshot(component);
+            if let Some(parent) = parent_id {
+                canvas_state.add_child_component_without_snapshot(&parent, component);
+            } else {
+                canvas_state.add_component_without_snapshot(component);
+            }
         }
     }
 }

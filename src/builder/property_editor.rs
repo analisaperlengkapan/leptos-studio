@@ -11,9 +11,33 @@ pub fn PropertyEditor() -> impl IntoView {
     let app_state = AppState::expect_context();
     let canvas_state = app_state.canvas;
 
+    let delete_selected = move |_| {
+        if let Some(id) = canvas_state.selected.get() {
+            canvas_state.remove_component(&id);
+            canvas_state.selected.set(None);
+            app_state.ui.notify(crate::state::Notification::info("Component removed".to_string()));
+        }
+    };
+
     view! {
         <section class="property-editor">
-            <h3>{"Property Editor"}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; margin-bottom: 16px; padding-bottom: 12px;">
+                <h3 style="margin: 0; border: none; padding: 0;">{"Property Editor"}</h3>
+                {move || if canvas_state.selected.get().is_some() {
+                    view! {
+                        <button
+                            class="btn btn-danger btn-sm"
+                            on:click=delete_selected
+                            title="Remove selected component"
+                        >
+                            "Delete"
+                        </button>
+                    }.into_any()
+                } else {
+                    ().into_any()
+                }}
+            </div>
+
             {move || {
                 if let Some(selected_id) = canvas_state.selected.get() {
                     if let Some(comp) = canvas_state.get_component(&selected_id) {

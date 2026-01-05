@@ -11,9 +11,10 @@ use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
 use crate::builder::hooks::use_export_actions::use_export_actions;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
 use crate::builder::preview::Preview;
+use crate::builder::component_palette::ComponentPalette;
+use crate::builder::git_panel::GitPanel;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
-use crate::builder::sidebar::Sidebar;
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
@@ -112,6 +113,15 @@ pub fn App() -> impl IntoView {
         }
     };
 
+    // Right panel tabs state
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum RightPanelTab {
+        Properties,
+        Git,
+    }
+
+    let active_right_tab = RwSignal::new(RightPanelTab::Properties);
+
     view! {
         <DesignTokenProvider tokens=design_tokens>
             <AccessibilityProvider>
@@ -132,39 +142,44 @@ pub fn App() -> impl IntoView {
                     />
 
                     <header class="app-header">
-                        <h1>{"Leptos Studio"}</h1>
-                        <button
-                            class="btn btn-outline btn-sm"
-                            on:click=move |_| show_template_gallery.set(true)
-                            aria-label="Open template gallery"
-                        >
-                            {"📑 Templates"}
-                        </button>
+                        <div class="header-left">
+                            <h1>{"Leptos Studio"}</h1>
+                            <div class="header-actions">
+                                <button on:click=save_layout class="btn btn-primary btn-sm" aria-label="Save layout">{"Save"}</button>
+                                <button on:click=load_layout class="btn btn-secondary btn-sm" aria-label="Load layout">{"Load"}</button>
+                                <button on:click=do_export class="btn btn-success btn-sm" aria-label="Export code">{"Export"}</button>
+                                <button
+                                    on:click=do_undo
+                                    class="btn btn-outline btn-sm"
+                                    aria-label="Undo last action"
+                                >{"Undo"}</button>
+                                <button
+                                    on:click=do_redo
+                                    class="btn btn-outline btn-sm"
+                                    aria-label="Redo last action"
+                                >{"Redo"}</button>
+                            </div>
+                        </div>
+                        <div class="header-right">
+                             <button
+                                class="btn btn-outline btn-sm"
+                                on:click=move |_| show_template_gallery.set(true)
+                                aria-label="Open template gallery"
+                            >
+                                {"📑 Templates"}
+                            </button>
+                        </div>
                     </header>
 
                     <BreadcrumbNavigation />
 
                     <div class="app-layout">
                         <aside class="sidebar-panel" role="navigation" aria-label="Component library">
-                            <Sidebar />
+                            <ComponentPalette />
                         </aside>
+
                         <main role="main">
                             <nav class="main-nav" aria-label="Main actions">
-                                <div class="nav-actions">
-                                    <button on:click=save_layout class="btn btn-primary" aria-label="Save layout">{"Save"}</button>
-                                    <button on:click=load_layout class="btn btn-secondary" aria-label="Load layout">{"Load"}</button>
-                                    <button on:click=do_export class="btn btn-success" aria-label="Export code">{"Export"}</button>
-                                    <button
-                                        on:click=do_undo
-                                        class="btn btn-outline"
-                                        aria-label="Undo last action"
-                                    >{"Undo"}</button>
-                                    <button
-                                        on:click=do_redo
-                                        class="btn btn-outline"
-                                        aria-label="Redo last action"
-                                    >{"Redo"}</button>
-                                </div>
                                 <ResponsivePreviewControls />
                             </nav>
                             <div class="main-content">
@@ -173,12 +188,35 @@ pub fn App() -> impl IntoView {
                                         <Canvas />
                                     </CanvasViewport>
                                 </section>
-                                <aside class="property-panel" role="complementary" aria-label="Property editor">
-                                    <div class="property-editor-section">
-                                        <PropertyEditor />
+
+                                <aside class="property-panel" role="complementary" aria-label="Right Panel">
+                                    <div class="panel-tabs">
+                                        <button
+                                            class=move || if active_right_tab.get() == RightPanelTab::Properties { "tab active" } else { "tab" }
+                                            on:click=move |_| active_right_tab.set(RightPanelTab::Properties)
+                                        >
+                                            "Properties"
+                                        </button>
+                                        <button
+                                            class=move || if active_right_tab.get() == RightPanelTab::Git { "tab active" } else { "tab" }
+                                            on:click=move |_| active_right_tab.set(RightPanelTab::Git)
+                                        >
+                                            "Git / History"
+                                        </button>
                                     </div>
-                                    <div class="preview-section">
-                                        <Preview />
+
+                                    <div class="panel-content">
+                                        {move || match active_right_tab.get() {
+                                            RightPanelTab::Git => view! { <GitPanel /> }.into_any(),
+                                            RightPanelTab::Properties => view! {
+                                                <div class="property-editor-container">
+                                                    <PropertyEditor />
+                                                    <div class="preview-section-min">
+                                                        <Preview />
+                                                    </div>
+                                                </div>
+                                            }.into_any()
+                                        }}
                                     </div>
                                 </aside>
                             </div>
