@@ -5,7 +5,7 @@ use crate::constants::MAX_HISTORY_SIZE;
 use crate::domain::{CanvasComponent, ComponentId};
 
 /// Snapshot of canvas state at a point in time
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Snapshot {
     pub components: Vec<CanvasComponent>,
     pub selected: Option<ComponentId>,
@@ -47,6 +47,10 @@ pub struct History {
 }
 
 impl History {
+    pub fn get_undo_stack(&self) -> Vec<Snapshot> {
+        self.undo_stack.iter().rev().cloned().collect()
+    }
+
     pub fn new() -> Self {
         Self {
             undo_stack: VecDeque::new(),

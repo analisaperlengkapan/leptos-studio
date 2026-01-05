@@ -338,6 +338,72 @@ pub fn builtin_library_components() -> Vec<LibraryComponent> {
             props_schema: None, // Inherits from Container
             description: Some("Vertical layout container".to_string()),
         },
+        LibraryComponent {
+            name: "Image".to_string(),
+            kind: "Image".to_string(),
+            template: None,
+            category: "Media".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "src".to_string(),
+                    prop_type: PropType::String,
+                    required: true,
+                    description: Some("Image source URL".to_string()),
+                },
+                PropSchema {
+                    name: "alt".to_string(),
+                    prop_type: PropType::String,
+                    required: true,
+                    description: Some("Alt text for accessibility".to_string()),
+                },
+                PropSchema {
+                    name: "width".to_string(),
+                    prop_type: PropType::String,
+                    required: false,
+                    description: Some("Width (e.g. 100%, 200px)".to_string()),
+                },
+                PropSchema {
+                    name: "height".to_string(),
+                    prop_type: PropType::String,
+                    required: false,
+                    description: Some("Height (e.g. auto, 150px)".to_string()),
+                },
+            ]),
+            description: Some("Display an image".to_string()),
+        },
+        LibraryComponent {
+            name: "Card".to_string(),
+            kind: "Card".to_string(),
+            template: None,
+            category: "Layout".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "padding".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Internal padding (px)".to_string()),
+                },
+                PropSchema {
+                    name: "border_radius".to_string(),
+                    prop_type: PropType::Number,
+                    required: false,
+                    description: Some("Border radius (px)".to_string()),
+                },
+                PropSchema {
+                    name: "shadow".to_string(),
+                    prop_type: PropType::Bool,
+                    required: false,
+                    description: Some("Show shadow".to_string()),
+                },
+                PropSchema {
+                    name: "border".to_string(),
+                    prop_type: PropType::Bool,
+                    required: false,
+                    description: Some("Show border".to_string()),
+                },
+            ]),
+            description: Some("Card container with shadow and rounded corners".to_string()),
+        },
     ]
 }
 
@@ -378,6 +444,17 @@ pub fn create_canvas_component(component_type: &str) -> Option<CanvasComponent> 
                 justify_content: Default::default(),
             };
             Some(CanvasComponent::Container(container))
+        }
+        "Image" => {
+            let image = crate::domain::ImageComponent::new(
+                "https://via.placeholder.com/150".to_string(),
+                "Placeholder Image".to_string(),
+            );
+            Some(CanvasComponent::Image(image))
+        }
+        "Card" => {
+            let card = crate::domain::CardComponent::new();
+            Some(CanvasComponent::Card(card))
         }
         data if data.starts_with("Custom::") => {
             let name = data.strip_prefix("Custom::").unwrap_or("Custom");

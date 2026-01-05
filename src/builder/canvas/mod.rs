@@ -38,6 +38,7 @@ pub fn Canvas() -> impl IntoView {
         canvas_state.components.track(); // Track changes
 
         #[cfg(target_arch = "wasm32")]
+        #[allow(clippy::collapsible_if)]
         if let Some(window) = web_sys::window() {
             if let Some(perf) = window.performance() {
                 return Some(perf.now());
@@ -51,6 +52,7 @@ pub fn Canvas() -> impl IntoView {
         let _start_time = render_tracker.get();
 
         #[cfg(target_arch = "wasm32")]
+        #[allow(clippy::collapsible_if)]
         if let Some(start) = _start_time {
             if let Some(window) = web_sys::window() {
                 if let Some(perf) = window.performance() {

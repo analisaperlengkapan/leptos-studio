@@ -1,6 +1,6 @@
 use super::property_editors::{
-    ButtonPropertyEditor, ContainerPropertyEditor, CustomPropertyEditor, InputPropertyEditor,
-    TextPropertyEditor,
+    ButtonPropertyEditor, CardPropertyEditor, ContainerPropertyEditor, CustomPropertyEditor,
+    ImagePropertyEditor, InputPropertyEditor, TextPropertyEditor,
 };
 use crate::domain::CanvasComponent;
 use crate::state::AppState;
@@ -63,6 +63,16 @@ pub fn PropertyEditor() -> impl IntoView {
                             CanvasComponent::Container(container) => {
                                 view! {
                                     <ContainerPropertyEditor id=selected_id container=container />
+                                }.into_any()
+                            },
+                            CanvasComponent::Image(img) => {
+                                view! {
+                                    <ImagePropertyEditor id=selected_id image=img />
+                                }.into_any()
+                            },
+                            CanvasComponent::Card(card) => {
+                                view! {
+                                    <CardPropertyEditor id=selected_id card=card />
                                 }.into_any()
                             },
                             CanvasComponent::Custom(custom) => {
