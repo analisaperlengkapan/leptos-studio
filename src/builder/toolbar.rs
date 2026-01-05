@@ -14,17 +14,17 @@ pub fn Toolbar(
     // Save/Load handlers
     let save_layout = move |_| {
         if let Err(e) = app_state.save() {
-            app_state.ui.notification.set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+            app_state.ui.notify(Notification::error(format!("❌ {}", e.user_message())));
         } else {
-            app_state.ui.notification.set(Some(Notification::success("💾 Layout saved!".to_string())));
+            app_state.ui.notify(Notification::success("💾 Layout saved!".to_string()));
         }
     };
 
     let load_layout = move |_| {
         if let Err(e) = app_state.load() {
-            app_state.ui.notification.set(Some(Notification::error(format!("❌ {}", e.user_message()))));
+            app_state.ui.notify(Notification::error(format!("❌ {}", e.user_message())));
         } else {
-            app_state.ui.notification.set(Some(Notification::success("📂 Layout loaded!".to_string())));
+            app_state.ui.notify(Notification::success("📂 Layout loaded!".to_string()));
         }
     };
 
@@ -38,17 +38,15 @@ pub fn Toolbar(
     // Undo/Redo handlers
     let do_undo = move |_| {
         if let Some(snapshot) = app_state.canvas.history.write().undo() {
-            app_state.canvas.components.set(snapshot.components);
-            app_state.canvas.selected.set(snapshot.selected);
-            app_state.ui.notification.set(Some(Notification::info("↪️ Undo".to_string())));
+            app_state.canvas.apply_snapshot(&snapshot);
+            app_state.ui.notify(Notification::info("↪️ Undo".to_string()));
         }
     };
 
     let do_redo = move |_| {
         if let Some(snapshot) = app_state.canvas.history.write().redo() {
-            app_state.canvas.components.set(snapshot.components);
-            app_state.canvas.selected.set(snapshot.selected);
-            app_state.ui.notification.set(Some(Notification::info("↪️ Redo".to_string())));
+            app_state.canvas.apply_snapshot(&snapshot);
+            app_state.ui.notify(Notification::info("↪️ Redo".to_string()));
         }
     };
 
@@ -61,10 +59,10 @@ pub fn Toolbar(
     let toggle_preview = move |_| {
         is_preview.update(|p| *p = !*p);
         if is_preview.get() {
-            app_state.ui.notification.set(Some(Notification::info("👁️ Preview Mode On".to_string())));
+            app_state.ui.notify(Notification::info("👁️ Preview Mode On".to_string()));
             app_state.canvas.selected.set(None); // Clear selection
         } else {
-            app_state.ui.notification.set(Some(Notification::info("✏️ Edit Mode On".to_string())));
+            app_state.ui.notify(Notification::info("✏️ Edit Mode On".to_string()));
         }
     };
 
