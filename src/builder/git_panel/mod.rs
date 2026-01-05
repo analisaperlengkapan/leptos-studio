@@ -1,7 +1,6 @@
 use leptos::prelude::*;
 use leptos::html::Input;
 
-use crate::services::{RepoStatus, CommitInfo}; // We still need the types for the props if passed down
 use crate::builder::hooks::use_git::{use_git, UseGitReturn}; // Import the hook
 
 mod status_display;
