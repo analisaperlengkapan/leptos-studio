@@ -13,6 +13,8 @@ fn test_leptos_generator_structure() {
     container.layout = LayoutType::Flex {
         direction: FlexDirection::Row,
         wrap: false,
+        align_items: Default::default(),
+        justify_content: Default::default(),
     };
 
     let button = CanvasComponent::Button(ButtonComponent::new("Nested Button".to_string()));

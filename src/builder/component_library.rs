@@ -1,6 +1,6 @@
 use crate::domain::{
-    ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, InputComponent,
-    TextComponent,
+    ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, FlexDirection,
+    InputComponent, LayoutType, TextComponent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -261,6 +261,35 @@ pub fn builtin_library_components() -> Vec<LibraryComponent> {
                     description: Some("Layout type".to_string()),
                 },
                 PropSchema {
+                    name: "align_items".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "Start".to_string(),
+                            "Center".to_string(),
+                            "End".to_string(),
+                            "Stretch".to_string(),
+                            "Baseline".to_string(),
+                        ],
+                    },
+                    required: false,
+                    description: Some("Align items (cross axis)".to_string()),
+                },
+                PropSchema {
+                    name: "justify_content".to_string(),
+                    prop_type: PropType::Enum {
+                        options: vec![
+                            "Start".to_string(),
+                            "Center".to_string(),
+                            "End".to_string(),
+                            "Between".to_string(),
+                            "Around".to_string(),
+                            "Evenly".to_string(),
+                        ],
+                    },
+                    required: false,
+                    description: Some("Justify content (main axis)".to_string()),
+                },
+                PropSchema {
                     name: "gap".to_string(),
                     prop_type: PropType::Number,
                     required: false,
@@ -293,6 +322,22 @@ pub fn builtin_library_components() -> Vec<LibraryComponent> {
             ]),
             description: Some("Container for other components".to_string()),
         },
+        LibraryComponent {
+            name: "Row".to_string(),
+            kind: "Row".to_string(),
+            template: None,
+            category: "Layout".to_string(),
+            props_schema: None, // Inherits from Container
+            description: Some("Horizontal layout container".to_string()),
+        },
+        LibraryComponent {
+            name: "Column".to_string(),
+            kind: "Column".to_string(),
+            template: None,
+            category: "Layout".to_string(),
+            props_schema: None, // Inherits from Container
+            description: Some("Vertical layout container".to_string()),
+        },
     ]
 }
 
@@ -312,6 +357,26 @@ pub fn create_canvas_component(component_type: &str) -> Option<CanvasComponent> 
         }
         "Container" => {
             let container = ContainerComponent::new();
+            Some(CanvasComponent::Container(container))
+        }
+        "Row" => {
+            let mut container = ContainerComponent::new();
+            container.layout = LayoutType::Flex {
+                direction: FlexDirection::Row,
+                wrap: false,
+                align_items: Default::default(),
+                justify_content: Default::default(),
+            };
+            Some(CanvasComponent::Container(container))
+        }
+        "Column" => {
+            let mut container = ContainerComponent::new();
+            container.layout = LayoutType::Flex {
+                direction: FlexDirection::Column,
+                wrap: false,
+                align_items: Default::default(),
+                justify_content: Default::default(),
+            };
             Some(CanvasComponent::Container(container))
         }
         data if data.starts_with("Custom::") => {

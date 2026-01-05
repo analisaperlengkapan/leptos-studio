@@ -222,6 +222,10 @@ pub enum LayoutType {
     Flex {
         direction: FlexDirection,
         wrap: bool,
+        #[serde(default)]
+        align_items: FlexAlign,
+        #[serde(default)]
+        justify_content: FlexJustify,
     },
     Grid {
         columns: u32,
@@ -234,6 +238,27 @@ pub enum LayoutType {
 pub enum FlexDirection {
     Row,
     Column,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum FlexAlign {
+    #[default]
+    Start,
+    Center,
+    End,
+    Stretch,
+    Baseline,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum FlexJustify {
+    #[default]
+    Start,
+    Center,
+    End,
+    Between,
+    Around,
+    Evenly,
 }
 
 /// Spacing
@@ -263,6 +288,8 @@ impl ContainerComponent {
             layout: LayoutType::Flex {
                 direction: FlexDirection::Column,
                 wrap: false,
+                align_items: FlexAlign::default(),
+                justify_content: FlexJustify::default(),
             },
             gap: 8,
             padding: Spacing::default(),
