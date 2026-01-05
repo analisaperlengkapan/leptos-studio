@@ -21,7 +21,9 @@ pub fn Preview() -> impl IntoView {
         let width = match responsive_mode {
             ResponsiveMode::Desktop => "100%",
             ResponsiveMode::Tablet => "768px",
+            ResponsiveMode::TabletLandscape => "1024px",
             ResponsiveMode::Mobile => "375px",
+            ResponsiveMode::MobileLandscape => "667px",
         };
 
         format!(

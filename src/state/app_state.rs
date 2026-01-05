@@ -241,7 +241,9 @@ pub enum ResponsiveMode {
     #[default]
     Desktop,
     Tablet,
+    TabletLandscape,
     Mobile,
+    MobileLandscape,
 }
 
 /// UI state (modals, panels, etc)
