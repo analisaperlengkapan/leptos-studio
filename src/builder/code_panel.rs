@@ -97,10 +97,13 @@ pub fn CodePanel() -> impl IntoView {
                     )));
                 }
                 Err(e) => {
-                    app_state.ui.notification.set(Some(Notification::error(format!(
-                        "❌ {}",
-                        e.user_message()
-                    ))));
+                    app_state
+                        .ui
+                        .notification
+                        .set(Some(Notification::error(format!(
+                            "❌ {}",
+                            e.user_message()
+                        ))));
                 }
             }
         });
@@ -126,14 +129,21 @@ pub fn CodePanel() -> impl IntoView {
         let filename = format!("leptos-layout.{}", ext);
 
         if let Err(e) = download_file(&code_text, &filename, mime) {
-             app_state.ui.notification.set(Some(Notification::error(format!(
-                "❌ Download failed: {}",
-                e.user_message()
-            ))));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::error(format!(
+                    "❌ Download failed: {}",
+                    e.user_message()
+                ))));
         } else {
-             app_state.ui.notification.set(Some(Notification::success(
-                format!("⬇️ Downloaded {}", filename)
-            )));
+            app_state
+                .ui
+                .notification
+                .set(Some(Notification::success(format!(
+                    "⬇️ Downloaded {}",
+                    filename
+                ))));
         }
     };
 
