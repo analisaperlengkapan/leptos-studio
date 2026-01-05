@@ -28,6 +28,7 @@ pub enum KeyboardAction {
     Export,
     NewComponent,
     Duplicate,
+    Cut,
 }
 
 /// Defines a keyboard shortcut with modifiers and action
@@ -258,6 +259,15 @@ pub fn get_default_shortcuts() -> Vec<KeyboardShortcut> {
             false,
             KeyboardAction::Duplicate,
             "Duplicate selected",
+        ),
+        KeyboardShortcut::new(
+            "x",
+            true,
+            false,
+            false,
+            false,
+            KeyboardAction::Cut,
+            "Cut selected component",
         ),
     ]
 }

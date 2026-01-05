@@ -191,6 +191,47 @@ pub fn use_keyboard_actions(
                     }
                 }
             }
+            KeyboardAction::Cut => {
+                if let Some(selected_id) = app_state.canvas.selected.get() {
+                    if let Some(comp) = app_state.canvas.get_component(&selected_id) {
+                        match serde_json::to_string(&comp) {
+                            Ok(json) => {
+                                let app_state_clone = app_state;
+                                wasm_bindgen_futures::spawn_local(async move {
+                                    match copy_to_clipboard(&json).await {
+                                        Ok(()) => {
+                                            app_state_clone.canvas.remove_component(&selected_id);
+                                            app_state_clone.canvas.selected.set(None);
+                                            app_state_clone.ui.notification.set(Some(
+                                                Notification::success(
+                                                    "✂️ Component cut!".to_string(),
+                                                ),
+                                            ));
+                                        }
+                                        Err(e) => {
+                                            app_state_clone.ui.notification.set(Some(
+                                                Notification::error(format!(
+                                                    "❌ {}",
+                                                    e.user_message()
+                                                )),
+                                            ));
+                                        }
+                                    }
+                                });
+                            }
+                            Err(_) => {
+                                app_state.ui.notification.set(Some(Notification::error(
+                                    "❌ Failed to serialize component".to_string(),
+                                )));
+                            }
+                        }
+                    }
+                } else {
+                    app_state.ui.notification.set(Some(Notification::warning(
+                        "⚠️ No component selected".to_string(),
+                    )));
+                }
+            }
             // Add other cases if any
             _ => {}
         }

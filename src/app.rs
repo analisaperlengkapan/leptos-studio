@@ -59,6 +59,37 @@ pub fn App() -> impl IntoView {
         show_template_gallery.write_only(),
     );
 
+    // Layout resizing state
+    let left_sidebar_width = RwSignal::new(280);
+    let right_sidebar_width = RwSignal::new(320);
+    let is_dragging_left = RwSignal::new(false);
+    let is_dragging_right = RwSignal::new(false);
+
+    // Global resize handlers
+    Effect::new(move |_| {
+        if is_dragging_left.get() || is_dragging_right.get() {
+            let _ = document().body().expect("body").style().set_property("cursor", "col-resize");
+        } else {
+            let _ = document().body().expect("body").style().remove_property("cursor");
+        }
+    });
+
+    let _ = window_event_listener(leptos::ev::mousemove, move |ev| {
+        if is_dragging_left.get() {
+            let new_width = ev.client_x().max(200).min(600);
+            left_sidebar_width.set(new_width);
+        } else if is_dragging_right.get() {
+            let window_width = window().inner_width().unwrap().as_f64().unwrap() as i32;
+            let new_width = (window_width - ev.client_x()).max(240).min(600);
+            right_sidebar_width.set(new_width);
+        }
+    });
+
+    let _ = window_event_listener(leptos::ev::mouseup, move |_| {
+        is_dragging_left.set(false);
+        is_dragging_right.set(false);
+    });
+
     // Right panel tabs state
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum RightPanelTab {
@@ -108,7 +139,12 @@ pub fn App() -> impl IntoView {
                     <BreadcrumbNavigation />
 
                     <div class="app-layout">
-                        <aside class="sidebar-panel" role="navigation" aria-label="Component library">
+                        <aside
+                            class="sidebar-panel"
+                            role="navigation"
+                            aria-label="Component library"
+                            style=move || format!("width: {}px", left_sidebar_width.get())
+                        >
                             <div class="panel-tabs">
                                 <button
                                     class=move || if active_left_tab.get() == LeftPanelTab::Add { "tab active" } else { "tab" }
@@ -131,6 +167,11 @@ pub fn App() -> impl IntoView {
                             </div>
                         </aside>
 
+                        <div
+                            class=move || if is_dragging_left.get() { "resize-handle active" } else { "resize-handle" }
+                            on:mousedown=move |_| is_dragging_left.set(true)
+                        />
+
                         <main role="main">
                             <nav class="main-nav" aria-label="Main actions">
                                 <ResponsivePreviewControls />
@@ -142,7 +183,17 @@ pub fn App() -> impl IntoView {
                                     </CanvasViewport>
                                 </section>
 
-                                <aside class="property-panel" role="complementary" aria-label="Right Panel">
+                                <div
+                                    class=move || if is_dragging_right.get() { "resize-handle active" } else { "resize-handle" }
+                                    on:mousedown=move |_| is_dragging_right.set(true)
+                                />
+
+                                <aside
+                                    class="property-panel"
+                                    role="complementary"
+                                    aria-label="Right Panel"
+                                    style=move || format!("width: {}px", right_sidebar_width.get())
+                                >
                                     <div class="panel-tabs">
                                         <button
                                             class=move || if active_right_tab.get() == RightPanelTab::Properties { "tab active" } else { "tab" }
