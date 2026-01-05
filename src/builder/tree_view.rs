@@ -24,11 +24,11 @@ pub fn TreeView() -> impl IntoView {
     });
 
     view! {
-        <div class="tree-view">
+        <div class="tree-view" role="tree">
              {move || {
                 if components.get().is_empty() {
                     view! {
-                        <div class="tree-view-empty">
+                        <div class="tree-view-empty" role="status">
                             "No components on canvas"
                         </div>
                     }.into_any()
@@ -96,6 +96,14 @@ fn TreeNode(
                     app_state.canvas.selected.set(Some(id));
                 };
 
+                let on_keydown = move |ev: leptos::ev::KeyboardEvent| {
+                     if ev.key() == "Enter" || ev.key() == " " {
+                        ev.prevent_default();
+                        ev.stop_propagation();
+                        app_state.canvas.selected.set(Some(id));
+                    }
+                };
+
                 let children = if let CanvasComponent::Container(c) = &comp {
                     c.children.clone()
                 } else {
@@ -103,18 +111,22 @@ fn TreeNode(
                 };
 
                 view! {
-                    <div class="tree-node-wrapper">
+                    <div class="tree-node-wrapper" role="presentation">
                         <div
                             class=move || if is_selected() { "tree-node selected" } else { "tree-node" }
                             style=format!("padding-left: {}px", level * 12 + 12)
                             on:click=on_click
+                            on:keydown=on_keydown
+                            role="treeitem"
+                            aria-selected=move || is_selected().to_string()
+                            tabindex="0"
                         >
-                            <span class="tree-node-icon">{icon}</span>
+                            <span class="tree-node-icon" aria-hidden="true">{icon}</span>
                             <span class="tree-node-label">{label}</span>
                         </div>
                         {if !children.is_empty() {
                             Some(view! {
-                                <div class="tree-node-children">
+                                <div class="tree-node-children" role="group">
                                     <For
                                         each=move || children.clone()
                                         key=|child| *child.id()
