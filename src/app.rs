@@ -12,7 +12,12 @@ use crate::builder::export_modal::ExportModal;
 use crate::builder::git_panel::GitPanel;
 use crate::builder::history_panel::HistoryPanel;
 use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
+use crate::builder::hooks::use_resize::use_resizable_sidebar;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
+use crate::constants::{
+    DEFAULT_LEFT_SIDEBAR_WIDTH, DEFAULT_RIGHT_SIDEBAR_WIDTH, STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
+    STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
+};
 use crate::builder::preview::Preview;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
@@ -58,6 +63,35 @@ pub fn App() -> impl IntoView {
         export_code.write_only(),
         show_template_gallery.write_only(),
     );
+
+    // Resizable Sidebars
+    let left_sidebar = use_resizable_sidebar(
+        DEFAULT_LEFT_SIDEBAR_WIDTH,
+        STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
+        true,
+    );
+    let right_sidebar = use_resizable_sidebar(
+        DEFAULT_RIGHT_SIDEBAR_WIDTH,
+        STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
+        false,
+    );
+
+    // Global resize cursor handler
+    Effect::new(move |_| {
+        if left_sidebar.is_dragging.get() || right_sidebar.is_dragging.get() {
+            let _ = document()
+                .body()
+                .expect("body")
+                .style()
+                .set_property("cursor", "col-resize");
+        } else {
+            let _ = document()
+                .body()
+                .expect("body")
+                .style()
+                .remove_property("cursor");
+        }
+    });
 
     // Right panel tabs state
     #[derive(Clone, Copy, PartialEq, Eq)]
@@ -108,7 +142,12 @@ pub fn App() -> impl IntoView {
                     <BreadcrumbNavigation />
 
                     <div class="app-layout">
-                        <aside class="sidebar-panel" role="navigation" aria-label="Component library">
+                        <aside
+                            class="sidebar-panel"
+                            role="navigation"
+                            aria-label="Component library"
+                            style=move || format!("width: {}px", left_sidebar.width.get())
+                        >
                             <div class="panel-tabs">
                                 <button
                                     class=move || if active_left_tab.get() == LeftPanelTab::Add { "tab active" } else { "tab" }
@@ -131,6 +170,11 @@ pub fn App() -> impl IntoView {
                             </div>
                         </aside>
 
+                        <div
+                            class=move || if left_sidebar.is_dragging.get() { "resize-handle active" } else { "resize-handle" }
+                            on:mousedown=move |ev| left_sidebar.start_drag.run(ev)
+                        />
+
                         <main role="main">
                             <nav class="main-nav" aria-label="Main actions">
                                 <ResponsivePreviewControls />
@@ -142,7 +186,17 @@ pub fn App() -> impl IntoView {
                                     </CanvasViewport>
                                 </section>
 
-                                <aside class="property-panel" role="complementary" aria-label="Right Panel">
+                                <div
+                                    class=move || if right_sidebar.is_dragging.get() { "resize-handle active" } else { "resize-handle" }
+                                    on:mousedown=move |ev| right_sidebar.start_drag.run(ev)
+                                />
+
+                                <aside
+                                    class="property-panel"
+                                    role="complementary"
+                                    aria-label="Right Panel"
+                                    style=move || format!("width: {}px", right_sidebar.width.get())
+                                >
                                     <div class="panel-tabs">
                                         <button
                                             class=move || if active_right_tab.get() == RightPanelTab::Properties { "tab active" } else { "tab" }
