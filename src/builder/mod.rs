@@ -25,6 +25,7 @@ pub mod snackbar;
 pub mod status_bar;
 pub mod styling_system;
 pub mod template_gallery;
+pub mod toolbar;
 
 // Re-export components for easier imports
 pub use accessibility::{
