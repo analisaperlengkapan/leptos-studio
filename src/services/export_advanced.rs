@@ -421,17 +421,49 @@ impl ReactGenerator {
                 ));
             }
             CanvasComponent::Container(container) => {
+                let layout_style = match &container.layout {
+                    crate::domain::LayoutType::Flex {
+                        direction,
+                        align_items,
+                        justify_content,
+                        ..
+                    } => {
+                        let dir = match direction {
+                            crate::domain::FlexDirection::Row => "row",
+                            crate::domain::FlexDirection::Column => "column",
+                        };
+                        let align = match align_items {
+                            crate::domain::FlexAlign::Start => "flex-start",
+                            crate::domain::FlexAlign::Center => "center",
+                            crate::domain::FlexAlign::End => "flex-end",
+                            crate::domain::FlexAlign::Stretch => "stretch",
+                            crate::domain::FlexAlign::Baseline => "baseline",
+                        };
+                        let justify = match justify_content {
+                            crate::domain::FlexJustify::Start => "flex-start",
+                            crate::domain::FlexJustify::Center => "center",
+                            crate::domain::FlexJustify::End => "flex-end",
+                            crate::domain::FlexJustify::Between => "space-between",
+                            crate::domain::FlexJustify::Around => "space-around",
+                            crate::domain::FlexJustify::Evenly => "space-evenly",
+                        };
+                        format!(
+                            "display: 'flex', flexDirection: '{}', alignItems: '{}', justifyContent: '{}'",
+                            dir, align, justify
+                        )
+                    }
+                    crate::domain::LayoutType::Grid { columns, rows } => {
+                        format!(
+                            "display: 'grid', gridTemplateColumns: 'repeat({}, 1fr)', gridTemplateRows: 'repeat({}, auto)'",
+                            columns, rows
+                        )
+                    }
+                    crate::domain::LayoutType::Stack => "display: 'flex', flexDirection: 'column'".to_string(),
+                };
+
                 let style = format!(
-                    "{{ display: 'flex', flexDirection: '{}', gap: '{}px', padding: '{} {} {} {}' }}",
-                    match &container.layout {
-                        crate::domain::LayoutType::Flex { direction, .. } => {
-                            match direction {
-                                crate::domain::FlexDirection::Row => "row",
-                                crate::domain::FlexDirection::Column => "column",
-                            }
-                        }
-                        _ => "column",
-                    },
+                    "{{ {}, gap: '{}px', padding: '{}px {}px {}px {}px' }}",
+                    layout_style,
                     container.gap,
                     container.padding.top,
                     container.padding.right,
@@ -622,7 +654,12 @@ impl CssGenerator {
                 css.push_str(&format!(".{} {{\n", class_name));
 
                 match &container.layout {
-                    crate::domain::LayoutType::Flex { direction, wrap } => {
+                    crate::domain::LayoutType::Flex {
+                        direction,
+                        wrap,
+                        align_items,
+                        justify_content,
+                    } => {
                         css.push_str("  display: flex;\n");
                         css.push_str(&format!(
                             "  flex-direction: {};\n",
@@ -634,6 +671,26 @@ impl CssGenerator {
                         if *wrap {
                             css.push_str("  flex-wrap: wrap;\n");
                         }
+
+                        let align_css = match align_items {
+                            crate::domain::FlexAlign::Start => "flex-start",
+                            crate::domain::FlexAlign::Center => "center",
+                            crate::domain::FlexAlign::End => "flex-end",
+                            crate::domain::FlexAlign::Stretch => "stretch",
+                            crate::domain::FlexAlign::Baseline => "baseline",
+                        };
+
+                        let justify_css = match justify_content {
+                            crate::domain::FlexJustify::Start => "flex-start",
+                            crate::domain::FlexJustify::Center => "center",
+                            crate::domain::FlexJustify::End => "flex-end",
+                            crate::domain::FlexJustify::Between => "space-between",
+                            crate::domain::FlexJustify::Around => "space-around",
+                            crate::domain::FlexJustify::Evenly => "space-evenly",
+                        };
+
+                        css.push_str(&format!("  align-items: {};\n", align_css));
+                        css.push_str(&format!("  justify-content: {};\n", justify_css));
                     }
                     crate::domain::LayoutType::Grid { columns, rows } => {
                         css.push_str("  display: grid;\n");
@@ -869,13 +926,36 @@ impl TailwindHtmlGenerator {
             }
             CanvasComponent::Container(container) => {
                 let layout_classes = match &container.layout {
-                    crate::domain::LayoutType::Flex { direction, wrap } => {
+                    crate::domain::LayoutType::Flex {
+                        direction,
+                        wrap,
+                        align_items,
+                        justify_content,
+                    } => {
                         let dir = match direction {
                             crate::domain::FlexDirection::Row => "flex-row",
                             crate::domain::FlexDirection::Column => "flex-col",
                         };
                         let wrap_cls = if *wrap { "flex-wrap" } else { "" };
-                        format!("flex {} {}", dir, wrap_cls)
+
+                        let align_cls = match align_items {
+                            crate::domain::FlexAlign::Start => "items-start",
+                            crate::domain::FlexAlign::Center => "items-center",
+                            crate::domain::FlexAlign::End => "items-end",
+                            crate::domain::FlexAlign::Stretch => "items-stretch",
+                            crate::domain::FlexAlign::Baseline => "items-baseline",
+                        };
+
+                        let justify_cls = match justify_content {
+                            crate::domain::FlexJustify::Start => "justify-start",
+                            crate::domain::FlexJustify::Center => "justify-center",
+                            crate::domain::FlexJustify::End => "justify-end",
+                            crate::domain::FlexJustify::Between => "justify-between",
+                            crate::domain::FlexJustify::Around => "justify-around",
+                            crate::domain::FlexJustify::Evenly => "justify-evenly",
+                        };
+
+                        format!("flex {} {} {} {}", dir, wrap_cls, align_cls, justify_cls)
                     }
                     crate::domain::LayoutType::Grid { columns, .. } => {
                         format!("grid grid-cols-{}", columns.min(&12))

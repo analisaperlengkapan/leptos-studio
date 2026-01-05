@@ -57,6 +57,27 @@ pub fn ContainerPropertyEditor(
                                 crate::domain::LayoutType::Grid { .. } => "Grid",
                                 crate::domain::LayoutType::Stack => "Stack",
                             }.to_string(),
+                            "align_items" => match &container_for_field.layout {
+                                crate::domain::LayoutType::Flex { align_items, .. } => match align_items {
+                                    crate::domain::FlexAlign::Start => "Start",
+                                    crate::domain::FlexAlign::Center => "Center",
+                                    crate::domain::FlexAlign::End => "End",
+                                    crate::domain::FlexAlign::Stretch => "Stretch",
+                                    crate::domain::FlexAlign::Baseline => "Baseline",
+                                },
+                                _ => "Start",
+                            }.to_string(),
+                            "justify_content" => match &container_for_field.layout {
+                                crate::domain::LayoutType::Flex { justify_content, .. } => match justify_content {
+                                    crate::domain::FlexJustify::Start => "Start",
+                                    crate::domain::FlexJustify::Center => "Center",
+                                    crate::domain::FlexJustify::End => "End",
+                                    crate::domain::FlexJustify::Between => "Between",
+                                    crate::domain::FlexJustify::Around => "Around",
+                                    crate::domain::FlexJustify::Evenly => "Evenly",
+                                },
+                                _ => "Start",
+                            }.to_string(),
                             _ => String::new(),
                         };
                         let prop_name_closure = prop_name.clone();

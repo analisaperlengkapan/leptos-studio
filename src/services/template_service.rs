@@ -5,8 +5,9 @@
 //! rapid UI prototyping.
 
 use crate::domain::{
-    ButtonComponent, ButtonSize, ButtonVariant, CanvasComponent, ContainerComponent, FlexDirection,
-    InputComponent, InputType, LayoutType, Spacing, TextComponent, TextStyle, TextTag,
+    ButtonComponent, ButtonSize, ButtonVariant, CanvasComponent, ContainerComponent, FlexAlign,
+    FlexDirection, FlexJustify, InputComponent, InputType, LayoutType, Spacing, TextComponent,
+    TextStyle, TextTag,
 };
 use serde::{Deserialize, Serialize};
 
@@ -130,6 +131,8 @@ impl TemplateService {
         container.layout = LayoutType::Flex {
             direction: FlexDirection::Column,
             wrap: false,
+            align_items: FlexAlign::default(),
+            justify_content: FlexJustify::default(),
         };
         container.gap = 16;
         container.padding = Spacing {
@@ -188,6 +191,8 @@ impl TemplateService {
         container.layout = LayoutType::Flex {
             direction: FlexDirection::Column,
             wrap: false,
+            align_items: FlexAlign::default(),
+            justify_content: FlexJustify::default(),
         };
         container.gap = 12;
         container.padding = Spacing {
@@ -246,6 +251,8 @@ impl TemplateService {
         container.layout = LayoutType::Flex {
             direction: FlexDirection::Column,
             wrap: false,
+            align_items: FlexAlign::Center,
+            justify_content: FlexJustify::Center,
         };
         container.gap = 24;
         container.padding = Spacing {
@@ -272,6 +279,8 @@ impl TemplateService {
         buttons_container.layout = LayoutType::Flex {
             direction: FlexDirection::Row,
             wrap: false,
+            align_items: FlexAlign::Center,
+            justify_content: FlexJustify::Center,
         };
         buttons_container.gap = 12;
 
@@ -312,6 +321,8 @@ impl TemplateService {
         card.layout = LayoutType::Flex {
             direction: FlexDirection::Column,
             wrap: false,
+            align_items: FlexAlign::Center,
+            justify_content: FlexJustify::default(),
         };
         card.gap = 16;
         card.padding = Spacing {
@@ -368,6 +379,8 @@ impl TemplateService {
         nav.layout = LayoutType::Flex {
             direction: FlexDirection::Row,
             wrap: false,
+            align_items: FlexAlign::Center,
+            justify_content: FlexJustify::Between,
         };
         nav.gap = 24;
         nav.padding = Spacing {
@@ -417,6 +430,8 @@ impl TemplateService {
         footer.layout = LayoutType::Flex {
             direction: FlexDirection::Row,
             wrap: true,
+            align_items: FlexAlign::Start,
+            justify_content: FlexJustify::Between,
         };
         footer.gap = 32;
         footer.padding = Spacing {
@@ -431,6 +446,8 @@ impl TemplateService {
         company_section.layout = LayoutType::Flex {
             direction: FlexDirection::Column,
             wrap: false,
+            align_items: FlexAlign::Start,
+            justify_content: FlexJustify::default(),
         };
         company_section.gap = 8;
 
@@ -448,6 +465,8 @@ impl TemplateService {
         resources_section.layout = LayoutType::Flex {
             direction: FlexDirection::Column,
             wrap: false,
+            align_items: FlexAlign::Start,
+            justify_content: FlexJustify::default(),
         };
         resources_section.gap = 8;
 
@@ -487,6 +506,8 @@ impl TemplateService {
         header.layout = LayoutType::Flex {
             direction: FlexDirection::Row,
             wrap: false,
+            align_items: FlexAlign::Center,
+            justify_content: FlexJustify::Between,
         };
         header.gap = 16;
         header.padding = Spacing {
@@ -559,6 +580,8 @@ impl TemplateService {
             card.layout = LayoutType::Flex {
                 direction: FlexDirection::Column,
                 wrap: false,
+                align_items: FlexAlign::Center,
+                justify_content: FlexJustify::default(),
             };
             card.gap = 8;
             card.padding = Spacing {

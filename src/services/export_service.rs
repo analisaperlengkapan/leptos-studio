@@ -94,33 +94,52 @@ impl LeptosCodeGenerator {
                 ));
             }
             CanvasComponent::Container(container) => {
-                let layout_class = match &container.layout {
-                    crate::domain::LayoutType::Flex { direction, wrap } => {
+                let (layout_class, align_style) = match &container.layout {
+                    crate::domain::LayoutType::Flex { direction, wrap, align_items, justify_content } => {
                         let dir = match direction {
                             crate::domain::FlexDirection::Row => "flex-row",
                             crate::domain::FlexDirection::Column => "flex-col",
                         };
+                        let mut classes = dir.to_string();
                         if *wrap {
-                            format!("{} flex-wrap", dir)
-                        } else {
-                            dir.to_string()
+                            classes.push_str(" flex-wrap");
                         }
+
+                        let align_css = match align_items {
+                            crate::domain::FlexAlign::Start => "flex-start",
+                            crate::domain::FlexAlign::Center => "center",
+                            crate::domain::FlexAlign::End => "flex-end",
+                            crate::domain::FlexAlign::Stretch => "stretch",
+                            crate::domain::FlexAlign::Baseline => "baseline",
+                        };
+
+                        let justify_css = match justify_content {
+                            crate::domain::FlexJustify::Start => "flex-start",
+                            crate::domain::FlexJustify::Center => "center",
+                            crate::domain::FlexJustify::End => "flex-end",
+                            crate::domain::FlexJustify::Between => "space-between",
+                            crate::domain::FlexJustify::Around => "space-around",
+                            crate::domain::FlexJustify::Evenly => "space-evenly",
+                        };
+
+                        (classes, format!("align-items: {}; justify-content: {};", align_css, justify_css))
                     }
                     crate::domain::LayoutType::Grid { columns, rows } => {
-                        format!("grid grid-cols-{} grid-rows-{}", columns, rows)
+                        (format!("grid grid-cols-{} grid-rows-{}", columns, rows), String::new())
                     }
-                    crate::domain::LayoutType::Stack => "stack".to_string(),
+                    crate::domain::LayoutType::Stack => ("stack".to_string(), String::new()),
                 };
 
                 output.push_str(&format!(
-                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px;\">\n",
+                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px; {}\">\n",
                     indent,
                     layout_class,
                     container.gap,
                     container.padding.top,
                     container.padding.right,
                     container.padding.bottom,
-                    container.padding.left
+                    container.padding.left,
+                    align_style
                 ));
 
                 // Recursively generate children

@@ -143,31 +143,51 @@ fn render_input(input: InputComponent) -> impl IntoView {
 }
 
 fn render_container(container: ContainerComponent, canvas_state: CanvasState) -> impl IntoView {
-    let layout_class = match &container.layout {
-        crate::domain::LayoutType::Flex { direction, wrap } => {
+    let (layout_class, align_style) = match &container.layout {
+        crate::domain::LayoutType::Flex { direction, wrap, align_items, justify_content } => {
             let dir_class = match direction {
                 crate::domain::FlexDirection::Row => "flex-row",
                 crate::domain::FlexDirection::Column => "flex-col",
             };
+
+            let mut classes = dir_class.to_string();
             if *wrap {
-                format!("{} flex-wrap", dir_class)
-            } else {
-                dir_class.to_string()
+                classes.push_str(" flex-wrap");
             }
+
+            let align_css = match align_items {
+                crate::domain::FlexAlign::Start => "flex-start",
+                crate::domain::FlexAlign::Center => "center",
+                crate::domain::FlexAlign::End => "flex-end",
+                crate::domain::FlexAlign::Stretch => "stretch",
+                crate::domain::FlexAlign::Baseline => "baseline",
+            };
+
+            let justify_css = match justify_content {
+                crate::domain::FlexJustify::Start => "flex-start",
+                crate::domain::FlexJustify::Center => "center",
+                crate::domain::FlexJustify::End => "flex-end",
+                crate::domain::FlexJustify::Between => "space-between",
+                crate::domain::FlexJustify::Around => "space-around",
+                crate::domain::FlexJustify::Evenly => "space-evenly",
+            };
+
+            (classes, format!("align-items: {}; justify-content: {};", align_css, justify_css))
         }
         crate::domain::LayoutType::Grid { columns, rows } => {
-            format!("grid grid-cols-{} grid-rows-{}", columns, rows)
+            (format!("grid grid-cols-{} grid-rows-{}", columns, rows), String::new())
         }
-        crate::domain::LayoutType::Stack => "stack".to_string(),
+        crate::domain::LayoutType::Stack => ("stack".to_string(), String::new()),
     };
 
     let style = format!(
-        "gap: {}px; padding: {}px {}px {}px {}px;",
+        "gap: {}px; padding: {}px {}px {}px {}px; {}",
         container.gap,
         container.padding.top,
         container.padding.right,
         container.padding.bottom,
-        container.padding.left
+        container.padding.left,
+        align_style
     );
 
     let container_id = container.id;

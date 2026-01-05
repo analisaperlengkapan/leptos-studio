@@ -1,6 +1,7 @@
 use crate::domain::{
-    ButtonComponent, ButtonSize, ButtonVariant, ContainerComponent, FlexDirection, InputComponent,
-    InputType, LayoutType, PropValue, TextComponent, TextStyle, TextTag,
+    ButtonComponent, ButtonSize, ButtonVariant, ContainerComponent, FlexAlign, FlexDirection,
+    FlexJustify, InputComponent, InputType, LayoutType, PropValue, TextComponent, TextStyle,
+    TextTag,
 };
 
 /// Update a ButtonComponent based on a property name and value.
@@ -119,23 +120,41 @@ pub fn update_container_prop(
             let current_layout = container.layout.clone();
             container.layout = match s.as_str() {
                 "FlexRow" => match current_layout {
-                    LayoutType::Flex { wrap, .. } => LayoutType::Flex {
+                    LayoutType::Flex {
+                        wrap,
+                        align_items,
+                        justify_content,
+                        ..
+                    } => LayoutType::Flex {
                         direction: FlexDirection::Row,
                         wrap,
+                        align_items,
+                        justify_content,
                     },
                     _ => LayoutType::Flex {
                         direction: FlexDirection::Row,
                         wrap: false,
+                        align_items: FlexAlign::default(),
+                        justify_content: FlexJustify::default(),
                     },
                 },
                 "FlexColumn" => match current_layout {
-                    LayoutType::Flex { wrap, .. } => LayoutType::Flex {
+                    LayoutType::Flex {
+                        wrap,
+                        align_items,
+                        justify_content,
+                        ..
+                    } => LayoutType::Flex {
                         direction: FlexDirection::Column,
                         wrap,
+                        align_items,
+                        justify_content,
                     },
                     _ => LayoutType::Flex {
                         direction: FlexDirection::Column,
                         wrap: false,
+                        align_items: FlexAlign::default(),
+                        justify_content: FlexJustify::default(),
                     },
                 },
                 "Grid" => match current_layout {
@@ -148,6 +167,55 @@ pub fn update_container_prop(
                 "Stack" => LayoutType::Stack,
                 _ => current_layout,
             };
+        }
+        ("align_items", PropValue::String(s)) => {
+            if let LayoutType::Flex {
+                direction,
+                wrap,
+                justify_content,
+                ..
+            } = container.layout
+            {
+                let align_items = match s.as_str() {
+                    "Start" => FlexAlign::Start,
+                    "Center" => FlexAlign::Center,
+                    "End" => FlexAlign::End,
+                    "Stretch" => FlexAlign::Stretch,
+                    "Baseline" => FlexAlign::Baseline,
+                    _ => FlexAlign::Start,
+                };
+                container.layout = LayoutType::Flex {
+                    direction,
+                    wrap,
+                    align_items,
+                    justify_content,
+                };
+            }
+        }
+        ("justify_content", PropValue::String(s)) => {
+            if let LayoutType::Flex {
+                direction,
+                wrap,
+                align_items,
+                ..
+            } = container.layout
+            {
+                let justify_content = match s.as_str() {
+                    "Start" => FlexJustify::Start,
+                    "Center" => FlexJustify::Center,
+                    "End" => FlexJustify::End,
+                    "Between" => FlexJustify::Between,
+                    "Around" => FlexJustify::Around,
+                    "Evenly" => FlexJustify::Evenly,
+                    _ => FlexJustify::Start,
+                };
+                container.layout = LayoutType::Flex {
+                    direction,
+                    wrap,
+                    align_items,
+                    justify_content,
+                };
+            }
         }
         ("gap", PropValue::Number(n)) => {
             let value = if n.is_finite() && *n >= 0.0 {
