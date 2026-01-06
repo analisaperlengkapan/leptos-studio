@@ -5,6 +5,7 @@ use super::history::{History, Snapshot};
 use super::persistence::Persistable;
 use super::project::Project;
 use crate::builder::component_library::{LibraryComponent, builtin_library_components};
+use crate::builder::design_tokens::DesignTokens;
 use crate::builder::drag_drop::DragState;
 use crate::domain::{CanvasComponent, ComponentId};
 
@@ -258,6 +259,7 @@ pub struct UiState {
     pub responsive_mode: RwSignal<ResponsiveMode>,
     pub custom_components: RwSignal<Vec<LibraryComponent>>,
     pub component_library: RwSignal<Vec<LibraryComponent>>,
+    pub design_tokens: RwSignal<DesignTokens>,
     pub render_count: RwSignal<u32>,
     pub render_time: RwSignal<f64>,
 }
@@ -274,6 +276,7 @@ impl UiState {
             responsive_mode: RwSignal::new(ResponsiveMode::default()),
             custom_components: RwSignal::new(Vec::new()),
             component_library: RwSignal::new(Self::default_components()),
+            design_tokens: RwSignal::new(DesignTokens::default()),
             render_count: RwSignal::new(0),
             render_time: RwSignal::new(0.0),
         }
@@ -469,6 +472,7 @@ impl AppState {
             self.project_name.get(),
             self.canvas.components.get(),
             self.settings.get(),
+            self.ui.design_tokens.get(),
         )
     }
 
@@ -479,6 +483,7 @@ impl AppState {
         self.canvas.selected.set(None);
         self.canvas.history.update(|h| h.clear());
         self.settings.set(project.settings);
+        self.ui.design_tokens.set(project.design_tokens);
         self.update_last_modified();
     }
 

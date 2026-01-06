@@ -26,6 +26,7 @@ pub mod snackbar;
 pub mod status_bar;
 pub mod styling_system;
 pub mod template_gallery;
+pub mod theme_editor;
 pub mod toolbar;
 pub mod tree_view;
 

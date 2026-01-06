@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::app_state::SettingsState;
+use crate::builder::design_tokens::DesignTokens;
 use crate::domain::CanvasComponent;
 
 /// Persistable project representation combining layout and settings
@@ -10,16 +11,24 @@ pub struct Project {
     pub description: Option<String>,
     pub layout: Vec<CanvasComponent>,
     pub settings: SettingsState,
+    #[serde(default)]
+    pub design_tokens: DesignTokens,
 }
 
 impl Project {
     /// Create a new project with the given name, layout, and settings
-    pub fn new(name: String, layout: Vec<CanvasComponent>, settings: SettingsState) -> Self {
+    pub fn new(
+        name: String,
+        layout: Vec<CanvasComponent>,
+        settings: SettingsState,
+        design_tokens: DesignTokens,
+    ) -> Self {
         Self {
             name,
             description: None,
             layout,
             settings,
+            design_tokens,
         }
     }
 }
