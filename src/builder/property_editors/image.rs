@@ -9,51 +9,43 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     let canvas_state = app_state.canvas;
 
     let update_src = move |new_src: String| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Image(ref mut img) = comp {
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Image(img) = c {
                 img.src = new_src;
-                canvas_state.update_component(&id, comp);
             }
-        }
+        });
     };
 
     let update_alt = move |new_alt: String| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Image(ref mut img) = comp {
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Image(img) = c {
                 img.alt = new_alt;
-                canvas_state.update_component(&id, comp);
             }
-        }
+        });
     };
 
     let update_width = move |new_width: String| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Image(ref mut img) = comp {
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Image(img) = c {
                 if new_width.is_empty() {
                     img.width = None;
                 } else {
                     img.width = Some(new_width);
                 }
-                canvas_state.update_component(&id, comp);
             }
-        }
+        });
     };
 
     let update_height = move |new_height: String| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Image(ref mut img) = comp {
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Image(img) = c {
                 if new_height.is_empty() {
                     img.height = None;
                 } else {
                     img.height = Some(new_height);
                 }
-                canvas_state.update_component(&id, comp);
             }
-        }
+        });
     };
 
     view! {

@@ -4,6 +4,7 @@ pub mod container;
 pub mod custom;
 pub mod image;
 pub mod input;
+pub mod select_property_editor;
 pub mod text;
 
 pub use button::ButtonPropertyEditor;
@@ -12,4 +13,5 @@ pub use container::ContainerPropertyEditor;
 pub use custom::CustomPropertyEditor;
 pub use image::ImagePropertyEditor;
 pub use input::InputPropertyEditor;
+pub use select_property_editor::SelectPropertyEditor;
 pub use text::TextPropertyEditor;

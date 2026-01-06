@@ -82,6 +82,7 @@ fn TreeNode(
                     CanvasComponent::Container(_) => "Container".to_string(),
                     CanvasComponent::Image(_) => "Image".to_string(),
                     CanvasComponent::Card(_) => "Card".to_string(),
+                    CanvasComponent::Select(_) => "Select".to_string(),
                     CanvasComponent::Custom(c) => format!("Custom: {}", c.name),
                 };
 
@@ -92,6 +93,7 @@ fn TreeNode(
                     CanvasComponent::Container(_) => "📦",
                     CanvasComponent::Image(_) => "🖼️",
                     CanvasComponent::Card(_) => "🃏",
+                    CanvasComponent::Select(_) => "🔽",
                     CanvasComponent::Custom(_) => "⚙️",
                 };
 

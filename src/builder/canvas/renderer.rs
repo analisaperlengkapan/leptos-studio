@@ -2,7 +2,7 @@ use crate::builder::canvas::handle_drop;
 use crate::builder::drag_drop::DropZone;
 use crate::domain::{
     ButtonComponent, CanvasComponent, CardComponent, ContainerComponent, CustomComponent,
-    ImageComponent, InputComponent, TextComponent,
+    ImageComponent, InputComponent, SelectComponent, TextComponent,
 };
 use crate::state::{AppState, CanvasState};
 use leptos::prelude::*;
@@ -51,6 +51,7 @@ pub fn ComponentRenderer(
         crate::domain::ComponentType::Container => "Container",
         crate::domain::ComponentType::Image => "Image",
         crate::domain::ComponentType::Card => "Card",
+        crate::domain::ComponentType::Select => "Select",
         crate::domain::ComponentType::Custom => "Custom",
     };
 
@@ -72,6 +73,7 @@ pub fn ComponentRenderer(
                 CanvasComponent::Container(container) => render_container(container, canvas_state).into_any(),
                 CanvasComponent::Image(img) => render_image(img).into_any(),
                 CanvasComponent::Card(card) => render_card(card, canvas_state).into_any(),
+                CanvasComponent::Select(sel) => render_select(sel).into_any(),
                 CanvasComponent::Custom(custom) => render_custom(custom).into_any(),
             }}
         </div>
@@ -143,6 +145,27 @@ fn render_input(input: InputComponent) -> impl IntoView {
             required=input.required
             disabled=input.disabled
         />
+    }
+}
+
+fn render_select(select: SelectComponent) -> impl IntoView {
+    let options: Vec<String> = select
+        .options
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .collect();
+
+    view! {
+        <select class="canvas-select" disabled=select.disabled>
+            {if !select.placeholder.is_empty() {
+                Some(view! { <option value="" disabled selected>{select.placeholder}</option> })
+            } else {
+                None
+            }}
+            {options.into_iter().map(|opt| {
+                view! { <option value=opt.clone()>{opt.clone()}</option> }
+            }).collect_view()}
+        </select>
     }
 }
 

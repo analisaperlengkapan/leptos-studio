@@ -1,6 +1,6 @@
 use crate::domain::{
     ButtonComponent, CanvasComponent, ContainerComponent, CustomComponent, FlexDirection,
-    InputComponent, LayoutType, TextComponent,
+    InputComponent, LayoutType, SelectComponent, TextComponent,
 };
 use serde::{Deserialize, Serialize};
 
@@ -242,6 +242,33 @@ pub fn builtin_library_components() -> Vec<LibraryComponent> {
             description: Some("Text input field".to_string()),
         },
         LibraryComponent {
+            name: "Select".to_string(),
+            kind: "Select".to_string(),
+            template: None,
+            category: "Basic".to_string(),
+            props_schema: Some(vec![
+                PropSchema {
+                    name: "options".to_string(),
+                    prop_type: PropType::String,
+                    required: true,
+                    description: Some("Comma separated options (e.g., A, B, C)".to_string()),
+                },
+                PropSchema {
+                    name: "placeholder".to_string(),
+                    prop_type: PropType::String,
+                    required: false,
+                    description: Some("Placeholder text".to_string()),
+                },
+                PropSchema {
+                    name: "disabled".to_string(),
+                    prop_type: PropType::Bool,
+                    required: false,
+                    description: Some("Disable select".to_string()),
+                },
+            ]),
+            description: Some("Dropdown selection component".to_string()),
+        },
+        LibraryComponent {
             name: "Container".to_string(),
             kind: "Container".to_string(),
             template: None,
@@ -420,6 +447,10 @@ pub fn create_canvas_component(component_type: &str) -> Option<CanvasComponent> 
         "Input" => {
             let input = InputComponent::new();
             Some(CanvasComponent::Input(input))
+        }
+        "Select" => {
+            let select = SelectComponent::new();
+            Some(CanvasComponent::Select(select))
         }
         "Container" => {
             let container = ContainerComponent::new();

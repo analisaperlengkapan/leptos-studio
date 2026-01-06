@@ -93,6 +93,29 @@ impl LeptosCodeGenerator {
                     indent, input_type, inp.placeholder, inp.required, inp.disabled
                 ));
             }
+            CanvasComponent::Select(sel) => {
+                output.push_str(&format!(
+                    "{}        <select disabled={}>\n",
+                    indent, sel.disabled
+                ));
+
+                if !sel.placeholder.is_empty() {
+                    output.push_str(&format!(
+                        "{}            <option value=\"\" disabled selected>\"{}\"</option>\n",
+                        indent, sel.placeholder
+                    ));
+                }
+
+                for option in sel.options.split(',') {
+                    let opt = option.trim();
+                    output.push_str(&format!(
+                        "{}            <option value=\"{}\">\"{}\"</option>\n",
+                        indent, opt, opt
+                    ));
+                }
+
+                output.push_str(&format!("{}        </select>\n", indent));
+            }
             CanvasComponent::Container(container) => {
                 let (layout_class, align_style) = match &container.layout {
                     crate::domain::LayoutType::Flex { direction, wrap, align_items, justify_content } => {
@@ -279,6 +302,17 @@ impl HtmlCodeGenerator {
                     if inp.disabled { " disabled" } else { "" }
                 ));
             }
+            CanvasComponent::Select(sel) => {
+                output.push_str(&format!("{}<select{}>\n", indent, if sel.disabled { " disabled" } else { "" }));
+                if !sel.placeholder.is_empty() {
+                    output.push_str(&format!("{}    <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                }
+                for option in sel.options.split(',') {
+                    let opt = option.trim();
+                    output.push_str(&format!("{}    <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                }
+                output.push_str(&format!("{}</select>\n", indent));
+            }
             CanvasComponent::Container(container) => {
                 output.push_str(&format!("{}<div>\n", indent));
                 for child in &container.children {
@@ -379,6 +413,12 @@ impl MarkdownCodeGenerator {
                 output.push_str(&format!("{}  - Placeholder: {}\n", indent, inp.placeholder));
                 output.push_str(&format!("{}  - Required: {}\n", indent, inp.required));
             }
+            CanvasComponent::Select(sel) => {
+                output.push_str(&format!("{}- **Select**\n", indent));
+                output.push_str(&format!("{}  - Placeholder: {}\n", indent, sel.placeholder));
+                output.push_str(&format!("{}  - Options: {}\n", indent, sel.options));
+                output.push_str(&format!("{}  - Disabled: {}\n", indent, sel.disabled));
+            }
             CanvasComponent::Container(container) => {
                 output.push_str(&format!("{}- **Container**\n", indent));
                 output.push_str(&format!("{}  - Layout: {:?}\n", indent, container.layout));
@@ -463,5 +503,57 @@ mod tests {
         assert!(code.contains("# Generated Layout Documentation"));
         assert!(code.contains("**Button**"));
         assert!(code.contains("Test"));
+    }
+
+    #[test]
+    fn test_leptos_select_generator() {
+        use crate::domain::SelectComponent;
+        let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
+        let select = CanvasComponent::Select(SelectComponent {
+            id: Default::default(),
+            options: "A, B, C".to_string(),
+            placeholder: "Choose".to_string(),
+            disabled: false,
+        });
+        let code = generator.generate(&[select]).unwrap();
+
+        assert!(code.contains("<select disabled=false>"));
+        assert!(code.contains("<option value=\"\" disabled selected>\"Choose\"</option>"));
+        assert!(code.contains("<option value=\"A\">\"A\"</option>"));
+        assert!(code.contains("<option value=\"B\">\"B\"</option>"));
+    }
+
+    #[test]
+    fn test_html_select_generator() {
+        use crate::domain::SelectComponent;
+        let generator = HtmlCodeGenerator;
+        let select = CanvasComponent::Select(SelectComponent {
+            id: Default::default(),
+            options: "X, Y".to_string(),
+            placeholder: "Pick".to_string(),
+            disabled: true,
+        });
+        let code = generator.generate(&[select]).unwrap();
+
+        assert!(code.contains("<select disabled>"));
+        assert!(code.contains("<option value=\"\" disabled selected>Pick</option>"));
+        assert!(code.contains("<option value=\"X\">X</option>"));
+    }
+
+    #[test]
+    fn test_markdown_select_generator() {
+        use crate::domain::SelectComponent;
+        let generator = MarkdownCodeGenerator;
+        let select = CanvasComponent::Select(SelectComponent {
+            id: Default::default(),
+            options: "One, Two".to_string(),
+            placeholder: "Select One".to_string(),
+            disabled: false,
+        });
+        let code = generator.generate(&[select]).unwrap();
+
+        assert!(code.contains("- **Select**"));
+        assert!(code.contains("- Placeholder: Select One"));
+        assert!(code.contains("- Options: One, Two"));
     }
 }

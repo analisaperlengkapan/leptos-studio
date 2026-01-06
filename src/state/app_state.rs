@@ -117,29 +117,68 @@ impl CanvasState {
     }
 
     /// Update a component
-    pub fn update_component(&self, id: &ComponentId, new_component: CanvasComponent) {
+    pub fn update_component(&self, id: &ComponentId, f: impl FnOnce(&mut CanvasComponent)) {
         self.components.update(|components| {
-            Self::update_recursive(components, id, new_component);
+            Self::update_recursive(components, id, f);
         });
     }
 
     fn update_recursive(
         components: &mut [CanvasComponent],
         id: &ComponentId,
-        new_component: CanvasComponent,
+        f: impl FnOnce(&mut CanvasComponent),
     ) -> bool {
-        for comp in components.iter_mut() {
-            if comp.id() == id {
-                *comp = new_component;
-                return true;
+        // We need to find the component first, then apply the closure
+        // Since we can't easily pass the closure down recursively without cloning or complex types,
+        // we'll implement a search-and-apply approach.
+        // Actually, for a FnOnce, we need to find it first.
+
+        // Iterative search or recursive search?
+        // Let's stick to the current recursive pattern but adapted for in-place mutation.
+        // We can't pass FnOnce recursively easily if we don't find it immediately.
+        // So we will change this to use a tailored recursive function that returns the result.
+        // But since we need to mutate deep down, passing the closure is tricky if it's FnOnce.
+        // Let's require the closure to be `FnOnce(&mut CanvasComponent)`.
+
+        // Wait, standard recursion with mutable iterator is fine if we return early.
+        // But we need to move `f` into the successful match arm.
+
+        // To do this with a single FnOnce, we need to locate the item first, OR pass the closure down.
+        // Since we can't clone FnOnce, we can only pass it if we haven't used it.
+        // This is hard with simple recursion.
+        // Let's try to find the path first? No, that's slow.
+
+        // Alternative: Use `FnMut` or just accept that we might need to change the signature.
+        // The previous implementation took `new_component`, which was fully constructed.
+        // The usage in `SelectPropertyEditor` passes a closure.
+        // I will change this method to accept a closure to support partial updates more efficiently.
+        // BUT, I need to implement the recursion carefully.
+
+        fn recurse(components: &mut [CanvasComponent], id: &ComponentId, f: &mut Option<impl FnOnce(&mut CanvasComponent)>) -> bool {
+             for comp in components.iter_mut() {
+                if comp.id() == id {
+                    if let Some(func) = f.take() {
+                        func(comp);
+                    }
+                    return true;
+                }
+
+                // Recurse into children
+                match comp {
+                    CanvasComponent::Container(c) => {
+                        if recurse(&mut c.children, id, f) { return true; }
+                    }
+                    CanvasComponent::Card(c) => {
+                        if recurse(&mut c.children, id, f) { return true; }
+                    }
+                    _ => {}
+                }
             }
-            if let CanvasComponent::Container(container) = comp
-                && Self::update_recursive(&mut container.children[..], id, new_component.clone())
-            {
-                return true;
-            }
+            false
         }
-        false
+
+        let mut f_opt = Some(f);
+        recurse(components, id, &mut f_opt)
     }
 
     /// Update a component and record a snapshot
@@ -150,7 +189,7 @@ impl CanvasState {
         description: &str,
     ) {
         self.record_snapshot(description);
-        self.update_component(id, new_component);
+        self.update_component(id, |c| *c = new_component);
     }
 
     /// Record a snapshot for undo/redo

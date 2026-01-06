@@ -31,6 +31,7 @@ pub fn ButtonPropertyEditor(
             // For now, let's assume we can notify here
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
+            // We need to overwrite the component
             canvas_state.update_component_with_snapshot(
                 &id,
                 updated,

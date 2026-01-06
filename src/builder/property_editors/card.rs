@@ -9,43 +9,35 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     let canvas_state = app_state.canvas;
 
     let update_padding = move |val: f64| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Card(ref mut c) = comp {
-                c.padding = val as u32;
-                canvas_state.update_component(&id, comp);
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Card(card) = c {
+                card.padding = val as u32;
             }
-        }
+        });
     };
 
     let update_radius = move |val: f64| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Card(ref mut c) = comp {
-                c.border_radius = val as u32;
-                canvas_state.update_component(&id, comp);
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Card(card) = c {
+                card.border_radius = val as u32;
             }
-        }
+        });
     };
 
     let update_shadow = move |val: bool| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Card(ref mut c) = comp {
-                c.shadow = val;
-                canvas_state.update_component(&id, comp);
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Card(card) = c {
+                card.shadow = val;
             }
-        }
+        });
     };
 
     let update_border = move |val: bool| {
-        #[allow(clippy::collapsible_if)]
-        if let Some(mut comp) = canvas_state.get_component(&id) {
-            if let crate::domain::CanvasComponent::Card(ref mut c) = comp {
-                c.border = val;
-                canvas_state.update_component(&id, comp);
+        canvas_state.update_component(&id, |c| {
+            if let crate::domain::CanvasComponent::Card(card) = c {
+                card.border = val;
             }
-        }
+        });
     };
 
     view! {

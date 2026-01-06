@@ -28,6 +28,7 @@ pub fn TextPropertyEditor(
         if let Err(e) = updated.validate() {
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
+            // Overwrite using new signature (closure that assigns the value)
             canvas_state.update_component_with_snapshot(
                 &id,
                 updated,
