@@ -1,9 +1,10 @@
-use crate::domain::CanvasComponent;
+use crate::domain::{CanvasComponent, ComponentId, ComponentType};
 use crate::state::AppState;
 use leptos::prelude::*;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct BreadcrumbItem {
+    pub id: Option<ComponentId>,
     pub name: String,
     pub component_type: String,
     pub index: Option<usize>,
@@ -24,22 +25,19 @@ impl BreadcrumbItem {
     }
 
     pub fn display_name(&self) -> String {
-        match &self.index {
-            Some(idx) => format!("{} #{}", self.component_type, idx + 1),
-            None => "Canvas".to_string(),
-        }
+        self.component_type.clone()
     }
 }
 
-fn component_type(component: &CanvasComponent) -> String {
-    match component {
-        CanvasComponent::Button(_) => "Button".to_string(),
-        CanvasComponent::Text(_) => "Text".to_string(),
-        CanvasComponent::Input(_) => "Input".to_string(),
-        CanvasComponent::Container(_) => "Container".to_string(),
-        CanvasComponent::Image(_) => "Image".to_string(),
-        CanvasComponent::Card(_) => "Card".to_string(),
-        CanvasComponent::Custom(_) => "Custom".to_string(),
+fn component_type_str(component: &CanvasComponent) -> String {
+    match component.component_type() {
+        ComponentType::Button => "Button".to_string(),
+        ComponentType::Text => "Text".to_string(),
+        ComponentType::Input => "Input".to_string(),
+        ComponentType::Container => "Container".to_string(),
+        ComponentType::Image => "Image".to_string(),
+        ComponentType::Card => "Card".to_string(),
+        ComponentType::Custom => "Custom".to_string(),
     }
 }
 
@@ -61,51 +59,84 @@ fn component_name(component: &CanvasComponent) -> String {
     }
 }
 
+// Recursive search for path
+fn find_path(
+    components: &[CanvasComponent],
+    target_id: ComponentId,
+    current_path: &mut Vec<BreadcrumbItem>,
+) -> bool {
+    for (i, comp) in components.iter().enumerate() {
+        if *comp.id() == target_id {
+            current_path.push(BreadcrumbItem {
+                id: Some(*comp.id()),
+                name: component_name(comp),
+                component_type: component_type_str(comp),
+                index: Some(i),
+            });
+            return true;
+        }
+
+        // Search children
+        match comp {
+            CanvasComponent::Container(c) => {
+                current_path.push(BreadcrumbItem {
+                    id: Some(*comp.id()),
+                    name: component_name(comp),
+                    component_type: component_type_str(comp),
+                    index: Some(i),
+                });
+                if find_path(&c.children, target_id, current_path) {
+                    return true;
+                }
+                current_path.pop();
+            }
+            CanvasComponent::Card(c) => {
+                current_path.push(BreadcrumbItem {
+                    id: Some(*comp.id()),
+                    name: component_name(comp),
+                    component_type: component_type_str(comp),
+                    index: Some(i),
+                });
+                if find_path(&c.children, target_id, current_path) {
+                    return true;
+                }
+                current_path.pop();
+            }
+            _ => {}
+        }
+    }
+    false
+}
+
 #[component]
 pub fn BreadcrumbNavigation() -> impl IntoView {
-    // Get app state from context - no prop drilling!
     let app_state = AppState::expect_context();
-    let canvas_state = app_state.canvas;
 
     let breadcrumbs = Memo::new(move |_| {
         let mut items = vec![BreadcrumbItem {
+            id: None,
             name: "Canvas".to_string(),
-            component_type: "Canvas".to_string(),
+            component_type: "Root".to_string(),
             index: None,
         }];
 
-        if let Some(selected_id) = canvas_state.selected.get() {
-            let components = canvas_state.components.get();
-            if let Some((idx, component)) = components
-                .iter()
-                .enumerate()
-                .find(|(_, c)| c.id() == &selected_id)
-            {
-                items.push(BreadcrumbItem {
-                    name: component_name(component),
-                    component_type: component_type(component),
-                    index: Some(idx),
-                });
+        if let Some(selected_id) = app_state.canvas.selected.get() {
+            let components = app_state.canvas.components.get();
+            let mut path = Vec::new();
+            if find_path(&components, selected_id, &mut path) {
+                items.extend(path);
             }
         }
 
         items
     });
 
-    let navigate_to = move |item: BreadcrumbItem| match item.index {
-        Some(idx) => {
-            let components = canvas_state.components.get();
-            if let Some(component) = components.get(idx) {
-                canvas_state.selected.set(Some(*component.id()));
-            }
-        }
-        None => {
-            canvas_state.selected.set(None);
-        }
+    let navigate_to = move |item: BreadcrumbItem| {
+        app_state.canvas.selected.set(item.id);
     };
 
     view! {
-        <nav class="breadcrumb-nav" aria-label="Component navigation">
+        <nav class="breadcrumb-nav flex items-center gap-1 overflow-x-auto whitespace-nowrap py-1 px-2 border-t border-gray-200 bg-white" aria-label="Component navigation">
             <For
                 each=move || breadcrumbs.get().into_iter().enumerate()
                 key=|(i, _)| *i
@@ -116,13 +147,13 @@ pub fn BreadcrumbNavigation() -> impl IntoView {
                     view! {
                         <>
                             {move || if index > 0 {
-                                view! { <span class="breadcrumb-separator">"/"</span> }.into_any()
+                                view! { <span class="text-gray-400 text-xs px-1">"/"</span> }.into_any()
                             } else {
-                                view! { <span class="breadcrumb-separator" style="display:none;"></span> }.into_any()
+                                view! { <span class="hidden"></span> }.into_any()
                             }}
 
                             <button
-                                class="breadcrumb-item"
+                                class="breadcrumb-item flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-gray-100 transition-colors disabled:opacity-100 disabled:font-semibold disabled:text-blue-600"
                                 disabled=is_last()
                                 on:click={
                                     let item = item_clone.clone();
@@ -133,28 +164,19 @@ pub fn BreadcrumbNavigation() -> impl IntoView {
                                     }
                                 }
                             >
-                                <span>{item.icon()}</span>
-                                <span>{item.display_name()}</span>
+                                <span class="text-xs">{item.icon()}</span>
+                                <span class="text-xs">{item.display_name()}</span>
                                 {move || {
                                     let item_name = item.name.clone();
                                     let display_name = item.display_name();
                                     if !item_name.is_empty() && item_name != display_name {
                                         view! {
-                                            <span style="
-                                                font-size: 11px;
-                                                opacity: 0.7;
-                                                background: rgba(0,0,0,0.1);
-                                                padding: 1px 4px;
-                                                border-radius: 2px;
-                                                margin-left: 4px;
-                                                max-width: 80px;
-                                                overflow: hidden;
-                                                text-overflow: ellipsis;
-                                                white-space: nowrap;
-                                            ">{item_name}</span>
+                                            <span class="text-[10px] text-gray-500 bg-gray-50 px-1 rounded ml-1 max-w-[80px] truncate">
+                                                {item_name}
+                                            </span>
                                         }.into_any()
                                     } else {
-                                        view! { <span style="display:none;"></span> }.into_any()
+                                        view! { <span class="hidden"></span> }.into_any()
                                     }
                                 }}
                             </button>

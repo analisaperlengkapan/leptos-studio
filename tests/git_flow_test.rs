@@ -2,6 +2,7 @@ use leptos_studio::services::GitBackend;
 use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
 use leptos_studio::state::app_state::SettingsState;
 use leptos_studio::state::project::Project;
+use leptos_studio::builder::design_tokens::DesignTokens;
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
@@ -16,6 +17,7 @@ async fn test_git_flow_end_to_end() {
         "Test Project".to_string(),
         Vec::new(),
         SettingsState::default(),
+        DesignTokens::default(),
     );
 
     // 3. Check Initial Status (Should be clean effectively if new, or dirty if we consider empty different from HEAD=None)
@@ -95,6 +97,7 @@ async fn test_git_reset_flow() {
         "Reset Test".to_string(),
         Vec::new(),
         SettingsState::default(),
+        DesignTokens::default(),
     );
 
     // Make a commit
