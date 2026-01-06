@@ -198,7 +198,9 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
 
     // Handle dropping items into this container
     let on_drop = move |ev: leptos::ev::DragEvent| {
-        handle_drop(ev, canvas_state, Some(container_id));
+        // Fix: Use app_state for the third argument
+        let app_state = AppState::expect_context();
+        handle_drop(ev, Some(container_id), app_state);
     };
 
     let has_children = !container.children.is_empty();
@@ -314,7 +316,9 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
 
     // Handle dropping items into this card
     let on_drop = move |ev: leptos::ev::DragEvent| {
-        handle_drop(ev, canvas_state, Some(card_id));
+        // Fix: Use app_state for the third argument
+        let app_state = AppState::expect_context();
+        handle_drop(ev, Some(card_id), app_state);
     };
 
     view! {

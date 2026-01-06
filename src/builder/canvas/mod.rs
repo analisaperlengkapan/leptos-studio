@@ -1,246 +1,217 @@
-pub mod empty_state;
+use leptos::{html, ev, prelude::*};
+use crate::state::app_state::AppState;
+use crate::domain::ComponentId;
+use crate::builder::canvas::renderer::ComponentRenderer;
+use crate::builder::context_menu::ContextMenu;
+use crate::builder::breadcrumb::BreadcrumbNavigation;
+use crate::builder::component_library::create_canvas_component;
+use wasm_bindgen::JsCast;
+
 pub mod renderer;
 
-pub use empty_state::CanvasEmptyState;
-pub use renderer::ComponentRenderer;
+pub fn handle_drag_over(ev: ev::DragEvent) {
+    ev.prevent_default();
+}
 
-use leptos::prelude::*;
-use web_sys::DragEvent;
+pub fn handle_drop(ev: ev::DragEvent, _target_id: Option<ComponentId>, app_state: AppState) {
+    ev.prevent_default();
+    ev.stop_propagation();
 
-use crate::builder::component_library::create_canvas_component;
-use crate::builder::drag_drop::DropZone;
-use crate::domain::{CanvasComponent, ComponentId};
-use crate::state::{AppState, CanvasState, ResponsiveMode, Snapshot};
-
-/// Main Canvas component for the UI builder
-///
-/// The Canvas is where users drag and drop components to build their UI.
-/// It uses AppState context for all state management, eliminating prop drilling.
-#[component]
-pub fn Canvas() -> impl IntoView {
-    // Get app state from context - no prop drilling!
-    let app_state = AppState::expect_context();
-    let canvas_state = app_state.canvas;
-
-    // Drag and drop handlers
-    let drop_zone_on_drop = move |ev: leptos::ev::DragEvent| {
-        handle_drop(ev, canvas_state, None);
-    };
-
-    // Clear selection when clicking on empty canvas area
-    let on_canvas_click = move |_ev: leptos::ev::MouseEvent| {
-        canvas_state.selected.set(None);
-    };
-
-    // Optimization: Track render time in an effect to avoid side effects during render
-    // Use a Memo to capture the start time when the dependency changes (before render)
-    let render_tracker = Memo::new(move |_: Option<&Option<f64>>| {
-        canvas_state.components.track(); // Track changes
-
-        #[cfg(target_arch = "wasm32")]
-        #[allow(clippy::collapsible_if)]
-        if let Some(window) = web_sys::window() {
-            if let Some(perf) = window.performance() {
-                return Some(perf.now());
+    let drag_ev = ev.unchecked_into::<web_sys::DragEvent>();
+    if let Some(dt) = drag_ev.data_transfer() {
+        if let Some(component_type_str) = dt.get_data("component").ok() {
+            // Use factory method from component_library
+            if let Some(new_component) = create_canvas_component(&component_type_str) {
+                if let Some(target) = _target_id {
+                    app_state.canvas.add_child_component(&target, new_component);
+                } else {
+                    app_state.canvas.add_component(new_component);
+                }
             }
         }
-        None
-    });
+    }
 
-    Effect::new(move |_| {
-        // Dependencies
-        let _start_time = render_tracker.get();
+    app_state.canvas.drag_state.set(crate::builder::drag_drop::DragState::NotDragging);
+}
 
-        #[cfg(target_arch = "wasm32")]
-        #[allow(clippy::collapsible_if)]
-        if let Some(start) = _start_time {
-            if let Some(window) = web_sys::window() {
-                if let Some(perf) = window.performance() {
-                    let end = perf.now();
-                    let duration = (end - start).max(0.0);
-                    app_state.ui.render_time.set(duration);
+#[component]
+pub fn Canvas() -> impl IntoView {
+    let app_state = AppState::expect_context();
+
+    // Track canvas element for dimension measurements
+    let canvas_ref = create_node_ref::<html::Div>();
+
+    // Context Menu State
+    let (cm_visible, set_cm_visible) = signal(false);
+    let (cm_position, set_cm_position) = signal((0.0, 0.0));
+    let (cm_target_id, set_cm_target_id) = signal(Option::<ComponentId>::None);
+
+    // Handle background click to deselect
+    let on_canvas_click = move |ev: ev::MouseEvent| {
+        // Only deselect if clicking the canvas background directly
+        let target = event_target::<web_sys::HtmlElement>(&ev);
+        if target.id() == "main-canvas" {
+            app_state.canvas.selected.set(None);
+        }
+    };
+
+    // Handle context menu
+    let on_context_menu = move |ev: ev::MouseEvent| {
+        ev.prevent_default();
+        let target = event_target::<web_sys::Element>(&ev);
+
+        // Find closest component ID
+        if let Some(closest) = target.closest("[data-component-id]").ok().flatten() {
+            if let Some(id_str) = closest.get_attribute("data-component-id") {
+                let components = app_state.canvas.components.get_untracked();
+                let found_id = find_component_id_by_string(&components, &id_str);
+
+                if let Some(id) = found_id {
+                    set_cm_target_id.set(Some(id));
+                    set_cm_position.set((ev.client_x() as f64, ev.client_y() as f64));
+                    set_cm_visible.set(true);
+
+                    // Also select it
+                    app_state.canvas.selected.set(Some(id));
+                    return;
                 }
             }
         }
 
-        app_state.ui.render_count.update(|count| {
-            *count = count.saturating_add(1);
-        });
-    });
+        // If background
+        set_cm_visible.set(false);
+    };
 
-    // Memoize the empty check to prevent unnecessary re-evaluations
-    let is_empty = Memo::new(move |_| canvas_state.components.with(|c| c.is_empty()));
-    let preview_mode = app_state.ui.preview_mode;
-    let responsive_mode = app_state.ui.responsive_mode;
-
-    // Derived style for the canvas based on responsive mode
-    let canvas_style = move || {
-        let width = match responsive_mode.get() {
-            ResponsiveMode::Desktop => "100%",
-            ResponsiveMode::Tablet | ResponsiveMode::TabletLandscape => "768px",
-            ResponsiveMode::Mobile | ResponsiveMode::MobileLandscape => "375px",
-        };
-
-        format!("max-width: {}; margin: 0 auto; transition: max-width 0.3s ease-in-out;", width)
+    // Calculate width based on responsive mode
+    let canvas_width = move || {
+        use crate::state::app_state::ResponsiveMode;
+        match app_state.ui.responsive_mode.get() {
+            ResponsiveMode::Desktop => "100%".to_string(),
+            ResponsiveMode::Tablet => "768px".to_string(),
+            ResponsiveMode::TabletLandscape => "1024px".to_string(),
+            ResponsiveMode::Mobile => "375px".to_string(),
+            ResponsiveMode::MobileLandscape => "667px".to_string(),
+        }
     };
 
     view! {
-        <div class="canvas-viewport-wrapper">
-            {move || if !preview_mode.get() {
-                view! {
-                    <DropZone
-                        zone_name="canvas-root".to_string()
-                        drag_state=app_state.canvas.drag_state
-                        on_drop=drop_zone_on_drop
-                        config=None
-                    >
-                        <div
-                            class="canvas"
-                            style=canvas_style
-                            on:click=on_canvas_click
-                        >
-                            <div class="canvas-content">
-                                {move || {
-                                    // Force evaluation of render_tracker during render phase
-                                    let _ = render_tracker.get();
+        <div
+            class="flex-1 bg-gray-100 relative overflow-hidden flex flex-col"
+            on:contextmenu=on_context_menu
+        >
+            <div
+                class="flex-1 relative overflow-auto flex flex-col items-center justify-center p-8 canvas-area"
+                on:click=on_canvas_click
+                on:dragover=move |ev| handle_drag_over(ev)
+                on:drop=move |ev| handle_drop(ev, None, app_state)
+            >
+                <div
+                    id="main-canvas"
+                    node_ref=canvas_ref
+                    class="bg-white shadow-lg min-h-[600px] w-full max-w-[1024px] relative transition-all duration-300"
+                    style:width=canvas_width
+                >
+                    {move || {
+                        let components = app_state.canvas.components.get();
 
-                                    if is_empty.get() {
-                                        view! { <CanvasEmptyState /> }.into_any()
-                                    } else {
-                                        view! {
-                                            <For
-                                                each=move || canvas_state.components.get()
-                                                key=|comp| *comp.id()
-                                                children=move |comp| {
-                                                    view! {
-                                                        <ComponentRenderer
-                                                            component=comp
-                                                            canvas_state=canvas_state
-                                                        />
-                                                    }
-                                                }
-                                            />
-                                        }.into_any()
+                        view! {
+                            <For
+                                each=move || components.clone()
+                                key=|comp| *comp.id()
+                                children=move |comp| {
+                                    view! {
+                                        <ComponentRenderer
+                                            component=comp
+                                            canvas_state=app_state.canvas
+                                        />
                                     }
-                                }}
-                            </div>
-                        </div>
-                    </DropZone>
-                }.into_any()
-            } else {
-                view! {
-                    <div class="canvas preview-mode" style=canvas_style>
-                        <div class="canvas-content">
-                            {move || {
-                                // Force evaluation of render_tracker during render phase
-                                let _ = render_tracker.get();
-
-                                view! {
-                                    <For
-                                        each=move || canvas_state.components.get()
-                                        key=|comp| *comp.id()
-                                        children=move |comp| {
-                                            view! {
-                                                <ComponentRenderer
-                                                    component=comp
-                                                    canvas_state=canvas_state
-                                                />
-                                            }
-                                        }
-                                    />
                                 }
-                            }}
-                        </div>
-                    </div>
-                }.into_any()
-            }}
+                            />
+                        }
+                    }}
+                </div>
+            </div>
+
+            // Breadcrumbs at the bottom
+            <BreadcrumbNavigation />
+
+            // Context Menu
+            <ContextMenu
+                visible=cm_visible
+                position=cm_position
+                component_id=cm_target_id
+                on_close=Callback::new(move |_| set_cm_visible.set(false))
+                on_delete=Callback::new(move |id| {
+                    app_state.canvas.remove_component(&id);
+                })
+                on_duplicate=Callback::new(move |id| {
+                    // Use the new duplicate_with_new_id method
+                    if let Some(comp) = app_state.canvas.get_component(&id) {
+                         let new_comp = comp.duplicate_with_new_id();
+                         app_state.canvas.add_component(new_comp);
+                    }
+                })
+                on_select_parent=Callback::new(move |id| {
+                     if let Some(parent_id) = find_parent_id(&app_state.canvas.components.get_untracked(), id) {
+                         app_state.canvas.selected.set(Some(parent_id));
+                     }
+                })
+            />
         </div>
     }
 }
 
-/// Handle drop event on canvas
-pub fn handle_drop(ev: DragEvent, canvas_state: CanvasState, parent_id: Option<ComponentId>) {
-    ev.prevent_default();
-    ev.stop_propagation(); // Stop event bubbling to avoid double drops
-
-    if let Some(data_transfer) = ev.data_transfer()
-        && let Ok(component_type) = data_transfer.get_data("component")
-    {
-        if component_type.is_empty() {
-            return;
+// Helper to find ID from string
+fn find_component_id_by_string(components: &[crate::domain::CanvasComponent], id_str: &str) -> Option<ComponentId> {
+    for comp in components {
+        if comp.id().to_string() == id_str {
+            return Some(*comp.id());
         }
 
-        // Create snapshot before modification
-        let snapshot = Snapshot::new(
-            canvas_state.components.get(),
-            canvas_state.selected.get(),
-            if parent_id.is_some() {
-                "Add Child Component"
-            } else {
-                "Add Component"
+        match comp {
+            crate::domain::CanvasComponent::Container(c) => {
+                if let Some(found) = find_component_id_by_string(&c.children, id_str) {
+                    return Some(found);
+                }
             }
-            .to_string(),
-        );
-        canvas_state.history.update(|h| h.push(snapshot));
-
-        // Add new component based on type
-        let new_component = create_component_from_type(&component_type);
-
-        if let Some(component) = new_component {
-            if let Some(parent) = parent_id {
-                canvas_state.add_child_component_without_snapshot(&parent, component);
-            } else {
-                canvas_state.add_component_without_snapshot(component);
+            crate::domain::CanvasComponent::Card(c) => {
+                if let Some(found) = find_component_id_by_string(&c.children, id_str) {
+                    return Some(found);
+                }
             }
+            _ => {}
         }
     }
+    None
 }
 
-/// Create component from drag data type string
-fn create_component_from_type(component_type: &str) -> Option<CanvasComponent> {
-    create_canvas_component(component_type)
-}
+// Helper to find parent ID
+fn find_parent_id(components: &[crate::domain::CanvasComponent], target_id: ComponentId) -> Option<ComponentId> {
+     for comp in components {
+        let is_parent = match comp {
+            crate::domain::CanvasComponent::Container(c) => c.children.iter().any(|child| *child.id() == target_id),
+            crate::domain::CanvasComponent::Card(c) => c.children.iter().any(|child| *child.id() == target_id),
+            _ => false
+        };
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+        if is_parent {
+            return Some(*comp.id());
+        }
 
-    #[test]
-    fn test_create_component_button() {
-        let comp = create_component_from_type("Button");
-        assert!(comp.is_some());
-        if let Some(CanvasComponent::Button(btn)) = comp {
-            assert_eq!(btn.label, "Button");
-        } else {
-            panic!("Expected Button component");
+        // Recurse
+        match comp {
+             crate::domain::CanvasComponent::Container(c) => {
+                if let Some(found) = find_parent_id(&c.children, target_id) {
+                    return Some(found);
+                }
+            }
+            crate::domain::CanvasComponent::Card(c) => {
+                if let Some(found) = find_parent_id(&c.children, target_id) {
+                    return Some(found);
+                }
+            }
+            _ => {}
         }
     }
-
-    #[test]
-    fn test_create_component_text() {
-        let comp = create_component_from_type("Text");
-        assert!(comp.is_some());
-        if let Some(CanvasComponent::Text(txt)) = comp {
-            assert_eq!(txt.content, "Text");
-        } else {
-            panic!("Expected Text component");
-        }
-    }
-
-    #[test]
-    fn test_create_component_custom() {
-        let comp = create_component_from_type("Custom::MyComponent");
-        assert!(comp.is_some());
-        if let Some(CanvasComponent::Custom(custom)) = comp {
-            assert_eq!(custom.name, "MyComponent");
-        } else {
-            panic!("Expected Custom component");
-        }
-    }
-
-    #[test]
-    fn test_create_component_invalid() {
-        let comp = create_component_from_type("InvalidType");
-        assert!(comp.is_none());
-    }
+    None
 }

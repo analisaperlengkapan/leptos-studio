@@ -513,6 +513,48 @@ impl CanvasComponent {
             CanvasComponent::Custom(c) => c.validate(),
         }
     }
+
+    pub fn duplicate_with_new_id(&self) -> Self {
+        match self {
+            CanvasComponent::Button(c) => {
+                let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                CanvasComponent::Button(new_c)
+            },
+            CanvasComponent::Text(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                CanvasComponent::Text(new_c)
+            },
+            CanvasComponent::Input(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                CanvasComponent::Input(new_c)
+            },
+            CanvasComponent::Image(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                CanvasComponent::Image(new_c)
+            },
+            CanvasComponent::Container(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                new_c.children = c.children.iter().map(|child| child.duplicate_with_new_id()).collect();
+                CanvasComponent::Container(new_c)
+            },
+            CanvasComponent::Card(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                new_c.children = c.children.iter().map(|child| child.duplicate_with_new_id()).collect();
+                CanvasComponent::Card(new_c)
+            },
+            CanvasComponent::Custom(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                CanvasComponent::Custom(new_c)
+            },
+        }
+    }
 }
 
 #[cfg(test)]
@@ -570,5 +612,24 @@ mod tests {
                 "".to_string(),
             )));
         assert!(container.validate().is_err());
+    }
+
+    #[test]
+    fn test_duplicate_with_new_id() {
+        let mut container = ContainerComponent::new();
+        let button = ButtonComponent::new("Button".to_string());
+        container.children.push(CanvasComponent::Button(button));
+
+        let original = CanvasComponent::Container(container);
+        let duplicated = original.duplicate_with_new_id();
+
+        assert_ne!(original.id(), duplicated.id());
+
+        if let CanvasComponent::Container(orig_c) = &original {
+            if let CanvasComponent::Container(dup_c) = &duplicated {
+                assert_eq!(orig_c.children.len(), dup_c.children.len());
+                assert_ne!(orig_c.children[0].id(), dup_c.children[0].id());
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ pub mod component_constraints;
 pub mod component_library;
 pub mod component_library_enhanced;
 pub mod component_palette;
+pub mod context_menu;
 pub mod design_tokens;
 pub mod drag_drop;
 pub mod export_modal;
