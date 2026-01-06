@@ -1,3 +1,4 @@
+use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::domain::{CanvasComponent, ComponentId, InputType, PropValue};
@@ -111,5 +112,15 @@ pub fn InputPropertyEditor(
                 }
                 }).collect::<Vec<_>>()}
         </div>
+
+        <AnimationPropertyEditor
+            _id=comp_id
+            animation=input.animation.clone()
+            on_change=move |new_anim| {
+                let mut updated = input.clone();
+                updated.animation = new_anim;
+                apply_update(comp_id, CanvasComponent::Input(updated), "animation".to_string());
+            }
+        />
     }
 }

@@ -1,11 +1,15 @@
 use crate::builder::canvas::handle_drop;
 use crate::builder::drag_drop::DropZone;
 use crate::domain::{
-    ButtonComponent, CanvasComponent, CardComponent, ContainerComponent, CustomComponent,
-    ImageComponent, InputComponent, SelectComponent, TextComponent,
+    Animation, ButtonComponent, CanvasComponent, CardComponent, ContainerComponent,
+    CustomComponent, ImageComponent, InputComponent, SelectComponent, TextComponent,
 };
 use crate::state::{AppState, CanvasState};
 use leptos::prelude::*;
+
+fn get_animation_style(animation: &Option<Animation>) -> String {
+    animation.as_ref().map(|a| a.to_css_string()).unwrap_or_default()
+}
 
 /// Component renderer for displaying canvas components
 #[component]
@@ -94,10 +98,13 @@ fn render_button(button: ButtonComponent) -> impl IntoView {
         crate::domain::ButtonSize::Large => "btn-lg",
     };
 
+    let anim_style = get_animation_style(&button.animation);
+
     view! {
         <button
             class=format!("canvas-button {} {}", variant_class, size_class)
             disabled=button.disabled
+            style=anim_style
         >
             {button.label}
         </button>
@@ -121,8 +128,10 @@ fn render_text(text: TextComponent) -> impl IntoView {
         crate::domain::TextStyle::Caption => "style-caption",
     };
 
+    let anim_style = get_animation_style(&text.animation);
+
     view! {
-        <span class=format!("canvas-text {} {}", tag_class, style_class)>
+        <span class=format!("canvas-text {} {}", tag_class, style_class) style=anim_style>
             {text.content}
         </span>
     }
@@ -137,6 +146,8 @@ fn render_input(input: InputComponent) -> impl IntoView {
         crate::domain::InputType::Tel => "tel",
     };
 
+    let anim_style = get_animation_style(&input.animation);
+
     view! {
         <input
             class="canvas-input"
@@ -144,6 +155,7 @@ fn render_input(input: InputComponent) -> impl IntoView {
             placeholder=input.placeholder
             required=input.required
             disabled=input.disabled
+            style=anim_style
         />
     }
 }
@@ -155,8 +167,10 @@ fn render_select(select: SelectComponent) -> impl IntoView {
         .map(|s| s.trim().to_string())
         .collect();
 
+    let anim_style = get_animation_style(&select.animation);
+
     view! {
-        <select class="canvas-select" disabled=select.disabled>
+        <select class="canvas-select" disabled=select.disabled style=anim_style>
             {if !select.placeholder.is_empty() {
                 Some(view! { <option value="" disabled selected>{select.placeholder}</option> })
             } else {
@@ -207,14 +221,17 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
         crate::domain::LayoutType::Stack => ("stack".to_string(), String::new()),
     };
 
+    let anim_style = get_animation_style(&container.animation);
+
     let style = format!(
-        "gap: {}px; padding: {}px {}px {}px {}px; {}",
+        "gap: {}px; padding: {}px {}px {}px {}px; {} {}",
         container.gap,
         container.padding.top,
         container.padding.right,
         container.padding.bottom,
         container.padding.left,
-        align_style
+        align_style,
+        anim_style
     );
 
     let container_id = container.id;
@@ -308,6 +325,8 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
 }
 
 fn render_image(image: ImageComponent) -> impl IntoView {
+    let anim_style = get_animation_style(&image.animation);
+
     view! {
         <img
             src=image.src
@@ -316,6 +335,7 @@ fn render_image(image: ImageComponent) -> impl IntoView {
             style:width=image.width
             style:height=image.height
             style:max-width="100%"
+            style=anim_style
         />
     }
 }
@@ -328,11 +348,14 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
     let has_children = !children.is_empty();
     let preview_mode = AppState::expect_context().ui.preview_mode;
 
+    let anim_style = get_animation_style(&card.animation);
+
     let style = format!(
-        "padding: {}px; border-radius: {}px; {}",
+        "padding: {}px; border-radius: {}px; {} {}",
         padding,
         border_radius,
-        if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);" } else { "" }
+        if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);" } else { "" },
+        anim_style
     );
 
     let border_class = if card.border { "border border-gray-200" } else { "" };

@@ -1,3 +1,4 @@
+use super::AnimationPropertyEditor;
 use crate::builder::property_inputs::StringInput;
 use crate::domain::ImageComponent;
 use crate::state::AppState;
@@ -48,6 +49,9 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
         });
     };
 
+    let id_clone = id;
+    let img_clone = image.clone();
+
     view! {
         <div class="property-group">
             <h4 class="group-title">"Image Properties"</h4>
@@ -72,5 +76,17 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
                 on_change=move |val: String| update_height(val)
             />
         </div>
+
+        <AnimationPropertyEditor
+            _id=id_clone
+            animation=img_clone.animation
+            on_change=move |new_anim| {
+                canvas_state.update_component(&id_clone, |c| {
+                    if let crate::domain::CanvasComponent::Image(img) = c {
+                        img.animation = new_anim;
+                    }
+                });
+            }
+        />
     }
 }
