@@ -6,7 +6,7 @@ use crate::builder::canvas::Canvas;
 use crate::builder::code_panel::CodePanel;
 use crate::builder::command_palette::CommandPalette;
 use crate::builder::component_palette::ComponentPalette;
-use crate::builder::design_tokens::{DesignTokenProvider, DesignTokens};
+use crate::builder::design_tokens::DesignTokenProvider;
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
 use crate::builder::git_panel::GitPanel;
@@ -46,9 +46,6 @@ pub fn App() -> impl IntoView {
 
     // Create and provide derived state for memoized computations
     DerivedState::provide_context(app_state);
-
-    // Design tokens
-    let design_tokens = RwSignal::new(DesignTokens::default());
 
     // Export modal (local UI state)
     let show_export = RwSignal::new(false);
@@ -116,7 +113,7 @@ pub fn App() -> impl IntoView {
     let active_left_tab = RwSignal::new(LeftPanelTab::Add);
 
     view! {
-        <DesignTokenProvider tokens=design_tokens>
+        <DesignTokenProvider tokens=app_state.ui.design_tokens>
             <AccessibilityProvider>
                 <SkipLink target="#main-canvas" label="Skip to canvas" />
                 <div class="leptos-studio" tabindex="0" role="application" aria-label="Leptos Studio Visual Builder">
@@ -174,7 +171,7 @@ pub fn App() -> impl IntoView {
                                 {move || match active_left_tab.get() {
                                     LeftPanelTab::Add => view! { <ComponentPalette /> }.into_any(),
                                     LeftPanelTab::Layers => view! { <TreeView /> }.into_any(),
-                                    LeftPanelTab::Theme => view! { <ThemeEditor tokens=design_tokens /> }.into_any(),
+                                    LeftPanelTab::Theme => view! { <ThemeEditor tokens=app_state.ui.design_tokens /> }.into_any(),
                                 }}
                             </div>
                         </aside>

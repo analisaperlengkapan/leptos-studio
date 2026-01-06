@@ -2550,3 +2550,57 @@ input::placeholder, textarea::placeholder {
 .box-model-editor .property-field {
     margin: 0;
 }
+
+/* Theme Editor Styles */
+.theme-editor {
+    padding: 1rem;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.theme-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.theme-description {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.theme-section {
+    margin-bottom: 2rem;
+}
+
+.theme-section-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    color: #4b5563;
+}
+
+.colors-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.typography-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.typography-item {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.typography-name {
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}

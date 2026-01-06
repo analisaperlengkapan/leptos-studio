@@ -40,7 +40,7 @@ pub struct ShadowToken {
     pub description: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct DesignTokens {
     pub colors: Vec<ColorToken>,
     pub spacing: Vec<SpacingToken>,

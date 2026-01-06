@@ -16,6 +16,7 @@ pub fn project_from_json(json: &str) -> AppResult<Project> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::builder::design_tokens::DesignTokens;
     use crate::domain::{ButtonComponent, CanvasComponent};
     use crate::state::SettingsState;
 
@@ -25,7 +26,7 @@ mod tests {
             "Test".to_string(),
         ))];
         let settings = SettingsState::default();
-        let project = Project::new("My Project".to_string(), layout, settings);
+        let project = Project::new("My Project".to_string(), layout, settings, DesignTokens::default());
 
         let json = project_to_json(&project).expect("serialize project");
         let restored = project_from_json(&json).expect("deserialize project");

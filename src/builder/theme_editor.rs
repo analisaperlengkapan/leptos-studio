@@ -5,14 +5,14 @@ use crate::builder::property_inputs::{ColorInput, StringInput};
 #[component]
 pub fn ThemeEditor(tokens: RwSignal<DesignTokens>) -> impl IntoView {
     view! {
-        <div class="theme-editor" style="padding: 1rem; overflow-y: auto; height: 100%;">
-            <h3>"Global Theme"</h3>
-            <p style="font-size: 0.8rem; color: #666; margin-bottom: 1rem;">
+        <div class="theme-editor">
+            <h3 class="theme-title">"Global Theme"</h3>
+            <p class="theme-description">
                 "Customize global design tokens. Changes apply immediately."
             </p>
 
             <div class="theme-section">
-                <h4>"Colors"</h4>
+                <h4 class="theme-section-title">"Colors"</h4>
                 <div class="colors-list">
                     <For
                         each=move || tokens.get().colors
@@ -33,8 +33,8 @@ pub fn ThemeEditor(tokens: RwSignal<DesignTokens>) -> impl IntoView {
                 </div>
             </div>
 
-            <div class="theme-section" style="margin-top: 2rem;">
-                <h4>"Typography"</h4>
+            <div class="theme-section">
+                <h4 class="theme-section-title">"Typography"</h4>
                 <div class="typography-list">
                     <For
                         each=move || tokens.get().typography
@@ -43,8 +43,8 @@ pub fn ThemeEditor(tokens: RwSignal<DesignTokens>) -> impl IntoView {
                             let name_clone_fs = typo.name.clone();
                             let name_clone_lh = typo.name.clone();
                             view! {
-                                <div style="margin-bottom: 1rem; border-bottom: 1px solid #eee; padding-bottom: 1rem;">
-                                    <div style="font-weight: bold; margin-bottom: 0.5rem;">{typo.name}</div>
+                                <div class="typography-item">
+                                    <div class="typography-name">{typo.name}</div>
                                     <StringInput
                                         label="Font Size".to_string()
                                         value=typo.font_size
