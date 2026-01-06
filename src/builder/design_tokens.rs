@@ -464,6 +464,23 @@ impl DesignTokens {
     pub fn css_var_border_radius(&self, name: &str) -> String {
         format!("var(--border-radius-{})", name)
     }
+
+    pub fn update_color(&mut self, name: &str, value: String) {
+        if let Some(token) = self.colors.iter_mut().find(|c| c.name == name) {
+            token.value = value;
+        }
+    }
+
+    pub fn update_typography(&mut self, name: &str, field: &str, value: String) {
+        if let Some(token) = self.typography.iter_mut().find(|t| t.name == name) {
+            match field {
+                "font_size" => token.font_size = value,
+                "line_height" => token.line_height = value,
+                "font_weight" => token.font_weight = value,
+                _ => {}
+            }
+        }
+    }
 }
 
 #[component]

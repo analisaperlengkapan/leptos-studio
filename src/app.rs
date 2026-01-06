@@ -24,6 +24,7 @@ use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewContro
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
+use crate::builder::theme_editor::ThemeEditor;
 use crate::builder::toolbar::Toolbar;
 use crate::builder::tree_view::TreeView;
 use crate::services::analytics_service::AnalyticsService;
@@ -109,6 +110,7 @@ pub fn App() -> impl IntoView {
     enum LeftPanelTab {
         Add,
         Layers,
+        Theme,
     }
 
     let active_left_tab = RwSignal::new(LeftPanelTab::Add);
@@ -161,11 +163,18 @@ pub fn App() -> impl IntoView {
                                 >
                                     "Layers"
                                 </button>
+                                <button
+                                    class=move || if active_left_tab.get() == LeftPanelTab::Theme { "tab active" } else { "tab" }
+                                    on:click=move |_| active_left_tab.set(LeftPanelTab::Theme)
+                                >
+                                    "Theme"
+                                </button>
                             </div>
                             <div class="panel-content">
                                 {move || match active_left_tab.get() {
                                     LeftPanelTab::Add => view! { <ComponentPalette /> }.into_any(),
                                     LeftPanelTab::Layers => view! { <TreeView /> }.into_any(),
+                                    LeftPanelTab::Theme => view! { <ThemeEditor tokens=design_tokens /> }.into_any(),
                                 }}
                             </div>
                         </aside>
