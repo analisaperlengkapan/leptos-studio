@@ -30,8 +30,25 @@ impl CodeGenerator for JsonSchemaGenerator {
                         { "$ref": "#/definitions/ContainerComponent" },
                         { "$ref": "#/definitions/ImageComponent" },
                         { "$ref": "#/definitions/CardComponent" },
+                        { "$ref": "#/definitions/SelectComponent" },
                         { "$ref": "#/definitions/CustomComponent" }
                     ]
+                },
+                "SelectComponent": {
+                    "type": "object",
+                    "required": ["Select"],
+                    "properties": {
+                        "Select": {
+                            "type": "object",
+                            "required": ["id", "options", "placeholder", "disabled"],
+                            "properties": {
+                                "id": { "type": "string", "format": "uuid" },
+                                "options": { "type": "string" },
+                                "placeholder": { "type": "string" },
+                                "disabled": { "type": "boolean" }
+                            }
+                        }
+                    }
                 },
                 "ButtonComponent": {
                     "type": "object",
@@ -298,6 +315,14 @@ export interface InputComponent {
   disabled: boolean;
 }
 
+// Select component
+export interface SelectComponent {
+  id: ComponentId;
+  options: string;
+  placeholder: string;
+  disabled: boolean;
+}
+
 // Container component
 export interface ContainerComponent {
   id: ComponentId;
@@ -349,6 +374,7 @@ export type CanvasComponent =
   | { Container: ContainerComponent }
   | { Image: ImageComponent }
   | { Card: CardComponent }
+  | { Select: SelectComponent }
   | { Custom: CustomComponent };
 
 // Layout type (array of components)
@@ -387,6 +413,10 @@ export function isImage(c: CanvasComponent): c is { Image: ImageComponent } {
 
 export function isCard(c: CanvasComponent): c is { Card: CardComponent } {
   return 'Card' in c;
+}
+
+export function isSelect(c: CanvasComponent): c is { Select: SelectComponent } {
+  return 'Select' in c;
 }
 
 export function isCustom(c: CanvasComponent): c is { Custom: CustomComponent } {
@@ -488,6 +518,17 @@ impl ReactGenerator {
                     "{}<input type=\"{}\" placeholder=\"{}\" required={{{}}} disabled={{{}}} />\n",
                     indent, input_type, inp.placeholder, inp.required, inp.disabled
                 ));
+            }
+            CanvasComponent::Select(sel) => {
+                output.push_str(&format!("{}<select disabled={{{}}}>\n", indent, sel.disabled));
+                if !sel.placeholder.is_empty() {
+                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{{\" {} \"}}</option>\n", indent, sel.placeholder));
+                }
+                for option in sel.options.split(',') {
+                    let opt = option.trim();
+                    output.push_str(&format!("{}  <option value=\"{}\">{{\" {} \"}}</option>\n", indent, opt, opt));
+                }
+                output.push_str(&format!("{}</select>\n", indent));
             }
             CanvasComponent::Container(container) => {
                 let layout_style = match &container.layout {
@@ -661,6 +702,17 @@ impl VueGenerator {
                     "{}<input type=\"{}\" placeholder=\"{}\" :required=\"{}\" :disabled=\"{}\" />\n",
                     indent, input_type, inp.placeholder, inp.required, inp.disabled
                 ));
+            }
+            CanvasComponent::Select(sel) => {
+                output.push_str(&format!("{}<select :disabled=\"{}\">\n", indent, sel.disabled));
+                if !sel.placeholder.is_empty() {
+                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                }
+                for option in sel.options.split(',') {
+                    let opt = option.trim();
+                    output.push_str(&format!("{}  <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                }
+                output.push_str(&format!("{}</select>\n", indent));
             }
             CanvasComponent::Container(container) => {
                 output.push_str(&format!("{}<div>\n", indent));
@@ -1058,6 +1110,17 @@ impl TailwindHtmlGenerator {
                     if inp.disabled { " disabled" } else { "" }
                 ));
             }
+            CanvasComponent::Select(sel) => {
+                 output.push_str(&format!("{}<select class=\"block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500\" {}>\n", indent, if sel.disabled { "disabled" } else { "" }));
+                if !sel.placeholder.is_empty() {
+                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                }
+                for option in sel.options.split(',') {
+                    let opt = option.trim();
+                    output.push_str(&format!("{}  <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                }
+                output.push_str(&format!("{}</select>\n", indent));
+            }
             CanvasComponent::Container(container) => {
                 let layout_classes = match &container.layout {
                     crate::domain::LayoutType::Flex {
@@ -1272,6 +1335,17 @@ impl SvelteGenerator {
                     if inp.required { " required" } else { "" },
                     if inp.disabled { " disabled" } else { "" }
                 ));
+            }
+            CanvasComponent::Select(sel) => {
+                output.push_str(&format!("{}<select disabled={{{}}}>\n", indent, sel.disabled));
+                if !sel.placeholder.is_empty() {
+                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                }
+                for option in sel.options.split(',') {
+                    let opt = option.trim();
+                    output.push_str(&format!("{}  <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                }
+                output.push_str(&format!("{}</select>\n", indent));
             }
             CanvasComponent::Container(container) => {
                 let style = format!(

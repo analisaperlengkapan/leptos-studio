@@ -40,6 +40,7 @@ pub enum ComponentType {
     Container,
     Image,
     Card,
+    Select,
     Custom,
 }
 
@@ -207,6 +208,46 @@ impl Default for InputComponent {
 impl Component for InputComponent {
     fn component_type(&self) -> ComponentType {
         ComponentType::Input
+    }
+
+    fn id(&self) -> &ComponentId {
+        &self.id
+    }
+
+    fn validate(&self) -> Result<(), ValidationError> {
+        Ok(())
+    }
+}
+
+/// Select component
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct SelectComponent {
+    pub id: ComponentId,
+    pub options: String, // Comma separated values
+    pub placeholder: String,
+    pub disabled: bool,
+}
+
+impl SelectComponent {
+    pub fn new() -> Self {
+        Self {
+            id: ComponentId::new(),
+            options: "Option 1, Option 2, Option 3".to_string(),
+            placeholder: "Select an option".to_string(),
+            disabled: false,
+        }
+    }
+}
+
+impl Default for SelectComponent {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Component for SelectComponent {
+    fn component_type(&self) -> ComponentType {
+        ComponentType::Select
     }
 
     fn id(&self) -> &ComponentId {
@@ -474,6 +515,7 @@ pub enum CanvasComponent {
     Container(ContainerComponent),
     Image(ImageComponent),
     Card(CardComponent),
+    Select(SelectComponent),
     Custom(CustomComponent),
 }
 
@@ -486,6 +528,7 @@ impl CanvasComponent {
             CanvasComponent::Container(c) => c.id(),
             CanvasComponent::Image(c) => c.id(),
             CanvasComponent::Card(c) => c.id(),
+            CanvasComponent::Select(c) => c.id(),
             CanvasComponent::Custom(c) => c.id(),
         }
     }
@@ -498,6 +541,7 @@ impl CanvasComponent {
             CanvasComponent::Container(c) => c.component_type(),
             CanvasComponent::Image(c) => c.component_type(),
             CanvasComponent::Card(c) => c.component_type(),
+            CanvasComponent::Select(c) => c.component_type(),
             CanvasComponent::Custom(c) => c.component_type(),
         }
     }
@@ -510,6 +554,7 @@ impl CanvasComponent {
             CanvasComponent::Container(c) => c.validate(),
             CanvasComponent::Image(c) => c.validate(),
             CanvasComponent::Card(c) => c.validate(),
+            CanvasComponent::Select(c) => c.validate(),
             CanvasComponent::Custom(c) => c.validate(),
         }
     }
@@ -530,6 +575,11 @@ impl CanvasComponent {
                  let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Input(new_c)
+            },
+            CanvasComponent::Select(c) => {
+                 let mut new_c = c.clone();
+                new_c.id = ComponentId::new();
+                CanvasComponent::Select(new_c)
             },
             CanvasComponent::Image(c) => {
                  let mut new_c = c.clone();

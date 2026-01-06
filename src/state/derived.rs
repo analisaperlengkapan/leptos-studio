@@ -41,6 +41,7 @@ pub struct TypeCounts {
     pub containers: usize,
     pub images: usize,
     pub cards: usize,
+    pub selects: usize,
     pub customs: usize,
 }
 
@@ -52,6 +53,7 @@ impl TypeCounts {
             + self.containers
             + self.images
             + self.cards
+            + self.selects
             + self.customs
     }
 }
@@ -154,6 +156,7 @@ fn count_types_recursive(components: &[CanvasComponent]) -> TypeCounts {
                 counts.containers += child_counts.containers;
                 counts.images += child_counts.images;
                 counts.cards += child_counts.cards;
+                counts.selects += child_counts.selects;
                 counts.customs += child_counts.customs;
             }
             CanvasComponent::Image(_) => counts.images += 1,
@@ -166,8 +169,10 @@ fn count_types_recursive(components: &[CanvasComponent]) -> TypeCounts {
                 counts.containers += child_counts.containers;
                 counts.images += child_counts.images;
                 counts.cards += child_counts.cards;
+                counts.selects += child_counts.selects;
                 counts.customs += child_counts.customs;
             }
+            CanvasComponent::Select(_) => counts.selects += 1,
             CanvasComponent::Custom(_) => counts.customs += 1,
         }
     }
