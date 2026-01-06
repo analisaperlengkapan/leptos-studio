@@ -1,5 +1,5 @@
 use crate::builder::hooks::use_export_actions::use_export_actions;
-use crate::state::app_state::{AppState, Notification};
+use crate::state::app_state::{AppState, Notification, ResponsiveMode};
 use leptos::prelude::*;
 
 #[component]
@@ -143,6 +143,32 @@ pub fn Toolbar(
             </div>
 
             <div class="header-right">
+                <div class="btn-group">
+                    <button
+                        class=move || if app_state.ui.responsive_mode.get() == ResponsiveMode::Desktop { "responsive-btn active" } else { "responsive-btn" }
+                        on:click=move |_| app_state.ui.responsive_mode.set(ResponsiveMode::Desktop)
+                        title="Desktop View"
+                    >
+                        <span class="icon">"🖥️"</span>
+                    </button>
+                    <button
+                        class=move || if app_state.ui.responsive_mode.get() == ResponsiveMode::Tablet { "responsive-btn active" } else { "responsive-btn" }
+                        on:click=move |_| app_state.ui.responsive_mode.set(ResponsiveMode::Tablet)
+                        title="Tablet View"
+                    >
+                        <span class="icon">"📱"</span>
+                    </button>
+                    <button
+                        class=move || if app_state.ui.responsive_mode.get() == ResponsiveMode::Mobile { "responsive-btn active" } else { "responsive-btn" }
+                        on:click=move |_| app_state.ui.responsive_mode.set(ResponsiveMode::Mobile)
+                        title="Mobile View"
+                    >
+                        <span class="icon">"📲"</span>
+                    </button>
+                </div>
+
+                <div class="divider-vertical"></div>
+
                 <button
                     class=move || if is_preview.get() { "btn btn-primary btn-sm toggle-active" } else { "btn btn-outline btn-sm" }
                     on:click=toggle_preview

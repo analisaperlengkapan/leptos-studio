@@ -10,7 +10,7 @@ use web_sys::DragEvent;
 use crate::builder::component_library::create_canvas_component;
 use crate::builder::drag_drop::DropZone;
 use crate::domain::{CanvasComponent, ComponentId};
-use crate::state::{AppState, CanvasState, Snapshot};
+use crate::state::{AppState, CanvasState, ResponsiveMode, Snapshot};
 
 /// Main Canvas component for the UI builder
 ///
@@ -71,75 +71,90 @@ pub fn Canvas() -> impl IntoView {
     // Memoize the empty check to prevent unnecessary re-evaluations
     let is_empty = Memo::new(move |_| canvas_state.components.with(|c| c.is_empty()));
     let preview_mode = app_state.ui.preview_mode;
+    let responsive_mode = app_state.ui.responsive_mode;
+
+    // Derived style for the canvas based on responsive mode
+    let canvas_style = move || {
+        let width = match responsive_mode.get() {
+            ResponsiveMode::Desktop => "100%",
+            ResponsiveMode::Tablet | ResponsiveMode::TabletLandscape => "768px",
+            ResponsiveMode::Mobile | ResponsiveMode::MobileLandscape => "375px",
+        };
+
+        format!("max-width: {}; margin: 0 auto; transition: max-width 0.3s ease-in-out;", width)
+    };
 
     view! {
-        {move || if !preview_mode.get() {
-            view! {
-                <DropZone
-                    zone_name="canvas-root".to_string()
-                    drag_state=app_state.canvas.drag_state
-                    on_drop=drop_zone_on_drop
-                    config=None
-                >
-                    <div
-                        class="canvas"
-                        on:click=on_canvas_click
+        <div class="canvas-viewport-wrapper">
+            {move || if !preview_mode.get() {
+                view! {
+                    <DropZone
+                        zone_name="canvas-root".to_string()
+                        drag_state=app_state.canvas.drag_state
+                        on_drop=drop_zone_on_drop
+                        config=None
                     >
+                        <div
+                            class="canvas"
+                            style=canvas_style
+                            on:click=on_canvas_click
+                        >
+                            <div class="canvas-content">
+                                {move || {
+                                    // Force evaluation of render_tracker during render phase
+                                    let _ = render_tracker.get();
+
+                                    if is_empty.get() {
+                                        view! { <CanvasEmptyState /> }.into_any()
+                                    } else {
+                                        view! {
+                                            <For
+                                                each=move || canvas_state.components.get()
+                                                key=|comp| *comp.id()
+                                                children=move |comp| {
+                                                    view! {
+                                                        <ComponentRenderer
+                                                            component=comp
+                                                            canvas_state=canvas_state
+                                                        />
+                                                    }
+                                                }
+                                            />
+                                        }.into_any()
+                                    }
+                                }}
+                            </div>
+                        </div>
+                    </DropZone>
+                }.into_any()
+            } else {
+                view! {
+                    <div class="canvas preview-mode" style=canvas_style>
                         <div class="canvas-content">
                             {move || {
                                 // Force evaluation of render_tracker during render phase
                                 let _ = render_tracker.get();
 
-                                if is_empty.get() {
-                                    view! { <CanvasEmptyState /> }.into_any()
-                                } else {
-                                    view! {
-                                        <For
-                                            each=move || canvas_state.components.get()
-                                            key=|comp| *comp.id()
-                                            children=move |comp| {
-                                                view! {
-                                                    <ComponentRenderer
-                                                        component=comp
-                                                        canvas_state=canvas_state
-                                                    />
-                                                }
+                                view! {
+                                    <For
+                                        each=move || canvas_state.components.get()
+                                        key=|comp| *comp.id()
+                                        children=move |comp| {
+                                            view! {
+                                                <ComponentRenderer
+                                                    component=comp
+                                                    canvas_state=canvas_state
+                                                />
                                             }
-                                        />
-                                    }.into_any()
+                                        }
+                                    />
                                 }
                             }}
                         </div>
                     </div>
-                </DropZone>
-            }.into_any()
-        } else {
-            view! {
-                <div class="canvas preview-mode">
-                    <div class="canvas-content">
-                        {move || {
-                            // Force evaluation of render_tracker during render phase
-                            let _ = render_tracker.get();
-
-                            view! {
-                                <For
-                                    each=move || canvas_state.components.get()
-                                    key=|comp| *comp.id()
-                                    children=move |comp| {
-                                        view! {
-                                            <ComponentRenderer
-                                                component=comp
-                                                canvas_state=canvas_state
-                                            />
-                                        }
-                                    }
-                                />
-                            }
-                        }}
-                    </div>
-                </div>
-            }.into_any()
-        }}
+                }.into_any()
+            }}
+        </div>
     }
 }
 
