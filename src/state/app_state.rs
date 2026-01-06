@@ -235,7 +235,7 @@ pub enum Theme {
     Custom,
 }
 
-/// Responsive preview modes
+/// Responsive preview modes for the canvas
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum ResponsiveMode {
     #[default]
