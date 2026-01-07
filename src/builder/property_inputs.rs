@@ -62,9 +62,9 @@ pub fn NumberInput<F>(
     value: f64,
     label: String,
     on_change: F,
-    #[prop(optional)] min: Option<f64>,
-    #[prop(optional)] max: Option<f64>,
-    #[prop(optional)] step: Option<f64>,
+    #[prop(optional)] min_value: Option<f64>,
+    #[prop(optional)] max_value: Option<f64>,
+    #[prop(optional)] step_value: Option<f64>,
 ) -> impl IntoView
 where
     F: Fn(f64) + 'static + Clone + Send + Sync,
@@ -72,9 +72,9 @@ where
     let on_change = on_change.clone();
 
     // Construct attributes
-    let min_attr = min.map(|v| v.to_string()).unwrap_or_default();
-    let max_attr = max.map(|v| v.to_string()).unwrap_or_default();
-    let step_attr = step.map(|v| v.to_string()).unwrap_or_default();
+    let min_attr = min_value.map(|v| v.to_string()).unwrap_or_default();
+    let max_attr = max_value.map(|v| v.to_string()).unwrap_or_default();
+    let step_attr = step_value.map(|v| v.to_string()).unwrap_or_default();
 
     view! {
         <div class="property-field">

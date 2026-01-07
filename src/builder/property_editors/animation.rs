@@ -99,9 +99,9 @@ pub fn AnimationPropertyEditor(
                             <NumberInput
                                 label="Duration (s)".to_string()
                                 value=duration_val as f64
-                                min=0.1
-                                max=10.0
-                                step=0.1
+                                min_value=0.1
+                                max_value=10.0
+                                step_value=0.1
                                 on_change=move |val| {
                                     let new_anim = Animation {
                                         animation_type: anim_type_dur.clone(),
@@ -116,9 +116,9 @@ pub fn AnimationPropertyEditor(
                             <NumberInput
                                 label="Delay (s)".to_string()
                                 value=delay_val as f64
-                                min=0.0
-                                max=10.0
-                                step=0.1
+                                min_value=0.0
+                                max_value=10.0
+                                step_value=0.1
                                 on_change=move |val| {
                                     let new_anim = Animation {
                                         animation_type: anim_type_delay.clone(),
