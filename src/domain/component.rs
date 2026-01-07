@@ -9,6 +9,68 @@ use super::validation::Validator;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ComponentId(Uuid);
 
+/// Animation types
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub enum AnimationType {
+    #[default]
+    None,
+    FadeIn,
+    SlideInUp,
+    SlideInDown,
+    SlideInLeft,
+    SlideInRight,
+    Bounce,
+    ZoomIn,
+    Pulse,
+}
+
+/// Animation configuration
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Animation {
+    pub animation_type: AnimationType,
+    pub duration: f32, // in seconds
+    pub delay: f32,    // in seconds
+    pub infinite: bool,
+}
+
+impl Default for Animation {
+    fn default() -> Self {
+        Self {
+            animation_type: AnimationType::None,
+            duration: 0.3,
+            delay: 0.0,
+            infinite: false,
+        }
+    }
+}
+
+impl Animation {
+    pub fn to_css_string(&self) -> String {
+        if self.animation_type == AnimationType::None {
+            return String::new();
+        }
+
+        let anim_name = match self.animation_type {
+            AnimationType::None => "",
+            AnimationType::FadeIn => "fadeIn",
+            AnimationType::SlideInUp => "slideInUp",
+            AnimationType::SlideInDown => "slideInDown",
+            AnimationType::SlideInLeft => "slideInLeft",
+            AnimationType::SlideInRight => "slideInRight",
+            AnimationType::Bounce => "bounce",
+            AnimationType::ZoomIn => "zoomIn",
+            AnimationType::Pulse => "pulse",
+        };
+
+        let iteration = if self.infinite { "infinite" } else { "1" };
+
+        format!(
+            "animation: {} {}s ease-in-out {}s {} both;",
+            anim_name, self.duration, self.delay, iteration
+        )
+    }
+}
+
 impl ComponentId {
     pub fn new() -> Self {
         Self(Uuid::new_v4())
@@ -77,6 +139,8 @@ pub struct ButtonComponent {
     pub size: ButtonSize,
     pub disabled: bool,
     pub on_click: Option<String>,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl ButtonComponent {
@@ -88,6 +152,7 @@ impl ButtonComponent {
             size: ButtonSize::Medium,
             disabled: false,
             on_click: None,
+            animation: None,
         }
     }
 }
@@ -139,6 +204,8 @@ pub struct TextComponent {
     pub content: String,
     pub style: TextStyle,
     pub tag: TextTag,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl TextComponent {
@@ -148,6 +215,7 @@ impl TextComponent {
             content,
             style: TextStyle::Body,
             tag: TextTag::P,
+            animation: None,
         }
     }
 }
@@ -185,6 +253,8 @@ pub struct InputComponent {
     pub input_type: InputType,
     pub required: bool,
     pub disabled: bool,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl InputComponent {
@@ -195,6 +265,7 @@ impl InputComponent {
             input_type: InputType::Text,
             required: false,
             disabled: false,
+            animation: None,
         }
     }
 }
@@ -226,6 +297,8 @@ pub struct SelectComponent {
     pub options: String, // Comma separated values
     pub placeholder: String,
     pub disabled: bool,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl SelectComponent {
@@ -235,6 +308,7 @@ impl SelectComponent {
             options: "Option 1, Option 2, Option 3".to_string(),
             placeholder: "Select an option".to_string(),
             disabled: false,
+            animation: None,
         }
     }
 }
@@ -321,6 +395,8 @@ pub struct ContainerComponent {
     pub layout: LayoutType,
     pub gap: u32,
     pub padding: Spacing,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl ContainerComponent {
@@ -336,6 +412,7 @@ impl ContainerComponent {
             },
             gap: 8,
             padding: Spacing::default(),
+            animation: None,
         }
     }
 }
@@ -372,6 +449,8 @@ pub struct ImageComponent {
     pub alt: String,
     pub width: Option<String>,
     pub height: Option<String>,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl ImageComponent {
@@ -382,6 +461,7 @@ impl ImageComponent {
             alt,
             width: None,
             height: None,
+            animation: None,
         }
     }
 }
@@ -415,6 +495,8 @@ pub struct CardComponent {
     pub shadow: bool,
     pub border: bool,
     pub border_radius: u32,
+    #[serde(default)]
+    pub animation: Option<Animation>,
 }
 
 impl CardComponent {
@@ -426,6 +508,7 @@ impl CardComponent {
             shadow: true,
             border: true,
             border_radius: 8,
+            animation: None,
         }
     }
 }

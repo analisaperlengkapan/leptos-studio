@@ -58,11 +58,24 @@ where
 }
 
 #[component]
-pub fn NumberInput<F>(value: f64, label: String, on_change: F) -> impl IntoView
+pub fn NumberInput<F>(
+    value: f64,
+    label: String,
+    on_change: F,
+    #[prop(optional)] min_value: Option<f64>,
+    #[prop(optional)] max_value: Option<f64>,
+    #[prop(optional)] step_value: Option<f64>,
+) -> impl IntoView
 where
     F: Fn(f64) + 'static + Clone + Send + Sync,
 {
     let on_change = on_change.clone();
+
+    // Construct attributes
+    let min_attr = min_value.map(|v| v.to_string()).unwrap_or_default();
+    let max_attr = max_value.map(|v| v.to_string()).unwrap_or_default();
+    let step_attr = step_value.map(|v| v.to_string()).unwrap_or_default();
+
     view! {
         <div class="property-field">
             <label>
@@ -70,6 +83,9 @@ where
                 <input
                     type="number"
                     prop:value=value.to_string()
+                    min=min_attr
+                    max=max_attr
+                    step=step_attr
                     on:input=move |ev| {
                         let raw = event_target_value(&ev);
                         if let Ok(parsed) = raw.parse::<f64>() {

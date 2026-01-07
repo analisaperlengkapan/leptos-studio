@@ -1,3 +1,4 @@
+use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::domain::{ButtonSize, ButtonVariant, CanvasComponent, ComponentId, PropValue};
@@ -117,5 +118,15 @@ pub fn ButtonPropertyEditor(
                 }
             }).collect::<Vec<_>>()}
         </div>
+
+        <AnimationPropertyEditor
+            _id=comp_id
+            animation=button.animation.clone()
+            on_change=move |new_anim| {
+                let mut updated_btn = button.clone();
+                updated_btn.animation = new_anim;
+                apply_update(comp_id, CanvasComponent::Button(updated_btn), "animation".to_string());
+            }
+        />
     }
 }

@@ -1,5 +1,10 @@
-use crate::domain::{AppError, AppResult, CanvasComponent};
+use crate::domain::{Animation, AppError, AppResult, CanvasComponent};
 use crate::state::ExportPreset;
+
+/// Helper to generate animation styles
+fn get_animation_css(animation: &Option<Animation>) -> String {
+    animation.as_ref().map(|a| a.to_css_string()).unwrap_or_default()
+}
 
 /// Code generator trait
 pub trait CodeGenerator {
@@ -50,9 +55,16 @@ impl LeptosCodeGenerator {
                     crate::domain::ButtonSize::Large => "btn-lg",
                 };
 
+                let anim_style = get_animation_css(&btn.animation);
+                let style_attr = if !anim_style.is_empty() {
+                     format!(" style=\"{}\"", anim_style)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <button class=\"{} {}\" disabled={}>{}</button>\n",
-                    indent, variant_class, size_class, btn.disabled, btn.label
+                    "{}        <button class=\"{} {}\" disabled={}{}>{}</button>\n",
+                    indent, variant_class, size_class, btn.disabled, style_attr, btn.label
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -64,8 +76,15 @@ impl LeptosCodeGenerator {
                     crate::domain::TextTag::Span => "span",
                 };
 
+                let anim_style = get_animation_css(&txt.animation);
+                let style_attr = if !anim_style.is_empty() {
+                     format!(" style=\"{}\"", anim_style)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <{} class=\"text-{}\">{}</{}>\n",
+                    "{}        <{} class=\"text-{}\"{}>{}</{}>\n",
                     indent,
                     tag,
                     match txt.style {
@@ -75,6 +94,7 @@ impl LeptosCodeGenerator {
                         crate::domain::TextStyle::Body => "body",
                         crate::domain::TextStyle::Caption => "caption",
                     },
+                    style_attr,
                     txt.content,
                     tag
                 ));
@@ -88,15 +108,29 @@ impl LeptosCodeGenerator {
                     crate::domain::InputType::Tel => "tel",
                 };
 
+                let anim_style = get_animation_css(&inp.animation);
+                let style_attr = if !anim_style.is_empty() {
+                     format!(" style=\"{}\"", anim_style)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <input type=\"{}\" placeholder=\"{}\" required={} disabled={} />\n",
-                    indent, input_type, inp.placeholder, inp.required, inp.disabled
+                    "{}        <input type=\"{}\" placeholder=\"{}\" required={} disabled={}{} />\n",
+                    indent, input_type, inp.placeholder, inp.required, inp.disabled, style_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
+                let anim_style = get_animation_css(&sel.animation);
+                let style_attr = if !anim_style.is_empty() {
+                     format!(" style=\"{}\"", anim_style)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <select disabled={}>\n",
-                    indent, sel.disabled
+                    "{}        <select disabled={}{}>\n",
+                    indent, sel.disabled, style_attr
                 ));
 
                 if !sel.placeholder.is_empty() {
@@ -153,8 +187,10 @@ impl LeptosCodeGenerator {
                     crate::domain::LayoutType::Stack => ("stack".to_string(), String::new()),
                 };
 
+                let anim_style = get_animation_css(&container.animation);
+
                 output.push_str(&format!(
-                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px; {}\">\n",
+                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\">\n",
                     indent,
                     layout_class,
                     container.gap,
@@ -162,7 +198,8 @@ impl LeptosCodeGenerator {
                     container.padding.right,
                     container.padding.bottom,
                     container.padding.left,
-                    align_style
+                    align_style,
+                    anim_style
                 ));
 
                 // Recursively generate children
@@ -175,17 +212,27 @@ impl LeptosCodeGenerator {
             CanvasComponent::Image(img) => {
                 let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
                 let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+
+                let anim_style = get_animation_css(&img.animation);
+                let style_attr = if !anim_style.is_empty() {
+                     format!(" style=\"{}\"", anim_style)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <img src=\"{}\" alt=\"{}\"{}{} />\n",
-                    indent, img.src, img.alt, width_attr, height_attr
+                    "{}        <img src=\"{}\" alt=\"{}\"{}{}{} />\n",
+                    indent, img.src, img.alt, width_attr, height_attr, style_attr
                 ));
             }
             CanvasComponent::Card(card) => {
                 let shadow_style = if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" } else { "" };
                 let border_class = if card.border { "border border-gray-200" } else { "" };
+                let anim_style = get_animation_css(&card.animation);
+
                 output.push_str(&format!(
-                    "{}        <div class=\"card {}\" style=\"padding: {}px; border-radius: {}px; {}\">\n",
-                    indent, border_class, card.padding, card.border_radius, shadow_style
+                    "{}        <div class=\"card {}\" style=\"padding: {}px; border-radius: {}px; {} {}\">\n",
+                    indent, border_class, card.padding, card.border_radius, shadow_style, anim_style
                 ));
                 for child in &card.children {
                     self.generate_component(child, output, indent_level + 1)?;
@@ -514,6 +561,7 @@ mod tests {
             options: "A, B, C".to_string(),
             placeholder: "Choose".to_string(),
             disabled: false,
+            animation: None,
         });
         let code = generator.generate(&[select]).unwrap();
 
@@ -532,6 +580,7 @@ mod tests {
             options: "X, Y".to_string(),
             placeholder: "Pick".to_string(),
             disabled: true,
+            animation: None,
         });
         let code = generator.generate(&[select]).unwrap();
 
@@ -549,6 +598,7 @@ mod tests {
             options: "One, Two".to_string(),
             placeholder: "Select One".to_string(),
             disabled: false,
+            animation: None,
         });
         let code = generator.generate(&[select]).unwrap();
 

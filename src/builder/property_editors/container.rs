@@ -1,3 +1,4 @@
+use super::AnimationPropertyEditor;
 use crate::builder::property_inputs::NumberInput;
 use crate::domain::{CanvasComponent, ComponentId, PropValue, LayoutType, FlexDirection, FlexAlign, FlexJustify};
 use crate::services::update_container_prop;
@@ -277,6 +278,16 @@ pub fn ContainerPropertyEditor(
                     />
                 </div>
             </div>
+
+            <AnimationPropertyEditor
+                _id=comp_id
+                animation=container.animation.clone()
+                on_change=move |new_anim| {
+                    let mut updated = container.clone();
+                    updated.animation = new_anim;
+                    apply_update(comp_id, CanvasComponent::Container(updated), "animation".to_string());
+                }
+            />
 
         </div>
     }

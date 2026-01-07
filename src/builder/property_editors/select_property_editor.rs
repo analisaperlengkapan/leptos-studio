@@ -1,3 +1,4 @@
+use super::AnimationPropertyEditor;
 use crate::builder::property_inputs::{BoolCheckbox, StringInput};
 use crate::domain::{SelectComponent, ComponentId};
 use crate::state::AppState;
@@ -35,6 +36,9 @@ pub fn SelectPropertyEditor(
         });
     };
 
+    let id_clone = id;
+    let select_clone = select.clone();
+
     view! {
         <div class="property-group">
             <h4>"Select Properties"</h4>
@@ -54,5 +58,17 @@ pub fn SelectPropertyEditor(
                 on_change=update_disabled
             />
         </div>
+
+        <AnimationPropertyEditor
+            _id=id_clone
+            animation=select_clone.animation
+            on_change=move |new_anim| {
+                canvas_state.update_component(&id_clone, |c| {
+                    if let crate::domain::CanvasComponent::Select(sel) = c {
+                        sel.animation = new_anim;
+                    }
+                });
+            }
+        />
     }
 }

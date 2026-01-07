@@ -1,3 +1,4 @@
+use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{EnumSelect, StringInput};
 use crate::domain::{CanvasComponent, ComponentId, PropValue, TextStyle, TextTag};
@@ -100,5 +101,15 @@ pub fn TextPropertyEditor(
                 }
                 }).collect::<Vec<_>>()}
         </div>
+
+        <AnimationPropertyEditor
+            _id=comp_id
+            animation=text.animation.clone()
+            on_change=move |new_anim| {
+                let mut updated_txt = text.clone();
+                updated_txt.animation = new_anim;
+                apply_update(comp_id, CanvasComponent::Text(updated_txt), "animation".to_string());
+            }
+        />
     }
 }

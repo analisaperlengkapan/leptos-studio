@@ -1,3 +1,4 @@
+pub mod animation;
 pub mod button;
 pub mod card;
 pub mod container;
@@ -7,6 +8,7 @@ pub mod input;
 pub mod select_property_editor;
 pub mod text;
 
+pub use animation::AnimationPropertyEditor;
 pub use button::ButtonPropertyEditor;
 pub use card::CardPropertyEditor;
 pub use container::ContainerPropertyEditor;
