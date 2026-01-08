@@ -4,6 +4,7 @@ pub mod dom;
 pub mod file;
 pub mod format;
 pub mod sanitize;
+pub mod syntax_highlight;
 
 pub use async_task::*;
 pub use clipboard::*;
