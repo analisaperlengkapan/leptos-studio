@@ -1,5 +1,6 @@
 use crate::domain::{Animation, AppError, AppResult, CanvasComponent};
 use crate::state::ExportPreset;
+use std::cell::RefCell;
 
 /// Helper to generate animation styles
 fn get_animation_css(animation: &Option<Animation>) -> String {
@@ -15,11 +16,17 @@ pub trait CodeGenerator {
 /// Leptos code generator
 pub struct LeptosCodeGenerator {
     preset: ExportPreset,
+    /// Tracks signals that need to be injected at the top of the component
+    /// Format: (signal_name, default_value)
+    required_signals: RefCell<Vec<(String, String)>>,
 }
 
 impl LeptosCodeGenerator {
     pub fn new(preset: ExportPreset) -> Self {
-        Self { preset }
+        Self {
+            preset,
+            required_signals: RefCell::new(Vec::new()),
+        }
     }
 
     fn generate_imports(&self) -> String {
@@ -62,8 +69,9 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                // Add interactive scaffolding
                 output.push_str(&format!(
-                    "{}        <button class=\"{} {}\" disabled={}{}>{}</button>\n",
+                    "{}        <button class=\"{} {}\" disabled={} on:click=move |_| {{ /* TODO: Handle click */ }}{}>{}</button>\n",
                     indent, variant_class, size_class, btn.disabled, style_attr, btn.label
                 ));
             }
@@ -115,9 +123,14 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                // Track signal for this input
+                let signal_name = format!("input_{}", self.required_signals.borrow().len());
+                self.required_signals.borrow_mut().push((signal_name.clone(), "String::new()".to_string()));
+
+                // Add binding
                 output.push_str(&format!(
-                    "{}        <input type=\"{}\" placeholder=\"{}\" required={} disabled={}{} />\n",
-                    indent, input_type, inp.placeholder, inp.required, inp.disabled, style_attr
+                    "{}        <input type=\"{}\" placeholder=\"{}\" prop:value={} on:input=move |ev| set_{}(event_target_value(&ev)) required={} disabled={}{} />\n",
+                    indent, input_type, inp.placeholder, signal_name, signal_name, inp.required, inp.disabled, style_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
@@ -255,6 +268,8 @@ impl LeptosCodeGenerator {
 impl CodeGenerator for LeptosCodeGenerator {
     fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
         let mut output = String::new();
+        // Reset required signals for each generation
+        self.required_signals.borrow_mut().clear();
 
         // Add imports
         output.push_str(&self.generate_imports());
@@ -263,14 +278,27 @@ impl CodeGenerator for LeptosCodeGenerator {
         // Generate component function
         output.push_str("#[component]\n");
         output.push_str("pub fn App() -> impl IntoView {\n");
-        output.push_str("    view! {\n");
 
-        // Generate components
+        // We need to generate the body first to populate signals, then inject them
+        // This requires buffering the view body
+        let mut view_body = String::new();
+        view_body.push_str("    view! {\n");
         for component in components {
-            self.generate_component(component, &mut output, 0)?;
+            self.generate_component(component, &mut view_body, 0)?;
+        }
+        view_body.push_str("    }\n");
+
+        // Now inject signals
+        let signals = self.required_signals.borrow();
+        if !signals.is_empty() {
+            output.push_str("    // State signals\n");
+            for (name, default) in signals.iter() {
+                output.push_str(&format!("    let ({}, set_{}) = signal({});\n", name, name, default));
+            }
+            output.push('\n');
         }
 
-        output.push_str("    }\n");
+        output.push_str(&view_body);
         output.push_str("}\n");
 
         Ok(output)
@@ -506,7 +534,7 @@ impl MarkdownCodeGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::{ButtonComponent, CanvasComponent, TextComponent};
+    use crate::domain::{ButtonComponent, CanvasComponent, InputComponent, InputType, TextComponent};
 
     #[test]
     fn test_leptos_generator() {
@@ -518,6 +546,27 @@ mod tests {
         assert!(code.contains("#[component]"));
         assert!(code.contains("pub fn App()"));
         assert!(code.contains("Click me"));
+        assert!(code.contains("on:click=")); // Check for new interactive code
+    }
+
+    #[test]
+    fn test_leptos_input_generator() {
+        let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
+        let input = CanvasComponent::Input(InputComponent {
+            id: Default::default(),
+            input_type: InputType::Text,
+            placeholder: "Type here".to_string(),
+            required: false,
+            disabled: false,
+            animation: None,
+        });
+        let code = generator.generate(&[input]).unwrap();
+
+        // Should generate a signal
+        assert!(code.contains("let (input_0, set_input_0) = signal(String::new());"));
+        // Should use the signal
+        assert!(code.contains("prop:value=input_0"));
+        assert!(code.contains("on:input=move |ev| set_input_0(event_target_value(&ev))"));
     }
 
     #[test]

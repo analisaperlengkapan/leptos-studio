@@ -2614,3 +2614,25 @@ input::placeholder, textarea::placeholder {
 @keyframes bounce { from, 20%, 53%, 80%, to { animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1); transform: translate3d(0, 0, 0); } 40%, 43% { animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06); transform: translate3d(0, -30px, 0); } 70% { animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06); transform: translate3d(0, -15px, 0); } 90% { transform: translate3d(0, -4px, 0); } }
 @keyframes zoomIn { from { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); } 50% { opacity: 1; } }
 @keyframes pulse { from { transform: scale3d(1, 1, 1); } 50% { transform: scale3d(1.05, 1.05, 1.05); } to { transform: scale3d(1, 1, 1); } }
+
+/* Syntax Highlighting Colors - One Dark inspired */
+.token-keyword { color: #c678dd; }
+.token-string { color: #98c379; }
+.token-comment { color: #5c6370; font-style: italic; }
+.token-macro { color: #e06c75; }
+.token-type { color: #e5c07b; }
+.token-function { color: #61afef; }
+.token-number { color: #d19a66; }
+.token-operator { color: #56b6c2; }
+.token-attribute { color: #d19a66; }
+.token-plain { color: #abb2bf; }
+
+.code-preview {
+    background-color: #282c34 !important;
+    color: #abb2bf !important;
+}
+
+.code-preview code .line::before {
+    color: #4b5263 !important;
+    border-right: 1px solid #4b5263 !important;
+}

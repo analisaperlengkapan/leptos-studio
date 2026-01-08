@@ -8,6 +8,7 @@ use crate::services::export_service::{
 use crate::state::app_state::{AppState, Notification};
 use crate::utils::copy_to_clipboard;
 use crate::utils::file::download_file;
+use crate::utils::syntax_highlight::highlight_code;
 use leptos::prelude::*;
 
 #[component]
@@ -190,9 +191,11 @@ pub fn CodePanel() -> impl IntoView {
                     <code>
                         {move || {
                             let text = code.get();
-                            text.lines().map(|line| {
-                                let line_string = line.to_string();
-                                view! { <span class="line">{line_string}</span> }
+                            // Collect into a Vec<String> first to own the data
+                            let lines: Vec<String> = text.lines().map(|s| s.to_string()).collect();
+                            lines.into_iter().map(|line_string| {
+                                let highlighted = highlight_code(line_string);
+                                view! { <span class="line">{highlighted}</span> }
                             }).collect_view()
                         }}
                     </code>
