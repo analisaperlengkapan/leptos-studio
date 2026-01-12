@@ -5,10 +5,10 @@ pub fn WelcomeModal(
     #[prop(into)] on_close: Callback<()>,
 ) -> impl IntoView {
     view! {
-        <div class="welcome-modal-overlay">
+        <div class="welcome-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
             <div class="welcome-modal-content">
                 <div class="welcome-header">
-                    <h2>"Welcome to Leptos Studio! 🚀"</h2>
+                    <h2 id="welcome-title">"Welcome to Leptos Studio! 🚀"</h2>
                 </div>
                 <div class="welcome-body">
                     <p>"Leptos Studio is your visual builder for the Leptos web framework."</p>

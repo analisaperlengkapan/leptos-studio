@@ -34,6 +34,8 @@ use crate::services::template_service::TemplateService;
 use crate::state::app_state::{AppState, Notification};
 use crate::state::derived::DerivedState;
 
+const STORAGE_KEY_VISITED: &str = "leptos_studio_visited";
+
 #[component]
 pub fn App() -> impl IntoView {
     // Initialize global AppState context
@@ -61,10 +63,9 @@ pub fn App() -> impl IntoView {
 
     // Check local storage for welcome modal
     Effect::new(move |_| {
-        let visited_key = "leptos_studio_visited";
         if let Ok(storage_opt) = window().local_storage() {
             if let Some(storage) = storage_opt {
-                if storage.get_item(visited_key).ok().flatten().is_none() {
+                if storage.get_item(STORAGE_KEY_VISITED).ok().flatten().is_none() {
                     show_welcome.set(true);
                 }
             }
@@ -75,7 +76,7 @@ pub fn App() -> impl IntoView {
         show_welcome.set(false);
         if let Ok(storage_opt) = window().local_storage() {
             if let Some(storage) = storage_opt {
-                let _ = storage.set_item("leptos_studio_visited", "true");
+                let _ = storage.set_item(STORAGE_KEY_VISITED, "true");
             }
         }
     });
