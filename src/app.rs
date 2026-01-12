@@ -27,11 +27,14 @@ use crate::builder::template_gallery::TemplateGallery;
 use crate::builder::theme_editor::ThemeEditor;
 use crate::builder::toolbar::Toolbar;
 use crate::builder::tree_view::TreeView;
+use crate::builder::welcome_modal::WelcomeModal;
 use crate::services::analytics_service::AnalyticsService;
 use crate::services::event_bus::EventBus;
 use crate::services::template_service::TemplateService;
 use crate::state::app_state::{AppState, Notification};
 use crate::state::derived::DerivedState;
+
+const STORAGE_KEY_VISITED: &str = "leptos_studio_visited";
 
 #[component]
 pub fn App() -> impl IntoView {
@@ -54,6 +57,32 @@ pub fn App() -> impl IntoView {
 
     // Template gallery visibility
     let show_template_gallery = RwSignal::new(false);
+
+    // Welcome modal visibility
+    let show_welcome = RwSignal::new(false);
+
+    // Check local storage for welcome modal
+    Effect::new(move |_| {
+        if let Ok(storage_opt) = window().local_storage() {
+            if let Some(storage) = storage_opt {
+                if storage.get_item(STORAGE_KEY_VISITED).ok().flatten().is_none() {
+                    show_welcome.set(true);
+                }
+            }
+        }
+    });
+
+    let close_welcome = Callback::new(move |_| {
+        show_welcome.set(false);
+        if let Ok(storage_opt) = window().local_storage() {
+            if let Some(storage) = storage_opt {
+                let _ = storage.set_item(STORAGE_KEY_VISITED, "true");
+            }
+        }
+    });
+
+    // Mobile Sidebar Toggles
+    let show_left_sidebar_mobile = RwSignal::new(false);
 
     // Keyboard action handler
     let keyboard_action_handler = use_keyboard_actions(
@@ -140,9 +169,17 @@ pub fn App() -> impl IntoView {
 
                     <BreadcrumbNavigation />
 
+                    // Mobile Sidebar Toggle
+                    <button
+                        class="mobile-sidebar-toggle"
+                        on:click=move |_| show_left_sidebar_mobile.update(|v| *v = !*v)
+                    >
+                        {move || if show_left_sidebar_mobile.get() { "✕ Close" } else { "☰ Menu" }}
+                    </button>
+
                     <div class="app-layout">
                         <aside
-                            class="sidebar-panel"
+                            class=move || if show_left_sidebar_mobile.get() { "sidebar-panel mobile-visible" } else { "sidebar-panel" }
                             role="navigation"
                             aria-label="Component library"
                             style=move || format!("width: {}px", left_sidebar.width.get())
@@ -284,6 +321,14 @@ pub fn App() -> impl IntoView {
                             on_close=Callback::new(move |_| show_export.set(false))
                             notification_signal=app_state.ui.notification
                         />
+                    }.into_any()
+                } else {
+                    view! { <div></div> }.into_any()
+                }}
+
+                {move || if show_welcome.get() {
+                    view! {
+                        <WelcomeModal on_close=close_welcome />
                     }.into_any()
                 } else {
                     view! { <div></div> }.into_any()
