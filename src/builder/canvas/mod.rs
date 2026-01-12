@@ -114,19 +114,40 @@ pub fn Canvas() -> impl IntoView {
                     {move || {
                         let components = app_state.canvas.components.get();
 
-                        view! {
-                            <For
-                                each=move || components.clone()
-                                key=|comp| *comp.id()
-                                children=move |comp| {
-                                    view! {
-                                        <ComponentRenderer
-                                            component=comp
-                                            canvas_state=app_state.canvas
-                                        />
+                        if components.is_empty() {
+                            view! {
+                                <div class="canvas-empty-state">
+                                    <div class="empty-state-content">
+                                        <h3>"Start from scratch"</h3>
+                                        <p>"Drag components from the left sidebar or add a container to get started."</p>
+                                        <button
+                                            class="btn btn-primary mt-4"
+                                            on:click=move |_| {
+                                                if let Some(comp) = create_canvas_component("Container") {
+                                                    app_state.canvas.add_component(comp);
+                                                }
+                                            }
+                                        >
+                                            "Add Container"
+                                        </button>
+                                    </div>
+                                </div>
+                            }.into_any()
+                        } else {
+                            view! {
+                                <For
+                                    each=move || components.clone()
+                                    key=|comp| *comp.id()
+                                    children=move |comp| {
+                                        view! {
+                                            <ComponentRenderer
+                                                component=comp
+                                                canvas_state=app_state.canvas
+                                            />
+                                        }
                                     }
-                                }
-                            />
+                                />
+                            }.into_any()
                         }
                     }}
                 </div>
