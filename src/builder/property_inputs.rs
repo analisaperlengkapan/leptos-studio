@@ -1,7 +1,12 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn StringInput<F>(value: String, label: String, on_change: F) -> impl IntoView
+pub fn StringInput<F>(
+    value: String,
+    label: String,
+    on_change: F,
+    #[prop(optional, into)] placeholder: String,
+) -> impl IntoView
 where
     F: Fn(String) + 'static + Clone + Send + Sync,
 {
@@ -13,6 +18,7 @@ where
                 <input
                     type="text"
                     prop:value=value
+                    placeholder=placeholder
                     on:input=move |ev| {
                         on_change(event_target_value(&ev));
                     }

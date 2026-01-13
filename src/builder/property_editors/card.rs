@@ -1,4 +1,4 @@
-use super::AnimationPropertyEditor;
+use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, NumberInput};
 use crate::domain::CardComponent;
 use crate::state::AppState;
@@ -43,6 +43,8 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
 
     let card_clone = card.clone();
     let id_clone = id;
+    let card_clone2 = card_clone.clone();
+    let id_clone2 = id;
 
     view! {
         <div class="property-group">
@@ -68,6 +70,19 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
                 on_change=move |val| update_border(val)
             />
         </div>
+
+        <EventPropertyEditor
+            _id=id_clone2
+            event_name="On Click".to_string()
+            handler_name=card_clone2.on_click.clone()
+            on_change=Callback::new(move |val: String| {
+                canvas_state.update_component(&id_clone2, |c| {
+                    if let crate::domain::CanvasComponent::Card(card) = c {
+                        card.on_click = if val.is_empty() { None } else { Some(val) };
+                    }
+                });
+            })
+        />
 
         <AnimationPropertyEditor
             _id=id_clone
