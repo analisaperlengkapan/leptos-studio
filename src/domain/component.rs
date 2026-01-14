@@ -253,6 +253,8 @@ pub struct InputComponent {
     pub input_type: InputType,
     pub required: bool,
     pub disabled: bool,
+    pub on_change: Option<String>,
+    pub on_input: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
 }
@@ -265,6 +267,8 @@ impl InputComponent {
             input_type: InputType::Text,
             required: false,
             disabled: false,
+            on_change: None,
+            on_input: None,
             animation: None,
         }
     }
@@ -297,6 +301,7 @@ pub struct SelectComponent {
     pub options: String, // Comma separated values
     pub placeholder: String,
     pub disabled: bool,
+    pub on_change: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
 }
@@ -308,6 +313,7 @@ impl SelectComponent {
             options: "Option 1, Option 2, Option 3".to_string(),
             placeholder: "Select an option".to_string(),
             disabled: false,
+            on_change: None,
             animation: None,
         }
     }
@@ -395,6 +401,7 @@ pub struct ContainerComponent {
     pub layout: LayoutType,
     pub gap: u32,
     pub padding: Spacing,
+    pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
 }
@@ -412,6 +419,7 @@ impl ContainerComponent {
             },
             gap: 8,
             padding: Spacing::default(),
+            on_click: None,
             animation: None,
         }
     }
@@ -449,6 +457,7 @@ pub struct ImageComponent {
     pub alt: String,
     pub width: Option<String>,
     pub height: Option<String>,
+    pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
 }
@@ -461,6 +470,7 @@ impl ImageComponent {
             alt,
             width: None,
             height: None,
+            on_click: None,
             animation: None,
         }
     }
@@ -495,6 +505,7 @@ pub struct CardComponent {
     pub shadow: bool,
     pub border: bool,
     pub border_radius: u32,
+    pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
 }
@@ -508,6 +519,7 @@ impl CardComponent {
             shadow: true,
             border: true,
             border_radius: 8,
+            on_click: None,
             animation: None,
         }
     }

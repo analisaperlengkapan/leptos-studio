@@ -69,10 +69,16 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                let click_handler = if let Some(handler) = &btn.on_click {
+                    format!("on:click={}", handler)
+                } else {
+                    "on:click=move |_| { /* TODO: Handle click */ }".to_string()
+                };
+
                 // Add interactive scaffolding
                 output.push_str(&format!(
-                    "{}        <button class=\"{} {}\" disabled={} on:click=move |_| {{ /* TODO: Handle click */ }}{}>{}</button>\n",
-                    indent, variant_class, size_class, btn.disabled, style_attr, btn.label
+                    "{}        <button class=\"{} {}\" disabled={} {}{}>{}</button>\n",
+                    indent, variant_class, size_class, btn.disabled, click_handler, style_attr, btn.label
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -123,14 +129,25 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
-                // Track signal for this input
-                let signal_name = format!("input_{}", self.required_signals.borrow().len());
-                self.required_signals.borrow_mut().push((signal_name.clone(), "String::new()".to_string()));
+                let input_handler = if let Some(handler) = &inp.on_input {
+                     format!("on:input={}", handler)
+                } else {
+                    // Track signal for this input
+                    let signal_name = format!("input_{}", self.required_signals.borrow().len());
+                    self.required_signals.borrow_mut().push((signal_name.clone(), "String::new()".to_string()));
+                    format!("prop:value={} on:input=move |ev| set_{}(event_target_value(&ev))", signal_name, signal_name)
+                };
+
+                let change_handler = if let Some(handler) = &inp.on_change {
+                    format!(" on:change={}", handler)
+                } else {
+                    String::new()
+                };
 
                 // Add binding
                 output.push_str(&format!(
-                    "{}        <input type=\"{}\" placeholder=\"{}\" prop:value={} on:input=move |ev| set_{}(event_target_value(&ev)) required={} disabled={}{} />\n",
-                    indent, input_type, inp.placeholder, signal_name, signal_name, inp.required, inp.disabled, style_attr
+                    "{}        <input type=\"{}\" placeholder=\"{}\" {} {} required={} disabled={}{} />\n",
+                    indent, input_type, inp.placeholder, input_handler, change_handler, inp.required, inp.disabled, style_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
@@ -141,9 +158,15 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                 let change_handler = if let Some(handler) = &sel.on_change {
+                    format!(" on:change={}", handler)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <select disabled={}{}>\n",
-                    indent, sel.disabled, style_attr
+                    "{}        <select disabled={} {}{}>\n",
+                    indent, sel.disabled, change_handler, style_attr
                 ));
 
                 if !sel.placeholder.is_empty() {
@@ -202,8 +225,14 @@ impl LeptosCodeGenerator {
 
                 let anim_style = get_animation_css(&container.animation);
 
+                let click_handler = if let Some(handler) = &container.on_click {
+                    format!(" on:click={}", handler)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\">\n",
+                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\"{}>\n",
                     indent,
                     layout_class,
                     container.gap,
@@ -212,7 +241,8 @@ impl LeptosCodeGenerator {
                     container.padding.bottom,
                     container.padding.left,
                     align_style,
-                    anim_style
+                    anim_style,
+                    click_handler
                 ));
 
                 // Recursively generate children
@@ -233,9 +263,15 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                 let click_handler = if let Some(handler) = &img.on_click {
+                    format!(" on:click={}", handler)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <img src=\"{}\" alt=\"{}\"{}{}{} />\n",
-                    indent, img.src, img.alt, width_attr, height_attr, style_attr
+                    "{}        <img src=\"{}\" alt=\"{}\"{}{}{}{} />\n",
+                    indent, img.src, img.alt, width_attr, height_attr, style_attr, click_handler
                 ));
             }
             CanvasComponent::Card(card) => {
@@ -243,9 +279,15 @@ impl LeptosCodeGenerator {
                 let border_class = if card.border { "border border-gray-200" } else { "" };
                 let anim_style = get_animation_css(&card.animation);
 
+                 let click_handler = if let Some(handler) = &card.on_click {
+                    format!(" on:click={}", handler)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <div class=\"card {}\" style=\"padding: {}px; border-radius: {}px; {} {}\">\n",
-                    indent, border_class, card.padding, card.border_radius, shadow_style, anim_style
+                    "{}        <div class=\"card {}\" style=\"padding: {}px; border-radius: {}px; {} {}\"{}>\n",
+                    indent, border_class, card.padding, card.border_radius, shadow_style, anim_style, click_handler
                 ));
                 for child in &card.children {
                     self.generate_component(child, output, indent_level + 1)?;
@@ -558,6 +600,8 @@ mod tests {
             placeholder: "Type here".to_string(),
             required: false,
             disabled: false,
+            on_input: None,
+            on_change: None,
             animation: None,
         });
         let code = generator.generate(&[input]).unwrap();
@@ -610,11 +654,12 @@ mod tests {
             options: "A, B, C".to_string(),
             placeholder: "Choose".to_string(),
             disabled: false,
+            on_change: None,
             animation: None,
         });
         let code = generator.generate(&[select]).unwrap();
 
-        assert!(code.contains("<select disabled=false>"));
+        assert!(code.contains("<select disabled=false >"));
         assert!(code.contains("<option value=\"\" disabled selected>\"Choose\"</option>"));
         assert!(code.contains("<option value=\"A\">\"A\"</option>"));
         assert!(code.contains("<option value=\"B\">\"B\"</option>"));
@@ -629,6 +674,7 @@ mod tests {
             options: "X, Y".to_string(),
             placeholder: "Pick".to_string(),
             disabled: true,
+            on_change: None,
             animation: None,
         });
         let code = generator.generate(&[select]).unwrap();
@@ -647,6 +693,7 @@ mod tests {
             options: "One, Two".to_string(),
             placeholder: "Select One".to_string(),
             disabled: false,
+            on_change: None,
             animation: None,
         });
         let code = generator.generate(&[select]).unwrap();

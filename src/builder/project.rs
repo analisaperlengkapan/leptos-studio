@@ -45,8 +45,9 @@ pub fn ProjectPanel() -> impl IntoView {
         match project_to_json(&project) {
             Ok(json) => {
                 let app_state_clone = app_state;
+                let json_string = json.to_string(); // Ensure ownership for async block
                 wasm_bindgen_futures::spawn_local(async move {
-                    match copy_to_clipboard(&json).await {
+                    match copy_to_clipboard(&json_string).await {
                         Ok(()) => {
                             app_state_clone
                                 .ui
@@ -83,7 +84,7 @@ pub fn ProjectPanel() -> impl IntoView {
         let project = app_state.to_project();
         match project_to_json(&project) {
             Ok(json) => {
-                let encoded = encode_uri_component(&json);
+                let encoded: String = encode_uri_component(&json).into();
                 let url = format!("data:application/json;charset=utf-8,{}", encoded);
 
                 if let Some(window) = web_sys::window() {

@@ -1,4 +1,4 @@
-use super::AnimationPropertyEditor;
+use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::StringInput;
 use crate::domain::ImageComponent;
 use crate::state::AppState;
@@ -51,6 +51,8 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
 
     let id_clone = id;
     let img_clone = image.clone();
+    let id_clone2 = id;
+    let img_clone2 = img_clone.clone();
 
     view! {
         <div class="property-group">
@@ -76,6 +78,19 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
                 on_change=move |val: String| update_height(val)
             />
         </div>
+
+        <EventPropertyEditor
+            _id=id_clone2
+            event_name="On Click".to_string()
+            handler_name=img_clone2.on_click.clone()
+            on_change=Callback::new(move |val: String| {
+                canvas_state.update_component(&id_clone2, |c| {
+                    if let crate::domain::CanvasComponent::Image(img) = c {
+                        img.on_click = if val.is_empty() { None } else { Some(val) };
+                    }
+                });
+            })
+        />
 
         <AnimationPropertyEditor
             _id=id_clone
