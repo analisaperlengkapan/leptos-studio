@@ -1,5 +1,4 @@
 pub mod analytics_service;
-pub mod auth_service;
 pub mod event_bus;
 pub mod export_advanced;
 pub mod export_service;
@@ -11,7 +10,6 @@ pub mod property_service;
 pub mod template_service;
 
 pub use analytics_service::*;
-pub use auth_service::*;
 pub use event_bus::*;
 pub use export_advanced::*;
 pub use export_service::*;

@@ -5,11 +5,8 @@ use crate::builder::hooks::use_git::{UseGitReturn, use_git}; // Import the hook
 
 mod log_list;
 mod status_display;
-pub mod auth_placeholder;
-
 use log_list::GitLogList;
 use status_display::GitStatusDisplay;
-pub use auth_placeholder::GitAuthPlaceholder;
 
 #[component]
 #[allow(clippy::collapsible_if)]

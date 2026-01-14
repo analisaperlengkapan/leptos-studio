@@ -9,7 +9,7 @@ use crate::builder::component_palette::ComponentPalette;
 use crate::builder::design_tokens::DesignTokenProvider;
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
-use crate::builder::git_panel::{GitAuthPlaceholder, GitPanel};
+use crate::builder::git_panel::GitPanel;
 use crate::builder::history_panel::HistoryPanel;
 use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
 use crate::builder::hooks::use_resize::use_resizable_sidebar;
@@ -28,7 +28,6 @@ use crate::builder::theme_editor::ThemeEditor;
 use crate::builder::toolbar::Toolbar;
 use crate::builder::tree_view::TreeView;
 use crate::builder::welcome_modal::WelcomeModal;
-use crate::builder::AuthModal;
 use crate::services::analytics_service::AnalyticsService;
 use crate::services::event_bus::EventBus;
 use crate::services::template_service::TemplateService;
@@ -270,13 +269,7 @@ pub fn App() -> impl IntoView {
 
                                     <div class="panel-content">
                                         {move || match active_right_tab.get() {
-                                            RightPanelTab::Git => {
-                                                if app_state.auth.is_authenticated() {
-                                                    view! { <GitPanel /> }.into_any()
-                                                } else {
-                                                    view! { <GitAuthPlaceholder /> }.into_any()
-                                                }
-                                            },
+                                            RightPanelTab::Git => view! { <GitPanel /> }.into_any(),
                                             RightPanelTab::Code => view! { <CodePanel /> }.into_any(),
                                             RightPanelTab::History => view! { <HistoryPanel /> }.into_any(),
                                             RightPanelTab::Properties => view! {
@@ -340,8 +333,6 @@ pub fn App() -> impl IntoView {
                 } else {
                     view! { <div></div> }.into_any()
                 }}
-
-                <AuthModal />
 
                     <Snackbar notification=app_state.ui.notification />
                 </div>
