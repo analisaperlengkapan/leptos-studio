@@ -1,4 +1,5 @@
 pub mod accessibility;
+pub mod auth_modal;
 pub mod breadcrumb;
 pub mod breakpoint_editor;
 pub mod canvas; // Modular canvas structure (canvas.rs + renderer.rs)
@@ -36,6 +37,7 @@ pub mod welcome_modal;
 pub use accessibility::{
     Announcer, FocusTrap, KeyboardHint, LiveRegion, ProgressBar, SkipLink, Tooltip, VisuallyHidden,
 };
+pub use auth_modal::AuthModal;
 pub use breakpoint_editor::{BreakpointEditor, BreakpointState, ResponsiveWrapper};
 pub use component_constraints::{
     AlignmentOption, DesignGuideline, GridSystem, ResponsiveBreakpoint, SizeConstraints,

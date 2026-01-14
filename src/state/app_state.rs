@@ -8,6 +8,7 @@ use crate::builder::component_library::{LibraryComponent, builtin_library_compon
 use crate::builder::design_tokens::DesignTokens;
 use crate::builder::drag_drop::DragState;
 use crate::domain::{CanvasComponent, ComponentId};
+use crate::services::AuthService;
 
 /// Canvas-specific state
 #[derive(Clone, Copy)]
@@ -291,6 +292,7 @@ pub enum ResponsiveMode {
 pub struct UiState {
     pub show_command_palette: RwSignal<bool>,
     pub show_export_modal: RwSignal<bool>,
+    pub show_auth_modal: RwSignal<bool>,
     pub show_git_panel: RwSignal<bool>,
     pub show_debug_panel: RwSignal<bool>,
     pub preview_mode: RwSignal<bool>,
@@ -308,6 +310,7 @@ impl UiState {
         Self {
             show_command_palette: RwSignal::new(false),
             show_export_modal: RwSignal::new(false),
+            show_auth_modal: RwSignal::new(false),
             show_git_panel: RwSignal::new(false),
             show_debug_panel: RwSignal::new(false),
             preview_mode: RwSignal::new(false),
@@ -436,6 +439,7 @@ impl Persistable for CanvasData {
 pub struct AppState {
     pub canvas: CanvasState,
     pub ui: UiState,
+    pub auth: AuthService,
     pub settings: RwSignal<SettingsState>,
     pub project_name: RwSignal<String>,
     pub last_modified: RwSignal<f64>,
@@ -449,6 +453,7 @@ impl AppState {
         let state = Self {
             canvas: CanvasState::new(),
             ui: UiState::new(),
+            auth: AuthService::new(),
             settings: RwSignal::new(settings),
             project_name: RwSignal::new("Untitled Project".to_string()),
             last_modified: RwSignal::new(js_sys::Date::now()),
