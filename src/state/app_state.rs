@@ -7,7 +7,7 @@ use super::project::Project;
 use crate::builder::component_library::{LibraryComponent, builtin_library_components};
 use crate::builder::design_tokens::DesignTokens;
 use crate::builder::drag_drop::DragState;
-use crate::domain::{CanvasComponent, ComponentId};
+use crate::domain::{CanvasComponent, ComponentId, Variable};
 
 /// Canvas-specific state
 #[derive(Clone, Copy)]
@@ -423,6 +423,8 @@ impl Persistable for SettingsState {
 struct CanvasData {
     components: Vec<CanvasComponent>,
     selected: Option<ComponentId>,
+    #[serde(default)]
+    variables: Vec<Variable>,
 }
 
 impl Persistable for CanvasData {
@@ -438,6 +440,7 @@ pub struct AppState {
     pub ui: UiState,
     pub settings: RwSignal<SettingsState>,
     pub project_name: RwSignal<String>,
+    pub variables: RwSignal<Vec<Variable>>,
     pub last_modified: RwSignal<f64>,
 }
 
@@ -451,6 +454,7 @@ impl AppState {
             ui: UiState::new(),
             settings: RwSignal::new(settings),
             project_name: RwSignal::new("Untitled Project".to_string()),
+            variables: RwSignal::new(Vec::new()),
             last_modified: RwSignal::new(js_sys::Date::now()),
         };
 
@@ -493,6 +497,7 @@ impl AppState {
         let data = CanvasData {
             components: self.canvas.components.get(),
             selected: self.canvas.selected.get(),
+            variables: self.variables.get(),
         };
         data.save()
     }
@@ -502,6 +507,7 @@ impl AppState {
         let data = CanvasData::load()?;
         self.canvas.components.set(data.components);
         self.canvas.selected.set(data.selected);
+        self.variables.set(data.variables);
         Ok(())
     }
 
@@ -512,6 +518,7 @@ impl AppState {
             self.canvas.components.get(),
             self.settings.get(),
             self.ui.design_tokens.get(),
+            self.variables.get(),
         )
     }
 
@@ -523,6 +530,7 @@ impl AppState {
         self.canvas.history.update(|h| h.clear());
         self.settings.set(project.settings);
         self.ui.design_tokens.set(project.design_tokens);
+        self.variables.set(project.variables);
         self.update_last_modified();
     }
 

@@ -173,7 +173,8 @@ pub fn use_keyboard_actions(
             }
             KeyboardAction::Export => {
                 let comps = app_state.canvas.components.get();
-                let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
+                let variables = app_state.variables.get();
+                let generator = LeptosCodeGenerator::new(ExportPreset::Plain, variables);
 
                 match generator.generate(&comps) {
                     Ok(code) => {

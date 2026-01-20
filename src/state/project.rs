@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::app_state::SettingsState;
 use crate::builder::design_tokens::DesignTokens;
-use crate::domain::CanvasComponent;
+use crate::domain::{CanvasComponent, Variable};
 
 /// Persistable project representation combining layout and settings
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -13,6 +13,8 @@ pub struct Project {
     pub settings: SettingsState,
     #[serde(default)]
     pub design_tokens: DesignTokens,
+    #[serde(default)]
+    pub variables: Vec<Variable>,
 }
 
 impl Project {
@@ -22,6 +24,7 @@ impl Project {
         layout: Vec<CanvasComponent>,
         settings: SettingsState,
         design_tokens: DesignTokens,
+        variables: Vec<Variable>,
     ) -> Self {
         Self {
             name,
@@ -29,6 +32,7 @@ impl Project {
             layout,
             settings,
             design_tokens,
+            variables,
         }
     }
 }

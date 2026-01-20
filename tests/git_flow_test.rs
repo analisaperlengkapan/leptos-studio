@@ -18,6 +18,7 @@ async fn test_git_flow_end_to_end() {
         Vec::new(),
         SettingsState::default(),
         DesignTokens::default(),
+        Vec::new(),
     );
 
     // 3. Check Initial Status (Should be clean effectively if new, or dirty if we consider empty different from HEAD=None)
@@ -98,6 +99,7 @@ async fn test_git_reset_flow() {
         Vec::new(),
         SettingsState::default(),
         DesignTokens::default(),
+        Vec::new(),
     );
 
     // Make a commit

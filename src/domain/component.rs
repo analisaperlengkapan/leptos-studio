@@ -141,6 +141,8 @@ pub struct ButtonComponent {
     pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub bindings: HashMap<String, String>,
 }
 
 impl ButtonComponent {
@@ -153,6 +155,7 @@ impl ButtonComponent {
             disabled: false,
             on_click: None,
             animation: None,
+            bindings: HashMap::new(),
         }
     }
 }
@@ -206,6 +209,8 @@ pub struct TextComponent {
     pub tag: TextTag,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub bindings: HashMap<String, String>,
 }
 
 impl TextComponent {
@@ -216,6 +221,7 @@ impl TextComponent {
             style: TextStyle::Body,
             tag: TextTag::P,
             animation: None,
+            bindings: HashMap::new(),
         }
     }
 }
@@ -257,6 +263,8 @@ pub struct InputComponent {
     pub on_input: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub bindings: HashMap<String, String>,
 }
 
 impl InputComponent {
@@ -270,6 +278,7 @@ impl InputComponent {
             on_change: None,
             on_input: None,
             animation: None,
+            bindings: HashMap::new(),
         }
     }
 }
