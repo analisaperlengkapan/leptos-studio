@@ -2830,3 +2830,88 @@ input::placeholder, textarea::placeholder {
         width: 100%;
     }
 }
+
+/* ========================================
+   Project Dashboard
+   ======================================== */
+.project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-4);
+    padding: var(--spacing-2);
+}
+
+.project-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-surface);
+    padding: var(--spacing-4);
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.project-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.project-card.active {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-subtle), var(--shadow-md);
+    background: var(--color-primary-50);
+}
+
+.project-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-2);
+}
+
+.project-card h3 {
+    margin: 0;
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-4);
+    line-height: 1.5;
+}
+
+.project-actions {
+    margin-top: auto;
+    display: flex;
+    gap: var(--spacing-2);
+}
+
+.project-actions .btn {
+    flex: 1;
+}
+
+.empty-projects {
+    text-align: center;
+    padding: var(--spacing-10);
+    color: var(--color-text-secondary);
+    background: var(--color-gray-50);
+    border-radius: var(--border-radius-lg);
+    border: 2px dashed var(--color-border);
+}
+
+.rename-input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: var(--font-size-base);
+    border: 1px solid var(--color-primary);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: var(--spacing-2);
+}

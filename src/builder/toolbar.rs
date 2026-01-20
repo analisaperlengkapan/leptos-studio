@@ -24,17 +24,6 @@ pub fn Toolbar(
         }
     };
 
-    let load_layout = move |_| {
-        if let Err(e) = app_state.load() {
-            app_state
-                .ui
-                .notify(Notification::error(format!("❌ {}", e.user_message())));
-        } else {
-            app_state
-                .ui
-                .notify(Notification::success("📂 Layout loaded!".to_string()));
-        }
-    };
 
     // Export handler
     let do_export = use_export_actions(show_export, export_code, export_template);
@@ -90,20 +79,33 @@ pub fn Toolbar(
 
                 <div class="toolbar-group">
                     <button
+                        on:click=move |_| app_state.ui.show_project_dashboard.set(true)
+                        class="btn btn-ghost btn-sm"
+                        title="Manage Projects"
+                    >
+                        <span class="icon">"📁"</span>
+                        <span class="label">"Projects"</span>
+                    </button>
+                </div>
+
+                <div class="divider-vertical"></div>
+
+                <div class="toolbar-group">
+                     <span class="project-name-display" style="font-size: 0.9em; font-weight: 500; color: var(--text-color, #333); margin-right: 8px;">
+                        {move || app_state.project_name.get()}
+                     </span>
+                </div>
+
+                <div class="divider-vertical"></div>
+
+                <div class="toolbar-group">
+                    <button
                         on:click=save_layout
                         class="btn btn-ghost btn-sm"
                         title="Save layout (Ctrl+S)"
                     >
                         <span class="icon">"💾"</span>
                         <span class="label">"Save"</span>
-                    </button>
-                    <button
-                        on:click=load_layout
-                        class="btn btn-ghost btn-sm"
-                        title="Load layout (Ctrl+O)"
-                    >
-                        <span class="icon">"📂"</span>
-                        <span class="label">"Load"</span>
                     </button>
                 </div>
 
