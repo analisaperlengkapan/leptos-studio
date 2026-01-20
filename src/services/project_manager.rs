@@ -118,6 +118,13 @@ impl ProjectManager {
         Ok(())
     }
 
+    /// Rename a project
+    pub fn rename_project(id: &str, new_name: &str) -> AppResult<()> {
+        let mut project = Self::load_project(id)?;
+        project.name = new_name.to_string();
+        Self::save_project(id, &project)
+    }
+
     /// Create a new project ID
     pub fn generate_id() -> String {
         Uuid::new_v4().to_string()
