@@ -26,7 +26,7 @@ mod tests {
             "Test".to_string(),
         ))];
         let settings = SettingsState::default();
-        let project = Project::new("My Project".to_string(), layout, settings, DesignTokens::default());
+        let project = Project::new("My Project".to_string(), layout, settings, DesignTokens::default(), Vec::new());
 
         let json = project_to_json(&project).expect("serialize project");
         let restored = project_from_json(&json).expect("deserialize project");

@@ -22,6 +22,7 @@ fn test_repository_state_serialization() {
         Vec::new(),
         SettingsState::default(),
         DesignTokens::default(),
+        Vec::new(),
     );
 
     let repo = RepositoryState {

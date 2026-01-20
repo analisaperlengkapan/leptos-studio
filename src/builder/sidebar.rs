@@ -6,6 +6,7 @@ use super::drag_drop::{DragDropConfig, create_drag_handlers};
 use crate::builder::debug_panel::DebugPanel;
 use crate::builder::git_panel::GitPanel;
 use crate::builder::project::ProjectPanel;
+use crate::builder::variable_panel::VariablePanel;
 use crate::domain::error::ValidationError;
 use crate::domain::validation::{ComponentNameValidator, HtmlTemplateValidator, Validator};
 use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
@@ -172,7 +173,8 @@ pub fn Sidebar() -> impl IntoView {
     let export_code = move |_| {
         let components = app_state.canvas.components.get();
         let preset = app_state.settings.with(|s| s.export_preset.clone());
-        let generator = LeptosCodeGenerator::new(preset);
+        let variables = app_state.variables.get();
+        let generator = LeptosCodeGenerator::new(preset, variables);
 
         match generator.generate(&components) {
             Ok(code) => {
@@ -203,6 +205,7 @@ pub fn Sidebar() -> impl IntoView {
                 <GitPanel />
             </div>
             <ProjectPanel />
+            <VariablePanel />
 
             <h2>"Sidebar"</h2>
 

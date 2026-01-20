@@ -1,6 +1,7 @@
 use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
+use crate::builder::variable_binding::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, InputType, PropValue};
 use crate::services::update_input_prop;
 use crate::state::AppState;
@@ -54,16 +55,53 @@ pub fn InputPropertyEditor(
                             "placeholder" => inp_for_field.placeholder.clone(),
                             _ => String::new(),
                         };
-                        let prop_name_closure = prop_name.clone();
+
+                        let prop_name_for_input = prop_name.clone();
+                        let inp_for_input = inp_for_field.clone();
+                        let comp_id_input = comp_id_field;
+
+                        let prop_name_for_bind = prop_name.clone();
+                        let inp_for_bind_read = inp_for_field.clone();
+                        let inp_for_bind_closure = inp_for_field.clone();
+                        let comp_id_bind = comp_id_field;
+
                         view! {
-                            <StringInput
-                                value=value
-                                label=label_text
-                                on_change=move |new_val| {
-                                    let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
+                            <div style="display: flex; align-items: flex-end;">
+                                <div style="flex-grow: 1;">
+                                    <StringInput
+                                        value=value
+                                        label=label_text
+                                        on_change=move |new_val| {
+                                            let updated_inp = update_input_prop(inp_for_input.clone(), prop_name_for_input.as_str(), PropValue::String(new_val));
+                                            apply_update(comp_id_input, CanvasComponent::Input(updated_inp), prop_name_for_input.clone());
+                                        }
+                                    />
+                                </div>
+                                {
+                                    if prop_name_for_bind.as_str() == "placeholder" {
+                                        let binding_val = inp_for_bind_read.bindings.get("placeholder").cloned();
+
+                                        view! {
+                                            <div style="margin-bottom: 8px;">
+                                                <VariableBinding
+                                                    value=binding_val
+                                                    on_change=move |new_bind| {
+                                                        let mut updated = inp_for_bind_closure.clone();
+                                                        if let Some(v) = new_bind {
+                                                            updated.bindings.insert("placeholder".to_string(), v);
+                                                        } else {
+                                                            updated.bindings.remove("placeholder");
+                                                        }
+                                                        apply_update(comp_id_bind, CanvasComponent::Input(updated), "placeholder binding".to_string());
+                                                    }
+                                                />
+                                            </div>
+                                        }.into_any()
+                                    } else {
+                                        ().into_any()
+                                    }
                                 }
-                            />
+                            </div>
                         }.into_any()
                     },
                         PropType::Enum { options } => {

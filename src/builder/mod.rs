@@ -30,6 +30,8 @@ pub mod template_gallery;
 pub mod theme_editor;
 pub mod toolbar;
 pub mod tree_view;
+pub mod variable_binding;
+pub mod variable_panel;
 pub mod welcome_modal;
 
 // Re-export components for easier imports
@@ -54,3 +56,5 @@ pub use template_gallery::TemplateGallery;
 pub use tree_view::TreeView;
 pub mod debug_panel;
 pub use welcome_modal::WelcomeModal;
+pub use variable_binding::VariableBinding;
+pub use variable_panel::VariablePanel;
