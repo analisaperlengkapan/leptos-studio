@@ -33,6 +33,7 @@ pub mod tree_view;
 pub mod variable_binding;
 pub mod variable_panel;
 pub mod welcome_modal;
+pub mod project_dashboard;
 
 // Re-export components for easier imports
 pub use accessibility::{
@@ -58,3 +59,4 @@ pub mod debug_panel;
 pub use welcome_modal::WelcomeModal;
 pub use variable_binding::VariableBinding;
 pub use variable_panel::VariablePanel;
+pub use project_dashboard::ProjectDashboard;

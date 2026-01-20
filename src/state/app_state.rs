@@ -291,6 +291,7 @@ pub enum ResponsiveMode {
 pub struct UiState {
     pub show_command_palette: RwSignal<bool>,
     pub show_export_modal: RwSignal<bool>,
+    pub show_project_dashboard: RwSignal<bool>,
     pub show_git_panel: RwSignal<bool>,
     pub show_debug_panel: RwSignal<bool>,
     pub preview_mode: RwSignal<bool>,
@@ -308,6 +309,7 @@ impl UiState {
         Self {
             show_command_palette: RwSignal::new(false),
             show_export_modal: RwSignal::new(false),
+            show_project_dashboard: RwSignal::new(false),
             show_git_panel: RwSignal::new(false),
             show_debug_panel: RwSignal::new(false),
             preview_mode: RwSignal::new(false),
@@ -434,12 +436,15 @@ impl Persistable for CanvasData {
 }
 
 /// Global application state
+use crate::services::project_manager::ProjectManager;
+
 #[derive(Clone, Copy)]
 pub struct AppState {
     pub canvas: CanvasState,
     pub ui: UiState,
     pub settings: RwSignal<SettingsState>,
     pub project_name: RwSignal<String>,
+    pub current_project_id: RwSignal<Option<String>>,
     pub variables: RwSignal<Vec<Variable>>,
     pub last_modified: RwSignal<f64>,
 }
@@ -454,6 +459,7 @@ impl AppState {
             ui: UiState::new(),
             settings: RwSignal::new(settings),
             project_name: RwSignal::new("Untitled Project".to_string()),
+            current_project_id: RwSignal::new(None),
             variables: RwSignal::new(Vec::new()),
             last_modified: RwSignal::new(js_sys::Date::now()),
         };
@@ -466,7 +472,29 @@ impl AppState {
             last_modified.set(js_sys::Date::now());
         });
 
+        // Attempt to load the most recent project or legacy data
+        state.initialize_project_state();
+
         state
+    }
+
+    fn initialize_project_state(&self) {
+        // 1. Check if we have any projects
+        if let Ok(projects) = ProjectManager::list_projects() {
+            if let Some(latest) = projects.first() {
+                let _ = self.load_project(&latest.id);
+                return;
+            }
+        }
+
+        // 2. If no projects, check legacy
+        if let Ok(legacy) = CanvasData::load() {
+             self.canvas.components.set(legacy.components);
+             self.canvas.selected.set(legacy.selected);
+             self.variables.set(legacy.variables);
+             self.project_name.set("Recovered Project".to_string());
+             // We don't save immediately, wait for user action or autosave
+        }
     }
 
     /// Provide AppState as context
@@ -492,18 +520,47 @@ impl AppState {
         }
     }
 
-    /// Save canvas data to LocalStorage
+    /// Save project to LocalStorage (creates new if no ID)
     pub fn save(&self) -> Result<(), crate::domain::AppError> {
-        let data = CanvasData {
-            components: self.canvas.components.get(),
-            selected: self.canvas.selected.get(),
-            variables: self.variables.get(),
-        };
-        data.save()
+        let project = self.to_project();
+
+        let id = self.current_project_id.get()
+            .unwrap_or_else(|| ProjectManager::generate_id());
+
+        ProjectManager::save_project(&id, &project)?;
+        self.current_project_id.set(Some(id));
+
+        Ok(())
     }
 
-    /// Load canvas data from LocalStorage
+    /// Load project by ID
+    pub fn load_project(&self, id: &str) -> Result<(), crate::domain::AppError> {
+        let project = ProjectManager::load_project(id)?;
+        self.apply_project(project);
+        self.current_project_id.set(Some(id.to_string()));
+        Ok(())
+    }
+
+    /// Create a new empty project
+    pub fn create_new_project(&self) {
+        self.project_name.set("Untitled Project".to_string());
+        self.canvas.components.set(Vec::new());
+        self.canvas.selected.set(None);
+        self.canvas.history.update(|h| h.clear());
+        self.variables.set(Vec::new());
+        self.current_project_id.set(None);
+        self.update_last_modified();
+    }
+
+    /// Load canvas data from LocalStorage (Legacy / Import)
     pub fn load(&self) -> Result<(), crate::domain::AppError> {
+        // This is now an "Import from Legacy" or generic load.
+        // For now, let's keep it wrapper for load_project if we had an active ID,
+        // but if not, it tries legacy.
+        if let Some(id) = self.current_project_id.get() {
+            return self.load_project(&id);
+        }
+
         let data = CanvasData::load()?;
         self.canvas.components.set(data.components);
         self.canvas.selected.set(data.selected);

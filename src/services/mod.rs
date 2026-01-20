@@ -8,6 +8,7 @@ pub mod local_storage_git;
 pub mod project_service;
 pub mod property_service;
 pub mod template_service;
+pub mod project_manager;
 
 pub use analytics_service::*;
 pub use event_bus::*;
@@ -18,3 +19,4 @@ pub use local_storage_git::*;
 pub use project_service::*;
 pub use property_service::*;
 pub use template_service::*;
+pub use project_manager::*;

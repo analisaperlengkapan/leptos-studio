@@ -19,6 +19,7 @@ use crate::constants::{
     STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
 };
 use crate::builder::preview::Preview;
+use crate::builder::project_dashboard::ProjectDashboard;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
 use crate::builder::snackbar::Snackbar;
@@ -333,6 +334,8 @@ pub fn App() -> impl IntoView {
                 } else {
                     view! { <div></div> }.into_any()
                 }}
+
+                <ProjectDashboard />
 
                     <Snackbar notification=app_state.ui.notification />
                 </div>
