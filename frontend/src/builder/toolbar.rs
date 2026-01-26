@@ -13,15 +13,7 @@ pub fn Toolbar(
 
     // Save/Load handlers
     let save_layout = move |_| {
-        if let Err(e) = app_state.save() {
-            app_state
-                .ui
-                .notify(Notification::error(format!("❌ {}", e.user_message())));
-        } else {
-            app_state
-                .ui
-                .notify(Notification::success("💾 Layout saved!".to_string()));
-        }
+        app_state.save();
     };
 
 

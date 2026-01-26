@@ -1,48 +1,9 @@
-
-[package]
-name = "leptos_studio"
-version = "0.1.0"
-edition = "2024"
-description = "Visual UI builder for Leptos framework"
-license = "Apache-2.0"
-repository = "https://github.com/analisaperlengkapan/leptos-studio"
-authors = ["Leptos Studio Contributors"]
-keywords = ["leptos", "wasm", "ui-builder", "webassembly", "rust"]
-categories = ["wasm", "web-programming", "gui"]
-rust-version = "1.90.0"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-leptos = { version = "0.8.14", features = ["csr"] }
-leptos_router = "0.8.10"
-leptos_dom = "0.8.7"
-web-sys = { version = "0.3", features = [
-    "DragEvent", "DataTransfer", "Window", "Storage", "console", 
-    "HtmlInputElement", "FileList", "File", "Clipboard", "Navigator",
-    "Element", "HtmlElement", "Event", "EventTarget", "Blob", "BlobPropertyBag", "Url",
-    "FileReader", "DomException", "NodeList", "Node", "Performance"
-] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-console_error_panic_hook = "0.1"
-js-sys = "0.3"
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
-gloo-timers = { version = "0.3", features = ["futures"] }
-wasm-bindgen-futures = "0.4"
-gloo-net = "0.6"
-thiserror = "2.0"
-uuid = { version = "1.11", features = ["v4", "serde", "js"] }
-regex = "1.11"
-chrono = { version = "0.4.42", features = ["serde"] }
-futures = "0.3.31"
-
-[dev-dependencies]
-wasm-bindgen-test = "0.3"
-
 [workspace]
-# Single crate workspace
+resolver = "2"
+members = [
+    "frontend",
+    "backend",
+]
 
 [workspace.metadata.dylint]
 libraries = [{ git = "https://github.com/leptos-rs/leptos-lints", tag = "v0.1.0" }]
