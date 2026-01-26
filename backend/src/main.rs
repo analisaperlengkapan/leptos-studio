@@ -62,6 +62,8 @@ async fn main() {
     let store = Arc::new(RwLock::new(initial_data));
 
     // CORS
+    // Note: 'Any' origin is used for development convenience.
+    // In production, this should be restricted to the specific frontend origin.
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])

@@ -489,15 +489,24 @@ impl AppState {
                 state.variables.set(legacy.variables);
                 state.project_name.set("Recovered Legacy Project".to_string());
 
-                // Automatically save it to backend to complete migration
-                state.save();
+                // Manually save to handle success/failure explicitly
+                let project = state.to_project();
+                let id = ProjectManager::generate_id();
+                state.current_project_id.set(Some(id.clone()));
 
-                // Clear legacy storage to prevent re-importing
-                if let Ok(Some(storage)) = window().local_storage() {
-                    let _ = storage.remove_item(CanvasData::storage_key());
+                let ui = state.ui;
+                match ProjectManager::save_project(&id, &project).await {
+                    Ok(_) => {
+                        // Only clear legacy storage if save succeeds to prevent data loss
+                        if let Ok(Some(storage)) = window().local_storage() {
+                            let _ = storage.remove_item(CanvasData::storage_key());
+                        }
+                        ui.notify(Notification::success("Legacy project migrated to backend".to_string()));
+                    },
+                    Err(e) => {
+                        ui.notify(Notification::error(format!("Migration failed: {}. Legacy data preserved locally.", e.user_message())));
+                    }
                 }
-
-                state.ui.notify(Notification::success("Legacy project migrated to backend".to_string()));
                 return;
             }
 
