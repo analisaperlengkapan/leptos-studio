@@ -3,7 +3,10 @@ use crate::state::Project;
 use serde::{Deserialize, Serialize};
 use gloo_net::http::Request;
 
-const API_BASE: &str = "http://localhost:3000/api/projects";
+fn get_api_base() -> String {
+    let base = option_env!("API_URL").unwrap_or("http://localhost:3000");
+    format!("{}/api/projects", base.trim_end_matches('/'))
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct ProjectMetadata {
@@ -18,7 +21,7 @@ pub struct ProjectManager;
 impl ProjectManager {
     /// List all projects
     pub async fn list_projects() -> AppResult<Vec<ProjectMetadata>> {
-        let resp = Request::get(API_BASE)
+        let resp = Request::get(&get_api_base())
             .send()
             .await
             .map_err(|e| AppError::Network(e.to_string()))?;
@@ -41,7 +44,7 @@ impl ProjectManager {
             obj.insert("last_modified".to_string(), serde_json::Value::from(js_sys::Date::now()));
         }
 
-        let resp = Request::post(API_BASE)
+        let resp = Request::post(&get_api_base())
             .json(&json)
             .map_err(|e| AppError::Serialization(e.to_string()))?
             .send()
@@ -57,7 +60,7 @@ impl ProjectManager {
 
     /// Load a project
     pub async fn load_project(id: &str) -> AppResult<Project> {
-        let url = format!("{}/{}", API_BASE, id);
+        let url = format!("{}/{}", get_api_base(), id);
         let resp = Request::get(&url)
             .send()
             .await
@@ -72,7 +75,7 @@ impl ProjectManager {
 
     /// Delete a project
     pub async fn delete_project(id: &str) -> AppResult<()> {
-        let url = format!("{}/{}", API_BASE, id);
+        let url = format!("{}/{}", get_api_base(), id);
          let resp = Request::delete(&url)
             .send()
             .await
