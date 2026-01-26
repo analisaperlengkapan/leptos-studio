@@ -1,0 +1,14 @@
+{
+  "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912": {
+    "id": "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912",
+    "last_modified": 0.0,
+    "layout": [],
+    "name": "Test Persist",
+    "settings": {
+      "auto_save": true,
+      "export_preset": "Plain",
+      "theme": "Light"
+    },
+    "variables": []
+  }
+}

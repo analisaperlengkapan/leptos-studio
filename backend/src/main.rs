@@ -9,6 +9,9 @@ use std::{
     collections::HashMap,
     net::SocketAddr,
     sync::{Arc, RwLock},
+    fs::File,
+    io::BufReader,
+    path::Path as FilePath,
 };
 use tower_http::cors::{Any, CorsLayer};
 
@@ -22,12 +25,41 @@ struct ProjectMetadata {
 
 type Store = Arc<RwLock<HashMap<String, serde_json::Value>>>;
 
+const DATA_FILE: &str = "projects.json";
+
+fn load_store() -> HashMap<String, serde_json::Value> {
+    if FilePath::new(DATA_FILE).exists() {
+        if let Ok(file) = File::open(DATA_FILE) {
+            let reader = BufReader::new(file);
+            if let Ok(map) = serde_json::from_reader(reader) {
+                tracing::info!("Loaded projects from {}", DATA_FILE);
+                return map;
+            }
+        }
+        tracing::error!("Failed to load projects from {}", DATA_FILE);
+    }
+    HashMap::new()
+}
+
+fn save_store(store: &HashMap<String, serde_json::Value>) {
+    if let Ok(file) = File::create(DATA_FILE) {
+        if let Err(e) = serde_json::to_writer_pretty(file, store) {
+            tracing::error!("Failed to save projects: {}", e);
+        } else {
+             tracing::info!("Saved projects to {}", DATA_FILE);
+        }
+    } else {
+        tracing::error!("Failed to create {}", DATA_FILE);
+    }
+}
+
 #[tokio::main]
 async fn main() {
     // Initialize tracing
     tracing_subscriber::fmt::init();
 
-    let store = Store::default();
+    let initial_data = load_store();
+    let store = Arc::new(RwLock::new(initial_data));
 
     // CORS
     let cors = CorsLayer::new()
@@ -88,8 +120,6 @@ async fn save_project(
         obj.insert("id".to_string(), serde_json::Value::String(id.clone()));
         // Ensure last_modified is updated if not present (though frontend should send it)
         if !obj.contains_key("last_modified") {
-             // We don't have JS Date here easily unless we use chrono, but let's assume frontend sends it.
-             // If not, we set 0.0
              obj.insert("last_modified".to_string(), serde_json::Value::from(0.0));
         }
     }
@@ -98,7 +128,11 @@ async fn save_project(
     let last_modified = payload.get("last_modified").and_then(|v| v.as_f64()).unwrap_or(0.0);
     let component_count = payload.get("layout").and_then(|l| l.as_array()).map(|a| a.len()).unwrap_or(0);
 
-    store.write().unwrap().insert(id.clone(), payload);
+    {
+        let mut guard = store.write().unwrap();
+        guard.insert(id.clone(), payload);
+        save_store(&guard);
+    }
 
     Ok(Json(ProjectMetadata {
         id,
@@ -124,8 +158,9 @@ async fn delete_project(
     Path(id): Path<String>,
     State(store): State<Store>,
 ) -> StatusCode {
-    let mut store = store.write().unwrap();
-    if store.remove(&id).is_some() {
+    let mut guard = store.write().unwrap();
+    if guard.remove(&id).is_some() {
+        save_store(&guard);
         StatusCode::NO_CONTENT
     } else {
         StatusCode::NOT_FOUND

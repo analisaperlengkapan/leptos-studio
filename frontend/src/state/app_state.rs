@@ -481,7 +481,27 @@ impl AppState {
     fn initialize_project_state(&self) {
         let state = *self;
         leptos::task::spawn_local(async move {
-            // 1. Check if we have any projects
+            // 1. Check legacy LocalStorage first to ensure migration happens even if backend has projects
+            if let Ok(legacy) = CanvasData::load() {
+                // If we have legacy data, load it as "Recovered Legacy Project"
+                state.canvas.components.set(legacy.components);
+                state.canvas.selected.set(legacy.selected);
+                state.variables.set(legacy.variables);
+                state.project_name.set("Recovered Legacy Project".to_string());
+
+                // Automatically save it to backend to complete migration
+                state.save();
+
+                // Clear legacy storage to prevent re-importing
+                if let Ok(Some(storage)) = window().local_storage() {
+                    let _ = storage.remove_item(CanvasData::storage_key());
+                }
+
+                state.ui.notify(Notification::success("Legacy project migrated to backend".to_string()));
+                return;
+            }
+
+            // 2. If no legacy data, check backend projects
             if let Ok(projects) = ProjectManager::list_projects().await {
                 if let Some(latest) = projects.first() {
                     // Load the latest project
@@ -489,16 +509,7 @@ impl AppState {
                          state.apply_project(project);
                          state.current_project_id.set(Some(latest.id.clone()));
                     }
-                    return;
                 }
-            }
-
-            // 2. If no projects or error, check legacy LocalStorage
-            if let Ok(legacy) = CanvasData::load() {
-                 state.canvas.components.set(legacy.components);
-                 state.canvas.selected.set(legacy.selected);
-                 state.variables.set(legacy.variables);
-                 state.project_name.set("Recovered Project".to_string());
             }
         });
     }
@@ -529,16 +540,20 @@ impl AppState {
     /// Save project to Backend (creates new if no ID)
     pub fn save(&self) {
         let project = self.to_project();
+        // Optimistically set ID if None to prevent duplicate saves (race condition)
         let id = self.current_project_id.get()
-            .unwrap_or_else(|| ProjectManager::generate_id());
+            .unwrap_or_else(|| {
+                let new_id = ProjectManager::generate_id();
+                self.current_project_id.set(Some(new_id.clone()));
+                new_id
+            });
 
         let ui = self.ui;
-        let current_project_id = self.current_project_id;
+        // We capture id by value for the async block
 
         leptos::task::spawn_local(async move {
             match ProjectManager::save_project(&id, &project).await {
                 Ok(_) => {
-                    current_project_id.set(Some(id));
                     ui.notify(Notification::success("Project saved successfully".to_string()));
                 },
                 Err(e) => {
