@@ -139,17 +139,18 @@ async fn save_project(
 
     {
         let mut guard = store.write().await;
-        // Insert into memory first
-        guard.insert(id.clone(), payload);
+        // Insert into memory first, capture old value for rollback
+        let old_value = guard.insert(id.clone(), payload);
 
         // Try to save to disk
         if let Err(e) = save_store(&guard).await {
             tracing::error!("Failed to save store: {}", e);
-            // Rollback in-memory change to keep state consistent?
-            // Or keep it and return error?
-            // Returning error indicates to client that persistence failed.
-            // Removing it ensures consistency.
-            guard.remove(&id);
+            // Rollback: Restore old value or remove if it was a new insert
+            if let Some(v) = old_value {
+                guard.insert(id, v);
+            } else {
+                guard.remove(&id);
+            }
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     }
