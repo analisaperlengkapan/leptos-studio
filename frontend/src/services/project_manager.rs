@@ -2,9 +2,18 @@ use crate::domain::{AppError, AppResult};
 use crate::state::Project;
 use serde::{Deserialize, Serialize};
 use gloo_net::http::Request;
+use leptos::prelude::*;
 
 fn get_api_base() -> String {
-    let base = option_env!("API_URL").unwrap_or("http://localhost:3000");
+    // Try to get from runtime window.LEPTOS_API_URL first
+    let runtime_base = window()
+        .get("LEPTOS_API_URL")
+        .and_then(|val| val.as_string());
+
+    let base = runtime_base
+        .or_else(|| option_env!("API_URL").map(|s| s.to_string()))
+        .unwrap_or_else(|| "http://localhost:3000".to_string());
+
     format!("{}/api/projects", base.trim_end_matches('/'))
 }
 

@@ -60,12 +60,21 @@ async fn main() {
     let store = Arc::new(RwLock::new(initial_data));
 
     // CORS
-    // Note: 'Any' origin is used for development convenience.
-    // In production, this should be restricted to the specific frontend origin.
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers(Any);
+    // Use CORS_ORIGIN env var if set, otherwise default to Any (for dev)
+    let cors_origin = std::env::var("CORS_ORIGIN").ok();
+    let cors = if let Some(origin) = cors_origin {
+        tracing::info!("CORS restricted to origin: {}", origin);
+        CorsLayer::new()
+            .allow_origin(origin.parse::<axum::http::HeaderValue>().expect("Invalid CORS_ORIGIN value"))
+            .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+            .allow_headers(Any)
+    } else {
+        tracing::warn!("CORS allowing ANY origin (development mode)");
+        CorsLayer::new()
+            .allow_origin(Any)
+            .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+            .allow_headers(Any)
+    };
 
     let app = Router::new()
         .route("/api/projects", get(list_projects).post(save_project))
