@@ -1,0 +1,26 @@
+{
+  "7d4b4411-ce34-422b-b5ee-6371a69e0585": {
+    "id": "7d4b4411-ce34-422b-b5ee-6371a69e0585",
+    "last_modified": 0.0,
+    "layout": [],
+    "name": "Test Async",
+    "settings": {
+      "auto_save": true,
+      "export_preset": "Plain",
+      "theme": "Light"
+    },
+    "variables": []
+  },
+  "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912": {
+    "id": "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912",
+    "last_modified": 0.0,
+    "layout": [],
+    "name": "Test Persist",
+    "settings": {
+      "auto_save": true,
+      "export_preset": "Plain",
+      "theme": "Light"
+    },
+    "variables": []
+  }
+}

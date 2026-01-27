@@ -1,8 +1,8 @@
 # Rust/Leptos/Trunk
-/target/
-/pkg/
-/dist/
-/.trunk/
+target/
+pkg/
+dist/
+.trunk/
 
 # VSCode
 .vscode/

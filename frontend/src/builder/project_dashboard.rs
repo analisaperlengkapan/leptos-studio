@@ -12,11 +12,13 @@ pub fn ProjectDashboard() -> impl IntoView {
 
     let refresh_projects = move || {
         loading.set(true);
-        match ProjectManager::list_projects() {
-            Ok(list) => projects.set(list),
-            Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
-        }
-        loading.set(false);
+        leptos::task::spawn_local(async move {
+            match ProjectManager::list_projects().await {
+                Ok(list) => projects.set(list),
+                Err(e) => app_state.ui.notify(Notification::error(e.user_message())),
+            }
+            loading.set(false);
+        });
     };
 
     // Load on mount (or when visibility changes to true)
@@ -37,12 +39,8 @@ pub fn ProjectDashboard() -> impl IntoView {
     };
 
     let on_open = move |id: String| {
-        if let Err(e) = app_state.load_project(&id) {
-             app_state.ui.notify(Notification::error(e.user_message()));
-        } else {
-             app_state.ui.notify(Notification::success("Project loaded".to_string()));
-             close_dashboard();
-        }
+        app_state.load_project(&id);
+        close_dashboard();
     };
 
     let on_delete = move |id: String| {
@@ -50,19 +48,21 @@ pub fn ProjectDashboard() -> impl IntoView {
             return;
         }
 
-        if let Err(e) = ProjectManager::delete_project(&id) {
-             app_state.ui.notify(Notification::error(e.user_message()));
-        } else {
-             app_state.ui.notify(Notification::success("Project deleted".to_string()));
-             refresh_projects();
+        leptos::task::spawn_local(async move {
+            if let Err(e) = ProjectManager::delete_project(&id).await {
+                 app_state.ui.notify(Notification::error(e.user_message()));
+            } else {
+                 app_state.ui.notify(Notification::success("Project deleted".to_string()));
+                 refresh_projects();
 
-             // If we deleted the current project, reset
-             if let Some(curr) = app_state.current_project_id.get() {
-                 if curr == id {
-                     app_state.create_new_project();
+                 // If we deleted the current project, reset
+                 if let Some(curr) = app_state.current_project_id.get() {
+                     if curr == id {
+                         app_state.create_new_project();
+                     }
                  }
-             }
-        }
+            }
+        });
     };
 
     let on_new = move |_| {
@@ -82,18 +82,20 @@ pub fn ProjectDashboard() -> impl IntoView {
             return;
         }
 
-        if let Err(e) = ProjectManager::rename_project(&id, &new_name) {
-            app_state.ui.notify(Notification::error(e.user_message()));
-        } else {
-            app_state.ui.notify(Notification::success("Project renamed".to_string()));
-            editing_id.set(None);
-            refresh_projects();
+        leptos::task::spawn_local(async move {
+            if let Err(e) = ProjectManager::rename_project(&id, &new_name).await {
+                app_state.ui.notify(Notification::error(e.user_message()));
+            } else {
+                app_state.ui.notify(Notification::success("Project renamed".to_string()));
+                editing_id.set(None);
+                refresh_projects();
 
-            // If renaming current project, update app state name
-            if app_state.current_project_id.get().as_deref() == Some(&id) {
-                app_state.project_name.set(new_name);
+                // If renaming current project, update app state name
+                if app_state.current_project_id.get().as_deref() == Some(&id) {
+                    app_state.project_name.set(new_name);
+                }
             }
-        }
+        });
     };
 
     let cancel_rename = move |_| {

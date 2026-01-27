@@ -479,22 +479,48 @@ impl AppState {
     }
 
     fn initialize_project_state(&self) {
-        // 1. Check if we have any projects
-        if let Ok(projects) = ProjectManager::list_projects() {
-            if let Some(latest) = projects.first() {
-                let _ = self.load_project(&latest.id);
+        let state = *self;
+        leptos::task::spawn_local(async move {
+            // 1. Check legacy LocalStorage first to ensure migration happens even if backend has projects
+            if let Ok(legacy) = CanvasData::load() {
+                // If we have legacy data, load it as "Recovered Legacy Project"
+                state.canvas.components.set(legacy.components);
+                state.canvas.selected.set(legacy.selected);
+                state.variables.set(legacy.variables);
+                state.project_name.set("Recovered Legacy Project".to_string());
+
+                // Manually save to handle success/failure explicitly
+                let project = state.to_project();
+                let id = ProjectManager::generate_id();
+                state.current_project_id.set(Some(id.clone()));
+
+                let ui = state.ui;
+                match ProjectManager::save_project(&id, &project).await {
+                    Ok(_) => {
+                        // Only clear legacy storage if save succeeds to prevent data loss
+                        if let Ok(Some(storage)) = window().local_storage() {
+                            let _ = storage.remove_item(CanvasData::storage_key());
+                        }
+                        ui.notify(Notification::success("Legacy project migrated to backend".to_string()));
+                    },
+                    Err(e) => {
+                        ui.notify(Notification::error(format!("Migration failed: {}. Legacy data preserved locally.", e.user_message())));
+                    }
+                }
                 return;
             }
-        }
 
-        // 2. If no projects, check legacy
-        if let Ok(legacy) = CanvasData::load() {
-             self.canvas.components.set(legacy.components);
-             self.canvas.selected.set(legacy.selected);
-             self.variables.set(legacy.variables);
-             self.project_name.set("Recovered Project".to_string());
-             // We don't save immediately, wait for user action or autosave
-        }
+            // 2. If no legacy data, check backend projects
+            if let Ok(projects) = ProjectManager::list_projects().await {
+                if let Some(latest) = projects.first() {
+                    // Load the latest project
+                    if let Ok(project) = ProjectManager::load_project(&latest.id).await {
+                         state.apply_project(project);
+                         state.current_project_id.set(Some(latest.id.clone()));
+                    }
+                }
+            }
+        });
     }
 
     /// Provide AppState as context
@@ -520,25 +546,49 @@ impl AppState {
         }
     }
 
-    /// Save project to LocalStorage (creates new if no ID)
-    pub fn save(&self) -> Result<(), crate::domain::AppError> {
+    /// Save project to Backend (creates new if no ID)
+    pub fn save(&self) {
         let project = self.to_project();
-
+        // Optimistically set ID if None to prevent duplicate saves (race condition)
         let id = self.current_project_id.get()
-            .unwrap_or_else(|| ProjectManager::generate_id());
+            .unwrap_or_else(|| {
+                let new_id = ProjectManager::generate_id();
+                self.current_project_id.set(Some(new_id.clone()));
+                new_id
+            });
 
-        ProjectManager::save_project(&id, &project)?;
-        self.current_project_id.set(Some(id));
+        let ui = self.ui;
+        // We capture id by value for the async block
 
-        Ok(())
+        leptos::task::spawn_local(async move {
+            match ProjectManager::save_project(&id, &project).await {
+                Ok(_) => {
+                    ui.notify(Notification::success("Project saved successfully".to_string()));
+                },
+                Err(e) => {
+                    ui.notify(Notification::error(e.user_message()));
+                }
+            }
+        });
     }
 
     /// Load project by ID
-    pub fn load_project(&self, id: &str) -> Result<(), crate::domain::AppError> {
-        let project = ProjectManager::load_project(id)?;
-        self.apply_project(project);
-        self.current_project_id.set(Some(id.to_string()));
-        Ok(())
+    pub fn load_project(&self, id: &str) {
+        let id = id.to_string();
+        let state = *self;
+
+        leptos::task::spawn_local(async move {
+            match ProjectManager::load_project(&id).await {
+                Ok(project) => {
+                    state.apply_project(project);
+                    state.current_project_id.set(Some(id));
+                    state.ui.notify(Notification::success("Project loaded".to_string()));
+                },
+                Err(e) => {
+                    state.ui.notify(Notification::error(e.user_message()));
+                }
+            }
+        });
     }
 
     /// Create a new empty project
@@ -558,7 +608,8 @@ impl AppState {
         // For now, let's keep it wrapper for load_project if we had an active ID,
         // but if not, it tries legacy.
         if let Some(id) = self.current_project_id.get() {
-            return self.load_project(&id);
+            self.load_project(&id);
+            return Ok(());
         }
 
         let data = CanvasData::load()?;

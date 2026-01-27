@@ -35,6 +35,9 @@ pub enum ErrorCode {
     ExportFailed = 6001,
     ExportFormatUnsupported = 6002,
 
+    // Network errors (7xxx)
+    NetworkFailed = 7001,
+
     // General errors (9xxx)
     Unknown = 9999,
 }
@@ -63,6 +66,7 @@ impl ErrorCode {
             ErrorCode::ComponentNestingTooDeep => "E5003",
             ErrorCode::ExportFailed => "E6001",
             ErrorCode::ExportFormatUnsupported => "E6002",
+            ErrorCode::NetworkFailed => "E7001",
             ErrorCode::Unknown => "E9999",
         }
     }
@@ -150,6 +154,9 @@ pub enum AppError {
 
     #[error("Export error: {0}")]
     Export(String),
+
+    #[error("Network error: {0}")]
+    Network(String),
 }
 
 pub type AppResult<T> = Result<T, AppError>;
@@ -166,6 +173,7 @@ impl AppError {
             AppError::ComponentLimitExceeded(_) => ErrorCode::ComponentLimitExceeded,
             AppError::NestingTooDeep(_) => ErrorCode::ComponentNestingTooDeep,
             AppError::Export(_) => ErrorCode::ExportFailed,
+            AppError::Network(_) => ErrorCode::NetworkFailed,
         }
     }
 
@@ -190,6 +198,7 @@ impl AppError {
                 format!("Container nesting too deep. Maximum depth: {}", limit)
             }
             AppError::Export(msg) => format!("Export failed: {}", msg),
+            AppError::Network(msg) => format!("Network error: {}", msg),
         }
     }
 
@@ -229,6 +238,7 @@ impl AppError {
             AppError::ComponentLimitExceeded(_) => true,
             AppError::NestingTooDeep(_) => true,
             AppError::Export(_) => true,
+            AppError::Network(_) => true,
         }
     }
 }

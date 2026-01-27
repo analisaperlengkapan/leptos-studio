@@ -42,20 +42,7 @@ pub fn use_keyboard_actions(
                 }
             }
             KeyboardAction::Save => {
-                if let Err(e) = app_state.save() {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::error(format!(
-                            "❌ {}",
-                            e.user_message()
-                        ))));
-                } else {
-                    app_state
-                        .ui
-                        .notification
-                        .set(Some(Notification::success("💾 Layout saved!".to_string())));
-                }
+                app_state.save();
             }
             KeyboardAction::Delete => {
                 if let Some(selected_id) = app_state.canvas.selected.get() {
