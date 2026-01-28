@@ -81,19 +81,15 @@ pub async fn post_commit(
     };
 
     let mut guard = store.write().await;
-    let project_commits = guard.entry(project_id).or_insert_with(Vec::new);
+    let project_commits = guard.entry(project_id.clone()).or_insert_with(Vec::new);
     project_commits.push(commit.clone());
 
     if let Err(e) = save_store(&guard).await {
         tracing::error!("Failed to save git data: {}", e);
-        // Rollback (pop)
-        if let Some(commits) = guard.values_mut().last() { // This logic is slightly flawed for specific key
-             // Better: re-get entry
+        // Rollback: pop the commit we just added
+        if let Some(commits) = guard.get_mut(&project_id) {
+            commits.pop();
         }
-        // Simple rollback:
-        // We need to re-acquire the specific vec.
-        // But for MVP, logging error and returning 500 is standard.
-        // A strict rollback would require popping the last item from the specific project list.
         return Err(StatusCode::INTERNAL_SERVER_ERROR);
     }
 
@@ -105,9 +101,11 @@ pub async fn delete_history(
     State(store): State<GitStore>,
 ) -> StatusCode {
     let mut guard = store.write().await;
-    if let Some(_removed) = guard.remove(&project_id) {
+    if let Some(removed) = guard.remove(&project_id) {
         if let Err(e) = save_store(&guard).await {
              tracing::error!("Failed to save git data after delete: {}", e);
+             // Rollback: put it back
+             guard.insert(project_id, removed);
              return StatusCode::INTERNAL_SERVER_ERROR;
         }
         StatusCode::NO_CONTENT
