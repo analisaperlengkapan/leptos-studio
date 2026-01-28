@@ -1,5 +1,5 @@
 use crate::services::git_factory::get_git_backend;
-use crate::services::{CommitInfo, GitBackend, RepoStatus};
+use crate::services::{CommitInfo, RepoStatus};
 use crate::state::{AppState, Notification};
 use leptos::prelude::*;
 

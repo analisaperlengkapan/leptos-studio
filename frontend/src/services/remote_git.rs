@@ -57,6 +57,7 @@ impl RemoteGitBackend {
     }
 }
 
+#[async_trait::async_trait(?Send)]
 impl GitBackend for RemoteGitBackend {
     async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus> {
         // Simple status check: compare current project with HEAD

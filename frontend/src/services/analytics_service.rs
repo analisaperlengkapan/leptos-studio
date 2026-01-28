@@ -246,10 +246,8 @@ impl AnalyticsService {
         }
 
         self.last_synced.set(js_sys::Date::now());
-        // We keep metrics in memory for debug panel, but maybe we should clear them?
-        // Or keep only last N.
-        // For "Recent metrics" feature, we keep them.
-        // We assume backend is append-only log.
+        // Clear metrics after successful flush to avoid duplication on next sync
+        self.clear_metrics();
 
         Ok(())
     }

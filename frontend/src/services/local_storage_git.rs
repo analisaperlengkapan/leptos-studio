@@ -79,6 +79,7 @@ impl LocalStorageGitBackend {
     }
 }
 
+#[async_trait::async_trait(?Send)]
 impl GitBackend for LocalStorageGitBackend {
     #[allow(clippy::collapsible_if)]
     async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus> {

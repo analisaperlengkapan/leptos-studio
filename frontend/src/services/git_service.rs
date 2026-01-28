@@ -35,7 +35,7 @@ impl Default for RepoStatus {
 /// Abstraction over Git operations so that different backends (web server,
 /// Tauri desktop, etc.) can implement Git integration without coupling the UI
 /// to a specific environment.
-#[allow(async_fn_in_trait)]
+#[async_trait::async_trait(?Send)]
 pub trait GitBackend {
     async fn status(&self, current_project: Option<&Project>) -> AppResult<RepoStatus>;
     async fn log(&self) -> AppResult<Vec<CommitInfo>>;
@@ -50,6 +50,7 @@ pub trait GitBackend {
 /// is available. It returns helpful informational messages instead of errors.
 pub struct NoopGitBackend;
 
+#[async_trait::async_trait(?Send)]
 impl GitBackend for NoopGitBackend {
     async fn status(&self, _current_project: Option<&Project>) -> AppResult<RepoStatus> {
         Ok(RepoStatus {
