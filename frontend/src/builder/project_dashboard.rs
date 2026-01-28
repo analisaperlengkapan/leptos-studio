@@ -1,6 +1,6 @@
-use leptos::prelude::*;
-use crate::state::app_state::{AppState, Notification};
 use crate::services::project_manager::{ProjectManager, ProjectMetadata};
+use crate::state::app_state::{AppState, Notification};
+use leptos::prelude::*;
 
 #[component]
 pub fn ProjectDashboard() -> impl IntoView {
@@ -44,23 +44,28 @@ pub fn ProjectDashboard() -> impl IntoView {
     };
 
     let on_delete = move |id: String| {
-        if !window().confirm_with_message("Are you sure you want to delete this project?").unwrap_or(false) {
+        if !window()
+            .confirm_with_message("Are you sure you want to delete this project?")
+            .unwrap_or(false)
+        {
             return;
         }
 
         leptos::task::spawn_local(async move {
             if let Err(e) = ProjectManager::delete_project(&id).await {
-                 app_state.ui.notify(Notification::error(e.user_message()));
+                app_state.ui.notify(Notification::error(e.user_message()));
             } else {
-                 app_state.ui.notify(Notification::success("Project deleted".to_string()));
-                 refresh_projects();
+                app_state
+                    .ui
+                    .notify(Notification::success("Project deleted".to_string()));
+                refresh_projects();
 
-                 // If we deleted the current project, reset
-                 if let Some(curr) = app_state.current_project_id.get() {
-                     if curr == id {
-                         app_state.create_new_project();
-                     }
-                 }
+                // If we deleted the current project, reset
+                if let Some(curr) = app_state.current_project_id.get() {
+                    if curr == id {
+                        app_state.create_new_project();
+                    }
+                }
             }
         });
     };
@@ -68,7 +73,9 @@ pub fn ProjectDashboard() -> impl IntoView {
     let on_new = move |_| {
         app_state.create_new_project();
         close_dashboard();
-        app_state.ui.notify(Notification::success("New project created".to_string()));
+        app_state
+            .ui
+            .notify(Notification::success("New project created".to_string()));
     };
 
     let start_rename = move |id: String, current_name: String| {
@@ -86,7 +93,9 @@ pub fn ProjectDashboard() -> impl IntoView {
             if let Err(e) = ProjectManager::rename_project(&id, &new_name).await {
                 app_state.ui.notify(Notification::error(e.user_message()));
             } else {
-                app_state.ui.notify(Notification::success("Project renamed".to_string()));
+                app_state
+                    .ui
+                    .notify(Notification::success("Project renamed".to_string()));
                 editing_id.set(None);
                 refresh_projects();
 

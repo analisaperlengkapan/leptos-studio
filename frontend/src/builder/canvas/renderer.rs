@@ -8,7 +8,10 @@ use crate::state::{AppState, CanvasState};
 use leptos::prelude::*;
 
 fn get_animation_style(animation: &Option<Animation>) -> String {
-    animation.as_ref().map(|a| a.to_css_string()).unwrap_or_default()
+    animation
+        .as_ref()
+        .map(|a| a.to_css_string())
+        .unwrap_or_default()
 }
 
 /// Component renderer for displaying canvas components
@@ -185,7 +188,12 @@ fn render_select(select: SelectComponent) -> impl IntoView {
 
 fn render_container(container: ContainerComponent, canvas_state: CanvasState) -> impl IntoView {
     let (layout_class, align_style) = match &container.layout {
-        crate::domain::LayoutType::Flex { direction, wrap, align_items, justify_content } => {
+        crate::domain::LayoutType::Flex {
+            direction,
+            wrap,
+            align_items,
+            justify_content,
+        } => {
             let dir_class = match direction {
                 crate::domain::FlexDirection::Row => "flex-row",
                 crate::domain::FlexDirection::Column => "flex-col",
@@ -213,11 +221,18 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
                 crate::domain::FlexJustify::Evenly => "space-evenly",
             };
 
-            (classes, format!("align-items: {}; justify-content: {};", align_css, justify_css))
+            (
+                classes,
+                format!(
+                    "align-items: {}; justify-content: {};",
+                    align_css, justify_css
+                ),
+            )
         }
-        crate::domain::LayoutType::Grid { columns, rows } => {
-            (format!("grid grid-cols-{} grid-rows-{}", columns, rows), String::new())
-        }
+        crate::domain::LayoutType::Grid { columns, rows } => (
+            format!("grid grid-cols-{} grid-rows-{}", columns, rows),
+            String::new(),
+        ),
         crate::domain::LayoutType::Stack => ("stack".to_string(), String::new()),
     };
 
@@ -354,11 +369,19 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
         "padding: {}px; border-radius: {}px; {} {}",
         padding,
         border_radius,
-        if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);" } else { "" },
+        if card.shadow {
+            "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"
+        } else {
+            ""
+        },
         anim_style
     );
 
-    let border_class = if card.border { "border border-gray-200" } else { "" };
+    let border_class = if card.border {
+        "border border-gray-200"
+    } else {
+        ""
+    };
 
     // Handle dropping items into this card
     let on_drop = move |ev: leptos::ev::DragEvent| {

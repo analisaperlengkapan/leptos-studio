@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::builder::property_inputs::StringInput;
+use leptos::prelude::*;
 
 #[component]
 pub fn EventPropertyEditor(

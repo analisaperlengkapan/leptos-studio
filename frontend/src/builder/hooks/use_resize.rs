@@ -1,6 +1,6 @@
-use leptos::prelude::*;
+use crate::constants::{MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH};
 use leptos::ev;
-use crate::constants::{MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH};
+use leptos::prelude::*;
 
 /// Controls for a resizable sidebar
 #[derive(Clone)]

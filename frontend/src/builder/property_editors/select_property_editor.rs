@@ -1,14 +1,11 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, StringInput};
-use crate::domain::{SelectComponent, ComponentId};
+use crate::domain::{ComponentId, SelectComponent};
 use crate::state::AppState;
 use leptos::prelude::*;
 
 #[component]
-pub fn SelectPropertyEditor(
-    id: ComponentId,
-    select: SelectComponent,
-) -> impl IntoView {
+pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl IntoView {
     let app_state = AppState::expect_context();
     let canvas_state = app_state.canvas;
 

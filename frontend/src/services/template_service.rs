@@ -5,10 +5,12 @@
 //! rapid UI prototyping.
 
 use crate::domain::{
-    ButtonComponent, ButtonSize, ButtonVariant, CanvasComponent, ContainerComponent, FlexAlign,
-    FlexDirection, FlexJustify, InputComponent, InputType, LayoutType, Spacing, TextComponent,
-    TextStyle, TextTag,
+    AppError, AppResult, ButtonComponent, ButtonSize, ButtonVariant, CanvasComponent,
+    ContainerComponent, FlexAlign, FlexDirection, FlexJustify, InputComponent, InputType,
+    LayoutType, Spacing, TextComponent, TextStyle, TextTag,
 };
+use gloo_net::http::Request;
+use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 
 /// Template category for organization
@@ -86,6 +88,69 @@ impl TemplateService {
     /// Create a new template service
     pub fn new() -> Self {
         Self
+    }
+
+    fn get_api_base() -> String {
+        let runtime_base = window()
+            .get("LEPTOS_API_URL")
+            .and_then(|val| val.as_string());
+
+        let base = runtime_base
+            .or_else(|| option_env!("API_URL").map(|s| s.to_string()))
+            .unwrap_or_else(|| "http://localhost:3000".to_string());
+
+        format!("{}/api/templates", base.trim_end_matches('/'))
+    }
+
+    pub async fn fetch_custom_templates() -> AppResult<Vec<Template>> {
+        let resp = Request::get(&Self::get_api_base())
+            .send()
+            .await
+            .map_err(|e| AppError::Network(e.to_string()))?;
+
+        if !resp.ok() {
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
+        }
+
+        resp.json()
+            .await
+            .map_err(|e| AppError::Serialization(e.to_string()))
+    }
+
+    pub async fn save_custom_template(template: &Template) -> AppResult<()> {
+        let resp = Request::post(&Self::get_api_base())
+            .json(template)
+            .map_err(|e| AppError::Serialization(e.to_string()))?
+            .send()
+            .await
+            .map_err(|e| AppError::Network(e.to_string()))?;
+
+        if !resp.ok() {
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
+        }
+        Ok(())
+    }
+
+    pub async fn delete_custom_template(id: &str) -> AppResult<()> {
+        let url = format!("{}/{}", Self::get_api_base(), id);
+        let resp = Request::delete(&url)
+            .send()
+            .await
+            .map_err(|e| AppError::Network(e.to_string()))?;
+
+        if !resp.ok() {
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
+        }
+        Ok(())
     }
 
     /// Get all built-in templates

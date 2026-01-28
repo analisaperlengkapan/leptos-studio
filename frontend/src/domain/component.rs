@@ -669,44 +669,52 @@ impl CanvasComponent {
                 let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Button(new_c)
-            },
+            }
             CanvasComponent::Text(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Text(new_c)
-            },
+            }
             CanvasComponent::Input(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Input(new_c)
-            },
+            }
             CanvasComponent::Select(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Select(new_c)
-            },
+            }
             CanvasComponent::Image(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Image(new_c)
-            },
+            }
             CanvasComponent::Container(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
-                new_c.children = c.children.iter().map(|child| child.duplicate_with_new_id()).collect();
+                new_c.children = c
+                    .children
+                    .iter()
+                    .map(|child| child.duplicate_with_new_id())
+                    .collect();
                 CanvasComponent::Container(new_c)
-            },
+            }
             CanvasComponent::Card(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
-                new_c.children = c.children.iter().map(|child| child.duplicate_with_new_id()).collect();
+                new_c.children = c
+                    .children
+                    .iter()
+                    .map(|child| child.duplicate_with_new_id())
+                    .collect();
                 CanvasComponent::Card(new_c)
-            },
+            }
             CanvasComponent::Custom(c) => {
-                 let mut new_c = c.clone();
+                let mut new_c = c.clone();
                 new_c.id = ComponentId::new();
                 CanvasComponent::Custom(new_c)
-            },
+            }
         }
     }
 }

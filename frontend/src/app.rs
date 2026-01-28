@@ -6,6 +6,7 @@ use crate::builder::canvas::Canvas;
 use crate::builder::code_panel::CodePanel;
 use crate::builder::command_palette::CommandPalette;
 use crate::builder::component_palette::ComponentPalette;
+use crate::builder::debug_panel::DebugPanel;
 use crate::builder::design_tokens::DesignTokenProvider;
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
@@ -14,14 +15,11 @@ use crate::builder::history_panel::HistoryPanel;
 use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
 use crate::builder::hooks::use_resize::use_resizable_sidebar;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
-use crate::constants::{
-    DEFAULT_LEFT_SIDEBAR_WIDTH, DEFAULT_RIGHT_SIDEBAR_WIDTH, STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
-    STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
-};
 use crate::builder::preview::Preview;
 use crate::builder::project_dashboard::ProjectDashboard;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
+use crate::builder::save_template_modal::SaveTemplateModal;
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
@@ -29,6 +27,10 @@ use crate::builder::theme_editor::ThemeEditor;
 use crate::builder::toolbar::Toolbar;
 use crate::builder::tree_view::TreeView;
 use crate::builder::welcome_modal::WelcomeModal;
+use crate::constants::{
+    DEFAULT_LEFT_SIDEBAR_WIDTH, DEFAULT_RIGHT_SIDEBAR_WIDTH, STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
+    STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
+};
 use crate::services::analytics_service::AnalyticsService;
 use crate::services::event_bus::EventBus;
 use crate::services::template_service::TemplateService;
@@ -46,7 +48,10 @@ pub fn App() -> impl IntoView {
     // Initialize services
     let _event_bus = StoredValue::new(EventBus::new());
     let _template_service = StoredValue::new(TemplateService::new());
-    let _analytics_service = StoredValue::new(AnalyticsService::new());
+
+    // Provide AnalyticsService to context so it can be used by child components
+    AnalyticsService::provide_context();
+    let _analytics_service = StoredValue::new(AnalyticsService::use_context()); // Keep ref if needed, or just rely on context
 
     // Create and provide derived state for memoized computations
     DerivedState::provide_context(app_state);
@@ -59,16 +64,22 @@ pub fn App() -> impl IntoView {
     // Template gallery visibility
     let show_template_gallery = RwSignal::new(false);
 
+    // Save template modal visibility
+    let show_save_template = RwSignal::new(false);
+
     // Welcome modal visibility
     let show_welcome = RwSignal::new(false);
 
     // Check local storage for welcome modal
     Effect::new(move |_| {
-        if let Ok(storage_opt) = window().local_storage() {
-            if let Some(storage) = storage_opt {
-                if storage.get_item(STORAGE_KEY_VISITED).ok().flatten().is_none() {
-                    show_welcome.set(true);
-                }
+        if let Ok(Some(storage)) = window().local_storage() {
+            if storage
+                .get_item(STORAGE_KEY_VISITED)
+                .ok()
+                .flatten()
+                .is_none()
+            {
+                show_welcome.set(true);
             }
         }
     });
@@ -128,6 +139,7 @@ pub fn App() -> impl IntoView {
         Git,
         Code,
         History,
+        Debug,
     }
 
     let active_right_tab = RwSignal::new(RightPanelTab::Properties);
@@ -164,6 +176,7 @@ pub fn App() -> impl IntoView {
                     <Toolbar
                         show_template_gallery=show_template_gallery.write_only()
                         show_export=show_export.write_only()
+                        show_save_template=show_save_template.write_only()
                         export_code=export_code.write_only()
                         export_template=export_template.read_only()
                     />
@@ -266,10 +279,17 @@ pub fn App() -> impl IntoView {
                                         >
                                             "Git"
                                         </button>
+                                        <button
+                                            class=move || if active_right_tab.get() == RightPanelTab::Debug { "tab active" } else { "tab" }
+                                            on:click=move |_| active_right_tab.set(RightPanelTab::Debug)
+                                        >
+                                            "Debug"
+                                        </button>
                                     </div>
 
                                     <div class="panel-content">
                                         {move || match active_right_tab.get() {
+                                            RightPanelTab::Debug => view! { <DebugPanel /> }.into_any(),
                                             RightPanelTab::Git => view! { <GitPanel /> }.into_any(),
                                             RightPanelTab::Code => view! { <CodePanel /> }.into_any(),
                                             RightPanelTab::History => view! { <HistoryPanel /> }.into_any(),
@@ -312,6 +332,17 @@ pub fn App() -> impl IntoView {
                     } else {
                         view! { <div></div> }.into_any()
                     }}
+
+                {move || if show_save_template.get() {
+                    view! {
+                        <SaveTemplateModal
+                            show=show_save_template
+                            on_close=Callback::new(move |_| show_save_template.set(false))
+                        />
+                    }.into_any()
+                } else {
+                    view! { <div></div> }.into_any()
+                }}
 
                 {move || if show_export.get() {
                     view! {

@@ -1,10 +1,10 @@
-use leptos::{html, ev, prelude::*};
-use crate::state::app_state::AppState;
-use crate::domain::ComponentId;
-use crate::builder::canvas::renderer::ComponentRenderer;
-use crate::builder::context_menu::ContextMenu;
 use crate::builder::breadcrumb::BreadcrumbNavigation;
+use crate::builder::canvas::renderer::ComponentRenderer;
 use crate::builder::component_library::create_canvas_component;
+use crate::builder::context_menu::ContextMenu;
+use crate::domain::ComponentId;
+use crate::state::app_state::AppState;
+use leptos::{ev, html, prelude::*};
 use wasm_bindgen::JsCast;
 
 pub mod renderer;
@@ -31,7 +31,10 @@ pub fn handle_drop(ev: ev::DragEvent, _target_id: Option<ComponentId>, app_state
         }
     }
 
-    app_state.canvas.drag_state.set(crate::builder::drag_drop::DragState::NotDragging);
+    app_state
+        .canvas
+        .drag_state
+        .set(crate::builder::drag_drop::DragState::NotDragging);
 }
 
 #[component]
@@ -39,7 +42,7 @@ pub fn Canvas() -> impl IntoView {
     let app_state = AppState::expect_context();
 
     // Track canvas element for dimension measurements
-    let canvas_ref = create_node_ref::<html::Div>();
+    let canvas_ref = NodeRef::<html::Div>::new();
 
     // Context Menu State
     let (cm_visible, set_cm_visible) = signal(false);
@@ -183,7 +186,10 @@ pub fn Canvas() -> impl IntoView {
 }
 
 // Helper to find ID from string
-fn find_component_id_by_string(components: &[crate::domain::CanvasComponent], id_str: &str) -> Option<ComponentId> {
+fn find_component_id_by_string(
+    components: &[crate::domain::CanvasComponent],
+    id_str: &str,
+) -> Option<ComponentId> {
     for comp in components {
         if comp.id().to_string() == id_str {
             return Some(*comp.id());
@@ -207,12 +213,19 @@ fn find_component_id_by_string(components: &[crate::domain::CanvasComponent], id
 }
 
 // Helper to find parent ID
-fn find_parent_id(components: &[crate::domain::CanvasComponent], target_id: ComponentId) -> Option<ComponentId> {
-     for comp in components {
+fn find_parent_id(
+    components: &[crate::domain::CanvasComponent],
+    target_id: ComponentId,
+) -> Option<ComponentId> {
+    for comp in components {
         let is_parent = match comp {
-            crate::domain::CanvasComponent::Container(c) => c.children.iter().any(|child| *child.id() == target_id),
-            crate::domain::CanvasComponent::Card(c) => c.children.iter().any(|child| *child.id() == target_id),
-            _ => false
+            crate::domain::CanvasComponent::Container(c) => {
+                c.children.iter().any(|child| *child.id() == target_id)
+            }
+            crate::domain::CanvasComponent::Card(c) => {
+                c.children.iter().any(|child| *child.id() == target_id)
+            }
+            _ => false,
         };
 
         if is_parent {
@@ -221,7 +234,7 @@ fn find_parent_id(components: &[crate::domain::CanvasComponent], target_id: Comp
 
         // Recurse
         match comp {
-             crate::domain::CanvasComponent::Container(c) => {
+            crate::domain::CanvasComponent::Container(c) => {
                 if let Some(found) = find_parent_id(&c.children, target_id) {
                     return Some(found);
                 }

@@ -1,5 +1,5 @@
-use leptos::prelude::*;
 use crate::domain::ComponentId;
+use leptos::prelude::*;
 
 #[component]
 pub fn ContextMenu(

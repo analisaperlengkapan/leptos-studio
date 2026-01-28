@@ -1,7 +1,7 @@
-use leptos::prelude::*;
-use web_sys::SubmitEvent;
 use crate::domain::{Variable, VariableType};
 use crate::state::AppState;
+use leptos::prelude::*;
+use web_sys::SubmitEvent;
 
 #[component]
 pub fn VariablePanel() -> impl IntoView {
@@ -33,11 +33,7 @@ pub fn VariablePanel() -> impl IntoView {
             return;
         }
 
-        let var = Variable::new(
-            name,
-            new_type.get(),
-            new_default.get(),
-        );
+        let var = Variable::new(name, new_type.get(), new_default.get());
 
         variables.update(|vars| vars.push(var));
         new_name.set(String::new());

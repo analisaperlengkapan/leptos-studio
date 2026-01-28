@@ -3,6 +3,7 @@
 //! Provides application usage analytics, performance metrics,
 //! and session tracking for debugging and optimization.
 
+use gloo_net::http::Request;
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -97,6 +98,8 @@ pub struct AnalyticsService {
     metrics: RwSignal<Vec<Metric>>,
     /// Analytics enabled flag
     enabled: RwSignal<bool>,
+    /// Last sync timestamp
+    last_synced: RwSignal<f64>,
 }
 
 impl AnalyticsService {
@@ -109,6 +112,7 @@ impl AnalyticsService {
             session: RwSignal::new(SessionInfo::new()),
             metrics: RwSignal::new(Vec::new()),
             enabled: RwSignal::new(true),
+            last_synced: RwSignal::new(0.0),
         }
     }
 
@@ -179,6 +183,76 @@ impl AnalyticsService {
     /// Get session info
     pub fn session_info(&self) -> SessionInfo {
         self.session.get()
+    }
+
+    pub fn last_synced(&self) -> f64 {
+        self.last_synced.get()
+    }
+
+    fn get_api_base() -> String {
+        let runtime_base = window()
+            .get("LEPTOS_API_URL")
+            .and_then(|val| val.as_string());
+
+        let base = runtime_base
+            .or_else(|| option_env!("API_URL").map(|s| s.to_string()))
+            .unwrap_or_else(|| "http://localhost:3000".to_string());
+
+        format!("{}/api/analytics", base.trim_end_matches('/'))
+    }
+
+    /// Flush metrics to backend
+    pub async fn flush_to_backend(&self) -> Result<(), String> {
+        let metrics = self.metrics.get();
+        let session = self.session.get();
+
+        // Transform metrics to backend expected format (AnalyticsData)
+        // struct AnalyticsData { session_id, timestamp, event_type, payload }
+        // We will send a batch of events.
+
+        let events: Vec<serde_json::Value> = metrics
+            .iter()
+            .map(|m| {
+                serde_json::json!({
+                    "session_id": session.session_id,
+                    "timestamp": m.timestamp,
+                    "event_type": format!("{:?}", m.metric_type),
+                    "payload": serde_json::to_value(m).unwrap_or_default(),
+                })
+            })
+            .collect();
+
+        // Also add session info update as an event
+        let session_event = serde_json::json!({
+            "session_id": session.session_id,
+            "timestamp": js_sys::Date::now(),
+            "event_type": "SessionUpdate",
+            "payload": serde_json::to_value(&session).unwrap_or_default(),
+        });
+
+        let mut batch = events;
+        batch.push(session_event);
+
+        let body = serde_json::json!({
+            "events": batch
+        });
+
+        let resp = Request::post(&Self::get_api_base())
+            .json(&body)
+            .map_err(|e| e.to_string())?
+            .send()
+            .await
+            .map_err(|e| e.to_string())?;
+
+        if !resp.ok() {
+            return Err(format!("Server returned {}", resp.status()));
+        }
+
+        self.last_synced.set(js_sys::Date::now());
+        // Clear metrics after successful flush to avoid duplication on next sync
+        self.clear_metrics();
+
+        Ok(())
     }
 
     /// Get metrics summary

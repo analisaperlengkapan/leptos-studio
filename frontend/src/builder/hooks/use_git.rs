@@ -1,5 +1,5 @@
 use crate::services::git_factory::get_git_backend;
-use crate::services::{CommitInfo, GitBackend, RepoStatus};
+use crate::services::{CommitInfo, RepoStatus};
 use crate::state::{AppState, Notification};
 use leptos::prelude::*;
 
@@ -46,7 +46,8 @@ pub fn use_git() -> UseGitReturn {
             gloo_timers::future::TimeoutFuture::new(500).await;
 
             if debounce_token.get_value() == current_token {
-                let backend = get_git_backend();
+                let project_id = app_state.current_project_id.get();
+                let backend = get_git_backend(project_id);
                 let project = app_state.to_project();
 
                 // Silent update (no spinner)
@@ -59,7 +60,8 @@ pub fn use_git() -> UseGitReturn {
 
     let load_status_fn = move || {
         is_loading_status.set(true);
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         let project = app_state.to_project();
 
         wasm_bindgen_futures::spawn_local(async move {
@@ -73,7 +75,8 @@ pub fn use_git() -> UseGitReturn {
 
     let load_log_fn = move || {
         is_loading_log.set(true);
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         wasm_bindgen_futures::spawn_local(async move {
             match backend.log().await {
                 Ok(logs) => log_data.set(logs),
@@ -93,7 +96,8 @@ pub fn use_git() -> UseGitReturn {
         }
 
         is_committing.set(true);
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         let project = app_state.to_project();
 
         wasm_bindgen_futures::spawn_local(async move {
@@ -123,7 +127,8 @@ pub fn use_git() -> UseGitReturn {
     };
 
     let discard_fn = move || {
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         wasm_bindgen_futures::spawn_local(async move {
             match backend.restore_head().await {
                 Ok(Some(project)) => {
@@ -145,7 +150,8 @@ pub fn use_git() -> UseGitReturn {
     };
 
     let reset_fn = move || {
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         wasm_bindgen_futures::spawn_local(async move {
             match backend.reset().await {
                 Ok(()) => {
@@ -163,7 +169,8 @@ pub fn use_git() -> UseGitReturn {
     };
 
     let push_fn = move || {
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         wasm_bindgen_futures::spawn_local(async move {
             match backend.push().await {
                 Ok(Some(json)) => {
@@ -184,7 +191,8 @@ pub fn use_git() -> UseGitReturn {
     };
 
     let import_fn = move |file: web_sys::File| {
-        let backend = get_git_backend();
+        let project_id = app_state.current_project_id.get();
+        let backend = get_git_backend(project_id);
         wasm_bindgen_futures::spawn_local(async move {
             match crate::utils::file::read_file_as_text(&file).await {
                 Ok(text) => {

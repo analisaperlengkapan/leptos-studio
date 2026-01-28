@@ -4,7 +4,10 @@ use std::cell::RefCell;
 
 /// Helper to generate animation styles
 fn get_animation_css(animation: &Option<Animation>) -> String {
-    animation.as_ref().map(|a| a.to_css_string()).unwrap_or_default()
+    animation
+        .as_ref()
+        .map(|a| a.to_css_string())
+        .unwrap_or_default()
 }
 
 /// Code generator trait
@@ -66,7 +69,7 @@ impl LeptosCodeGenerator {
 
                 let anim_style = get_animation_css(&btn.animation);
                 let style_attr = if !anim_style.is_empty() {
-                     format!(" style=\"{}\"", anim_style)
+                    format!(" style=\"{}\"", anim_style)
                 } else {
                     String::new()
                 };
@@ -80,7 +83,13 @@ impl LeptosCodeGenerator {
                 // Add interactive scaffolding
                 output.push_str(&format!(
                     "{}        <button class=\"{} {}\" disabled={} {}{}>{}</button>\n",
-                    indent, variant_class, size_class, btn.disabled, click_handler, style_attr, btn.label
+                    indent,
+                    variant_class,
+                    size_class,
+                    btn.disabled,
+                    click_handler,
+                    style_attr,
+                    btn.label
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -94,7 +103,7 @@ impl LeptosCodeGenerator {
 
                 let anim_style = get_animation_css(&txt.animation);
                 let style_attr = if !anim_style.is_empty() {
-                     format!(" style=\"{}\"", anim_style)
+                    format!(" style=\"{}\"", anim_style)
                 } else {
                     String::new()
                 };
@@ -132,18 +141,23 @@ impl LeptosCodeGenerator {
 
                 let anim_style = get_animation_css(&inp.animation);
                 let style_attr = if !anim_style.is_empty() {
-                     format!(" style=\"{}\"", anim_style)
+                    format!(" style=\"{}\"", anim_style)
                 } else {
                     String::new()
                 };
 
                 let input_handler = if let Some(handler) = &inp.on_input {
-                     format!("on:input={}", handler)
+                    format!("on:input={}", handler)
                 } else {
                     // Track signal for this input
                     let signal_name = format!("input_{}", self.required_signals.borrow().len());
-                    self.required_signals.borrow_mut().push((signal_name.clone(), "String::new()".to_string()));
-                    format!("prop:value={} on:input=move |ev| set_{}(event_target_value(&ev))", signal_name, signal_name)
+                    self.required_signals
+                        .borrow_mut()
+                        .push((signal_name.clone(), "String::new()".to_string()));
+                    format!(
+                        "prop:value={} on:input=move |ev| set_{}(event_target_value(&ev))",
+                        signal_name, signal_name
+                    )
                 };
 
                 let change_handler = if let Some(handler) = &inp.on_change {
@@ -161,18 +175,25 @@ impl LeptosCodeGenerator {
                 // Add binding
                 output.push_str(&format!(
                     "{}        <input type=\"{}\" {} {} {} required={} disabled={}{} />\n",
-                    indent, input_type, placeholder_attr, input_handler, change_handler, inp.required, inp.disabled, style_attr
+                    indent,
+                    input_type,
+                    placeholder_attr,
+                    input_handler,
+                    change_handler,
+                    inp.required,
+                    inp.disabled,
+                    style_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
                 let anim_style = get_animation_css(&sel.animation);
                 let style_attr = if !anim_style.is_empty() {
-                     format!(" style=\"{}\"", anim_style)
+                    format!(" style=\"{}\"", anim_style)
                 } else {
                     String::new()
                 };
 
-                 let change_handler = if let Some(handler) = &sel.on_change {
+                let change_handler = if let Some(handler) = &sel.on_change {
                     format!(" on:change={}", handler)
                 } else {
                     String::new()
@@ -202,7 +223,12 @@ impl LeptosCodeGenerator {
             }
             CanvasComponent::Container(container) => {
                 let (layout_class, align_style) = match &container.layout {
-                    crate::domain::LayoutType::Flex { direction, wrap, align_items, justify_content } => {
+                    crate::domain::LayoutType::Flex {
+                        direction,
+                        wrap,
+                        align_items,
+                        justify_content,
+                    } => {
                         let dir = match direction {
                             crate::domain::FlexDirection::Row => "flex-row",
                             crate::domain::FlexDirection::Column => "flex-col",
@@ -229,11 +255,18 @@ impl LeptosCodeGenerator {
                             crate::domain::FlexJustify::Evenly => "space-evenly",
                         };
 
-                        (classes, format!("align-items: {}; justify-content: {};", align_css, justify_css))
+                        (
+                            classes,
+                            format!(
+                                "align-items: {}; justify-content: {};",
+                                align_css, justify_css
+                            ),
+                        )
                     }
-                    crate::domain::LayoutType::Grid { columns, rows } => {
-                        (format!("grid grid-cols-{} grid-rows-{}", columns, rows), String::new())
-                    }
+                    crate::domain::LayoutType::Grid { columns, rows } => (
+                        format!("grid grid-cols-{} grid-rows-{}", columns, rows),
+                        String::new(),
+                    ),
                     crate::domain::LayoutType::Stack => ("stack".to_string(), String::new()),
                 };
 
@@ -267,17 +300,23 @@ impl LeptosCodeGenerator {
                 output.push_str(&format!("{}        </div>\n", indent));
             }
             CanvasComponent::Image(img) => {
-                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
-                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                let width_attr = img
+                    .width
+                    .as_ref()
+                    .map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img
+                    .height
+                    .as_ref()
+                    .map_or(String::new(), |h| format!(" height=\"{}\"", h));
 
                 let anim_style = get_animation_css(&img.animation);
                 let style_attr = if !anim_style.is_empty() {
-                     format!(" style=\"{}\"", anim_style)
+                    format!(" style=\"{}\"", anim_style)
                 } else {
                     String::new()
                 };
 
-                 let click_handler = if let Some(handler) = &img.on_click {
+                let click_handler = if let Some(handler) = &img.on_click {
                     format!(" on:click={}", handler)
                 } else {
                     String::new()
@@ -289,11 +328,19 @@ impl LeptosCodeGenerator {
                 ));
             }
             CanvasComponent::Card(card) => {
-                let shadow_style = if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" } else { "" };
-                let border_class = if card.border { "border border-gray-200" } else { "" };
+                let shadow_style = if card.shadow {
+                    "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"
+                } else {
+                    ""
+                };
+                let border_class = if card.border {
+                    "border border-gray-200"
+                } else {
+                    ""
+                };
                 let anim_style = get_animation_css(&card.animation);
 
-                 let click_handler = if let Some(handler) = &card.on_click {
+                let click_handler = if let Some(handler) = &card.on_click {
                     format!(" on:click={}", handler)
                 } else {
                     String::new()
@@ -347,16 +394,19 @@ impl CodeGenerator for LeptosCodeGenerator {
         // Now inject signals
         // First global variables
         if !self.variables.is_empty() {
-             output.push_str("    // Global signals\n");
-             for var in &self.variables {
+            output.push_str("    // Global signals\n");
+            for var in &self.variables {
                 let default_val = match var.data_type {
                     VariableType::String => format!("\"{}\".to_string()", var.default_value),
                     VariableType::Number => var.default_value.clone(),
                     VariableType::Boolean => var.default_value.clone(),
                 };
-                output.push_str(&format!("    let ({}, set_{}) = signal({});\n", var.name, var.name, default_val));
-             }
-             output.push('\n');
+                output.push_str(&format!(
+                    "    let ({}, set_{}) = signal({});\n",
+                    var.name, var.name, default_val
+                ));
+            }
+            output.push('\n');
         }
 
         // Then local required signals
@@ -364,7 +414,10 @@ impl CodeGenerator for LeptosCodeGenerator {
         if !signals.is_empty() {
             output.push_str("    // Local signals\n");
             for (name, default) in signals.iter() {
-                output.push_str(&format!("    let ({}, set_{}) = signal({});\n", name, name, default));
+                output.push_str(&format!(
+                    "    let ({}, set_{}) = signal({});\n",
+                    name, name, default
+                ));
             }
             output.push('\n');
         }
@@ -449,13 +502,23 @@ impl HtmlCodeGenerator {
                 ));
             }
             CanvasComponent::Select(sel) => {
-                output.push_str(&format!("{}<select{}>\n", indent, if sel.disabled { " disabled" } else { "" }));
+                output.push_str(&format!(
+                    "{}<select{}>\n",
+                    indent,
+                    if sel.disabled { " disabled" } else { "" }
+                ));
                 if !sel.placeholder.is_empty() {
-                    output.push_str(&format!("{}    <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                    output.push_str(&format!(
+                        "{}    <option value=\"\" disabled selected>{}</option>\n",
+                        indent, sel.placeholder
+                    ));
                 }
                 for option in sel.options.split(',') {
                     let opt = option.trim();
-                    output.push_str(&format!("{}    <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                    output.push_str(&format!(
+                        "{}    <option value=\"{}\">{}</option>\n",
+                        indent, opt, opt
+                    ));
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -467,16 +530,30 @@ impl HtmlCodeGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
-                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
-                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                let width_attr = img
+                    .width
+                    .as_ref()
+                    .map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img
+                    .height
+                    .as_ref()
+                    .map_or(String::new(), |h| format!(" height=\"{}\"", h));
                 output.push_str(&format!(
                     "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
                     indent, img.src, img.alt, width_attr, height_attr
                 ));
             }
             CanvasComponent::Card(card) => {
-                let shadow_style = if card.shadow { "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" } else { "" };
-                let border_style = if card.border { "border: 1px solid #e5e7eb;" } else { "" };
+                let shadow_style = if card.shadow {
+                    "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"
+                } else {
+                    ""
+                };
+                let border_style = if card.border {
+                    "border: 1px solid #e5e7eb;"
+                } else {
+                    ""
+                };
                 output.push_str(&format!(
                     "{}<div style=\"padding: {}px; border-radius: {}px; {} {}\">\n",
                     indent, card.padding, card.border_radius, shadow_style, border_style
@@ -605,7 +682,9 @@ impl MarkdownCodeGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::{ButtonComponent, CanvasComponent, InputComponent, InputType, TextComponent};
+    use crate::domain::{
+        ButtonComponent, CanvasComponent, InputComponent, InputType, TextComponent,
+    };
 
     #[test]
     fn test_leptos_generator() {

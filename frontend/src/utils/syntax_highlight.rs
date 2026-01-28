@@ -10,6 +10,7 @@ enum TokenType {
     Comment,
     Macro,
     Type,
+    #[allow(dead_code)]
     Function,
     Number,
     Operator,
