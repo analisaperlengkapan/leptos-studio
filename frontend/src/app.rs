@@ -22,6 +22,7 @@ use crate::builder::preview::Preview;
 use crate::builder::project_dashboard::ProjectDashboard;
 use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
+use crate::builder::save_template_modal::SaveTemplateModal;
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
@@ -58,6 +59,9 @@ pub fn App() -> impl IntoView {
 
     // Template gallery visibility
     let show_template_gallery = RwSignal::new(false);
+
+    // Save template modal visibility
+    let show_save_template = RwSignal::new(false);
 
     // Welcome modal visibility
     let show_welcome = RwSignal::new(false);
@@ -164,6 +168,7 @@ pub fn App() -> impl IntoView {
                     <Toolbar
                         show_template_gallery=show_template_gallery.write_only()
                         show_export=show_export.write_only()
+                        show_save_template=show_save_template.write_only()
                         export_code=export_code.write_only()
                         export_template=export_template.read_only()
                     />
@@ -312,6 +317,17 @@ pub fn App() -> impl IntoView {
                     } else {
                         view! { <div></div> }.into_any()
                     }}
+
+                {move || if show_save_template.get() {
+                    view! {
+                        <SaveTemplateModal
+                            show=show_save_template
+                            on_close=Callback::new(move |_| show_save_template.set(false))
+                        />
+                    }.into_any()
+                } else {
+                    view! { <div></div> }.into_any()
+                }}
 
                 {move || if show_export.get() {
                     view! {

@@ -6,6 +6,7 @@ use leptos::prelude::*;
 pub fn Toolbar(
     show_template_gallery: WriteSignal<bool>,
     show_export: WriteSignal<bool>,
+    show_save_template: WriteSignal<bool>,
     export_code: WriteSignal<String>,
     export_template: ReadSignal<String>,
 ) -> impl IntoView {
@@ -98,6 +99,14 @@ pub fn Toolbar(
                     >
                         <span class="icon">"💾"</span>
                         <span class="label">"Save"</span>
+                    </button>
+                    <button
+                        on:click=move |_| show_save_template.set(true)
+                        class="btn btn-ghost btn-sm"
+                        title="Save as Template"
+                    >
+                        <span class="icon">"💾"</span>
+                        <span class="label">"Save Tpl"</span>
                     </button>
                 </div>
 

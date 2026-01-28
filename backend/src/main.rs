@@ -1,7 +1,7 @@
 use axum::{
     extract::{Path, State},
     http::{Method, StatusCode},
-    routing::get,
+    routing::{delete, get},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -13,6 +13,8 @@ use std::{
 };
 use tokio::sync::RwLock;
 use tower_http::cors::{Any, CorsLayer};
+
+mod templates;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct ProjectMetadata {
@@ -59,6 +61,9 @@ async fn main() {
     let initial_data = load_store();
     let store = Arc::new(RwLock::new(initial_data));
 
+    let initial_templates = templates::load_templates();
+    let template_store = Arc::new(RwLock::new(initial_templates));
+
     // CORS
     // Use CORS_ORIGIN env var if set, otherwise default to Any (for dev)
     let cors_origin = std::env::var("CORS_ORIGIN").ok();
@@ -76,11 +81,20 @@ async fn main() {
             .allow_headers(Any)
     };
 
-    let app = Router::new()
+    let project_routes = Router::new()
         .route("/api/projects", get(list_projects).post(save_project))
         .route("/api/projects/:id", get(get_project).delete(delete_project))
-        .layer(cors)
         .with_state(store);
+
+    let template_routes = Router::new()
+        .route("/api/templates", get(templates::list_templates).post(templates::save_template))
+        .route("/api/templates/:id", delete(templates::delete_template))
+        .with_state(template_store);
+
+    let app = Router::new()
+        .merge(project_routes)
+        .merge(template_routes)
+        .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
     tracing::info!("listening on {}", addr);

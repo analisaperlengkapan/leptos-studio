@@ -22,6 +22,7 @@ pub mod property_editor;
 pub mod property_editors;
 pub mod property_inputs;
 pub mod responsive_preview;
+pub mod save_template_modal;
 pub mod sidebar;
 pub mod snackbar;
 pub mod status_bar;
@@ -54,6 +55,7 @@ pub use responsive_preview::{CanvasViewport, ResponsiveIndicator, ResponsivePrev
 pub use status_bar::{StatusBar, StatusIndicator};
 pub use styling_system::{ComponentStyle, StyleEditor, ThemePreset, ThemeSelector};
 pub use template_gallery::TemplateGallery;
+pub use save_template_modal::SaveTemplateModal;
 pub use tree_view::TreeView;
 pub mod debug_panel;
 pub use welcome_modal::WelcomeModal;
