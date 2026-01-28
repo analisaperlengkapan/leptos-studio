@@ -4,15 +4,32 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, path::Path as FilePath, sync::Arc};
+use std::{
+    collections::HashMap,
+    path::Path as FilePath,
+    sync::Arc,
+};
 use tokio::sync::RwLock;
+
+// Match frontend TemplateCategory enum
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum TemplateCategory {
+    LandingPage,
+    Dashboard,
+    Form,
+    Navigation,
+    Card,
+    Hero,
+    Footer,
+    Custom,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Template {
     pub id: String,
     pub name: String,
     pub description: String,
-    pub category: String,
+    pub category: TemplateCategory,
     pub thumbnail: Option<String>,
     pub components: Vec<serde_json::Value>,
     pub tags: Vec<String>,
