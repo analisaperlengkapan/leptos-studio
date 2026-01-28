@@ -24,7 +24,8 @@ pub fn CodePanel() -> impl IntoView {
         match selected_format.as_str() {
             "leptos" => {
                 let variables = app_state.variables.get();
-                let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain, variables);
+                let generator =
+                    LeptosCodeGenerator::new(crate::state::ExportPreset::Plain, variables);
                 generator
                     .generate(&comps)
                     .unwrap_or_else(|e| e.user_message())

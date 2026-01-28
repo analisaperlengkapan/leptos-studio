@@ -4,11 +4,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    path::Path as FilePath,
-    sync::Arc,
-};
+use std::{collections::HashMap, path::Path as FilePath, sync::Arc};
 use tokio::sync::RwLock;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -103,10 +99,10 @@ pub async fn delete_history(
     let mut guard = store.write().await;
     if let Some(removed) = guard.remove(&project_id) {
         if let Err(e) = save_store(&guard).await {
-             tracing::error!("Failed to save git data after delete: {}", e);
-             // Rollback: put it back
-             guard.insert(project_id, removed);
-             return StatusCode::INTERNAL_SERVER_ERROR;
+            tracing::error!("Failed to save git data after delete: {}", e);
+            // Rollback: put it back
+            guard.insert(project_id, removed);
+            return StatusCode::INTERNAL_SERVER_ERROR;
         }
         StatusCode::NO_CONTENT
     } else {

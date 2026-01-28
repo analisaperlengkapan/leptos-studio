@@ -1,9 +1,7 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn WelcomeModal(
-    #[prop(into)] on_close: Callback<()>,
-) -> impl IntoView {
+pub fn WelcomeModal(#[prop(into)] on_close: Callback<()>) -> impl IntoView {
     view! {
         <div class="welcome-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
             <div class="welcome-modal-content">

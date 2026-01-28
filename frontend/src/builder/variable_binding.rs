@@ -1,11 +1,8 @@
-use leptos::prelude::*;
 use crate::state::AppState;
+use leptos::prelude::*;
 
 #[component]
-pub fn VariableBinding<F>(
-    value: Option<String>,
-    on_change: F,
-) -> impl IntoView
+pub fn VariableBinding<F>(value: Option<String>, on_change: F) -> impl IntoView
 where
     F: Fn(Option<String>) + 'static + Clone + Send + Sync,
 {

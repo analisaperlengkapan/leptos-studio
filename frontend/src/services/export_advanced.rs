@@ -520,13 +520,22 @@ impl ReactGenerator {
                 ));
             }
             CanvasComponent::Select(sel) => {
-                output.push_str(&format!("{}<select disabled={{{}}}>\n", indent, sel.disabled));
+                output.push_str(&format!(
+                    "{}<select disabled={{{}}}>\n",
+                    indent, sel.disabled
+                ));
                 if !sel.placeholder.is_empty() {
-                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{{\" {} \"}}</option>\n", indent, sel.placeholder));
+                    output.push_str(&format!(
+                        "{}  <option value=\"\" disabled selected>{{\" {} \"}}</option>\n",
+                        indent, sel.placeholder
+                    ));
                 }
                 for option in sel.options.split(',') {
                     let opt = option.trim();
-                    output.push_str(&format!("{}  <option value=\"{}\">{{\" {} \"}}</option>\n", indent, opt, opt));
+                    output.push_str(&format!(
+                        "{}  <option value=\"{}\">{{\" {} \"}}</option>\n",
+                        indent, opt, opt
+                    ));
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -568,7 +577,9 @@ impl ReactGenerator {
                             columns, rows
                         )
                     }
-                    crate::domain::LayoutType::Stack => "display: 'flex', flexDirection: 'column'".to_string(),
+                    crate::domain::LayoutType::Stack => {
+                        "display: 'flex', flexDirection: 'column'".to_string()
+                    }
                 };
 
                 let style = format!(
@@ -590,8 +601,14 @@ impl ReactGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
-                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
-                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                let width_attr = img
+                    .width
+                    .as_ref()
+                    .map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img
+                    .height
+                    .as_ref()
+                    .map_or(String::new(), |h| format!(" height=\"{}\"", h));
                 output.push_str(&format!(
                     "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
                     indent, img.src, img.alt, width_attr, height_attr
@@ -609,10 +626,7 @@ impl ReactGenerator {
                     style_parts.push("border: '1px solid #e5e7eb'".to_string());
                 }
                 let style_str = style_parts.join(", ");
-                output.push_str(&format!(
-                    "{}<div style={{{{ {} }}}}>\n",
-                    indent, style_str
-                ));
+                output.push_str(&format!("{}<div style={{{{ {} }}}}>\n", indent, style_str));
                 for child in &card.children {
                     Self::generate_react(child, output, indent_level + 1)?;
                 }
@@ -704,13 +718,22 @@ impl VueGenerator {
                 ));
             }
             CanvasComponent::Select(sel) => {
-                output.push_str(&format!("{}<select :disabled=\"{}\">\n", indent, sel.disabled));
+                output.push_str(&format!(
+                    "{}<select :disabled=\"{}\">\n",
+                    indent, sel.disabled
+                ));
                 if !sel.placeholder.is_empty() {
-                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                    output.push_str(&format!(
+                        "{}  <option value=\"\" disabled selected>{}</option>\n",
+                        indent, sel.placeholder
+                    ));
                 }
                 for option in sel.options.split(',') {
                     let opt = option.trim();
-                    output.push_str(&format!("{}  <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                    output.push_str(&format!(
+                        "{}  <option value=\"{}\">{}</option>\n",
+                        indent, opt, opt
+                    ));
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -722,8 +745,14 @@ impl VueGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
-                let width_attr = img.width.as_ref().map_or(String::new(), |w| format!(" width=\"{}\"", w));
-                let height_attr = img.height.as_ref().map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                let width_attr = img
+                    .width
+                    .as_ref()
+                    .map_or(String::new(), |w| format!(" width=\"{}\"", w));
+                let height_attr = img
+                    .height
+                    .as_ref()
+                    .map_or(String::new(), |h| format!(" height=\"{}\"", h));
                 output.push_str(&format!(
                     "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
                     indent, img.src, img.alt, width_attr, height_attr
@@ -1111,13 +1140,19 @@ impl TailwindHtmlGenerator {
                 ));
             }
             CanvasComponent::Select(sel) => {
-                 output.push_str(&format!("{}<select class=\"block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500\" {}>\n", indent, if sel.disabled { "disabled" } else { "" }));
+                output.push_str(&format!("{}<select class=\"block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500\" {}>\n", indent, if sel.disabled { "disabled" } else { "" }));
                 if !sel.placeholder.is_empty() {
-                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                    output.push_str(&format!(
+                        "{}  <option value=\"\" disabled selected>{}</option>\n",
+                        indent, sel.placeholder
+                    ));
                 }
                 for option in sel.options.split(',') {
                     let opt = option.trim();
-                    output.push_str(&format!("{}  <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                    output.push_str(&format!(
+                        "{}  <option value=\"{}\">{}</option>\n",
+                        indent, opt, opt
+                    ));
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -1188,7 +1223,11 @@ impl TailwindHtmlGenerator {
             }
             CanvasComponent::Card(card) => {
                 let shadow_class = if card.shadow { "shadow-md" } else { "" };
-                let border_class = if card.border { "border border-gray-200" } else { "" };
+                let border_class = if card.border {
+                    "border border-gray-200"
+                } else {
+                    ""
+                };
                 let padding_class = format!("p-{}", (card.padding / 4).max(1));
                 let rounded_class = match card.border_radius {
                     0 => "rounded-none",
@@ -1337,13 +1376,22 @@ impl SvelteGenerator {
                 ));
             }
             CanvasComponent::Select(sel) => {
-                output.push_str(&format!("{}<select disabled={{{}}}>\n", indent, sel.disabled));
+                output.push_str(&format!(
+                    "{}<select disabled={{{}}}>\n",
+                    indent, sel.disabled
+                ));
                 if !sel.placeholder.is_empty() {
-                    output.push_str(&format!("{}  <option value=\"\" disabled selected>{}</option>\n", indent, sel.placeholder));
+                    output.push_str(&format!(
+                        "{}  <option value=\"\" disabled selected>{}</option>\n",
+                        indent, sel.placeholder
+                    ));
                 }
                 for option in sel.options.split(',') {
                     let opt = option.trim();
-                    output.push_str(&format!("{}  <option value=\"{}\">{}</option>\n", indent, opt, opt));
+                    output.push_str(&format!(
+                        "{}  <option value=\"{}\">{}</option>\n",
+                        indent, opt, opt
+                    ));
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -1385,8 +1433,16 @@ impl SvelteGenerator {
                     "padding: {}px; border-radius: {}px; {}; {}",
                     card.padding,
                     card.border_radius,
-                    if card.shadow { "box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1)" } else { "" },
-                    if card.border { "border: 1px solid #e5e7eb" } else { "" }
+                    if card.shadow {
+                        "box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1)"
+                    } else {
+                        ""
+                    },
+                    if card.border {
+                        "border: 1px solid #e5e7eb"
+                    } else {
+                        ""
+                    }
                 );
 
                 output.push_str(&format!("{}<div style=\"{}\">\n", indent, style));

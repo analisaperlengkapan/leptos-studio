@@ -1,6 +1,6 @@
-use leptos::prelude::*;
 use crate::builder::design_tokens::DesignTokens;
 use crate::builder::property_inputs::{ColorInput, StringInput};
+use leptos::prelude::*;
 
 #[component]
 pub fn ThemeEditor(tokens: RwSignal<DesignTokens>) -> impl IntoView {

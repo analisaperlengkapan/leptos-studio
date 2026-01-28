@@ -51,29 +51,38 @@ pub fn TemplateGallery(
         let mut all = TemplateService::builtin_templates();
         all.extend(custom);
 
-        all.into_iter().filter(|t| {
-            let matches_search = query.is_empty() ||
-                t.name.to_lowercase().contains(&query) ||
-                t.description.to_lowercase().contains(&query) ||
-                t.tags.iter().any(|tag| tag.to_lowercase().contains(&query));
+        all.into_iter()
+            .filter(|t| {
+                let matches_search = query.is_empty()
+                    || t.name.to_lowercase().contains(&query)
+                    || t.description.to_lowercase().contains(&query)
+                    || t.tags.iter().any(|tag| tag.to_lowercase().contains(&query));
 
-            let matches_category = category.map_or(true, |c| t.category == c);
+                let matches_category = category.map_or(true, |c| t.category == c);
 
-            matches_search && matches_category
-        }).collect::<Vec<_>>()
+                matches_search && matches_category
+            })
+            .collect::<Vec<_>>()
     });
 
     let on_delete_template = move |id: String| {
-        if !window().confirm_with_message("Are you sure you want to delete this template?").unwrap_or(false) {
+        if !window()
+            .confirm_with_message("Are you sure you want to delete this template?")
+            .unwrap_or(false)
+        {
             return;
         }
 
         leptos::task::spawn_local(async move {
             if let Ok(_) = TemplateService::delete_custom_template(&id).await {
                 refresh_templates();
-                app_state.ui.notify(Notification::success("Template deleted".to_string()));
+                app_state
+                    .ui
+                    .notify(Notification::success("Template deleted".to_string()));
             } else {
-                app_state.ui.notify(Notification::error("Failed to delete template".to_string()));
+                app_state
+                    .ui
+                    .notify(Notification::error("Failed to delete template".to_string()));
             }
         });
     };

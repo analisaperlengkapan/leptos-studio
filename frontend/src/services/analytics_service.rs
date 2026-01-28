@@ -210,14 +210,17 @@ impl AnalyticsService {
         // struct AnalyticsData { session_id, timestamp, event_type, payload }
         // We will send a batch of events.
 
-        let events: Vec<serde_json::Value> = metrics.iter().map(|m| {
-            serde_json::json!({
-                "session_id": session.session_id,
-                "timestamp": m.timestamp,
-                "event_type": format!("{:?}", m.metric_type),
-                "payload": serde_json::to_value(m).unwrap_or_default(),
+        let events: Vec<serde_json::Value> = metrics
+            .iter()
+            .map(|m| {
+                serde_json::json!({
+                    "session_id": session.session_id,
+                    "timestamp": m.timestamp,
+                    "event_type": format!("{:?}", m.metric_type),
+                    "payload": serde_json::to_value(m).unwrap_or_default(),
+                })
             })
-        }).collect();
+            .collect();
 
         // Also add session info update as an event
         let session_event = serde_json::json!({

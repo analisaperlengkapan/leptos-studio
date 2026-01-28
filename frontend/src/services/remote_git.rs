@@ -1,7 +1,7 @@
 use crate::domain::{AppError, AppResult};
 use crate::services::git_service::{CommitInfo, GitBackend, RepoStatus};
 use crate::state::project::Project;
-use chrono::{DateTime, Utc};
+use chrono::DateTime;
 use gloo_net::http::Request;
 use serde::{Deserialize, Serialize};
 
@@ -48,7 +48,10 @@ impl RemoteGitBackend {
             if resp.status() == 404 {
                 return Ok(Vec::new());
             }
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
         resp.json()
@@ -65,15 +68,15 @@ impl GitBackend for RemoteGitBackend {
         let commit_count = commits.len();
 
         let has_changes = if let Some(current) = current_project {
-             if let Some(head) = commits.last() {
+            if let Some(head) = commits.last() {
                 // Deserialize snapshot to Project to compare
-                 match serde_json::from_value::<Project>(head.snapshot.clone()) {
-                     Ok(head_project) => *current != head_project,
-                     Err(_) => true, // Error parsing HEAD means dirty or broken
-                 }
-             } else {
-                 true // No commits = dirty
-             }
+                match serde_json::from_value::<Project>(head.snapshot.clone()) {
+                    Ok(head_project) => *current != head_project,
+                    Err(_) => true, // Error parsing HEAD means dirty or broken
+                }
+            } else {
+                true // No commits = dirty
+            }
         } else {
             false
         };
@@ -91,18 +94,21 @@ impl GitBackend for RemoteGitBackend {
         let commits = self.get_commits().await?;
 
         // Convert to CommitInfo
-        let mut infos: Vec<CommitInfo> = commits.into_iter().map(|c| {
-             // Convert f64 timestamp to DateTime<Utc>
-             let secs = (c.timestamp / 1000.0) as i64;
-             let nsecs = ((c.timestamp % 1000.0) * 1_000_000.0) as u32;
-             let dt = DateTime::from_timestamp(secs, nsecs).unwrap_or_default();
+        let mut infos: Vec<CommitInfo> = commits
+            .into_iter()
+            .map(|c| {
+                // Convert f64 timestamp to DateTime<Utc>
+                let secs = (c.timestamp / 1000.0) as i64;
+                let nsecs = ((c.timestamp % 1000.0) * 1_000_000.0) as u32;
+                let dt = DateTime::from_timestamp(secs, nsecs).unwrap_or_default();
 
-            CommitInfo {
-                id: c.id,
-                message: c.message,
-                timestamp: dt,
-            }
-        }).collect();
+                CommitInfo {
+                    id: c.id,
+                    message: c.message,
+                    timestamp: dt,
+                }
+            })
+            .collect();
 
         // Reverse to show newest first
         infos.reverse();
@@ -126,7 +132,10 @@ impl GitBackend for RemoteGitBackend {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
         Ok(())
@@ -137,7 +146,7 @@ impl GitBackend for RemoteGitBackend {
         // But to keep consistent with UI, we can return the JSON of the repo (commits).
         let commits = self.get_commits().await?;
         let json = serde_json::to_string_pretty(&commits)
-             .map_err(|e| AppError::Serialization(e.to_string()))?;
+            .map_err(|e| AppError::Serialization(e.to_string()))?;
         Ok(Some(json))
     }
 
@@ -166,7 +175,10 @@ impl GitBackend for RemoteGitBackend {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
         Ok(())
     }

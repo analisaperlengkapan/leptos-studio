@@ -8,11 +8,7 @@ pub fn get_git_backend(project_id: Option<String>) -> Box<dyn GitBackend> {
     // Otherwise use LocalStorage for offline/new projects.
 
     match project_id {
-        Some(id) if !id.is_empty() && id != "default" => {
-            Box::new(RemoteGitBackend::new(&id))
-        },
-        _ => {
-            Box::new(LocalStorageGitBackend::new())
-        }
+        Some(id) if !id.is_empty() && id != "default" => Box::new(RemoteGitBackend::new(&id)),
+        _ => Box::new(LocalStorageGitBackend::new()),
     }
 }

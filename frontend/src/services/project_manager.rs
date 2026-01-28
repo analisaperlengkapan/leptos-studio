@@ -1,8 +1,8 @@
 use crate::domain::{AppError, AppResult};
 use crate::state::Project;
-use serde::{Deserialize, Serialize};
 use gloo_net::http::Request;
 use leptos::prelude::*;
+use serde::{Deserialize, Serialize};
 
 fn get_api_base() -> String {
     // Try to get from runtime window.LEPTOS_API_URL first
@@ -36,21 +36,29 @@ impl ProjectManager {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
-        resp.json().await.map_err(|e| AppError::Serialization(e.to_string()))
+        resp.json()
+            .await
+            .map_err(|e| AppError::Serialization(e.to_string()))
     }
 
     /// Save a project
     pub async fn save_project(id: &str, project: &Project) -> AppResult<()> {
-        let mut json = serde_json::to_value(project)
-             .map_err(|e| AppError::Serialization(e.to_string()))?;
+        let mut json =
+            serde_json::to_value(project).map_err(|e| AppError::Serialization(e.to_string()))?;
 
         // Ensure ID is in the payload
         if let Some(obj) = json.as_object_mut() {
             obj.insert("id".to_string(), serde_json::Value::String(id.to_string()));
-            obj.insert("last_modified".to_string(), serde_json::Value::from(js_sys::Date::now()));
+            obj.insert(
+                "last_modified".to_string(),
+                serde_json::Value::from(js_sys::Date::now()),
+            );
         }
 
         let resp = Request::post(&get_api_base())
@@ -60,8 +68,11 @@ impl ProjectManager {
             .await
             .map_err(|e| AppError::Network(e.to_string()))?;
 
-         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+        if !resp.ok() {
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
         Ok(())
@@ -76,22 +87,30 @@ impl ProjectManager {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
-        resp.json().await.map_err(|e| AppError::Serialization(e.to_string()))
+        resp.json()
+            .await
+            .map_err(|e| AppError::Serialization(e.to_string()))
     }
 
     /// Delete a project
     pub async fn delete_project(id: &str) -> AppResult<()> {
         let url = format!("{}/{}", get_api_base(), id);
-         let resp = Request::delete(&url)
+        let resp = Request::delete(&url)
             .send()
             .await
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
         Ok(())

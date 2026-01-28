@@ -1,13 +1,6 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
+use axum::{extract::State, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
-use std::{
-    path::Path as FilePath,
-    sync::Arc,
-};
+use std::{path::Path as FilePath, sync::Arc};
 use tokio::sync::RwLock;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -15,10 +15,6 @@ use crate::builder::history_panel::HistoryPanel;
 use crate::builder::hooks::use_keyboard_actions::use_keyboard_actions;
 use crate::builder::hooks::use_resize::use_resizable_sidebar;
 use crate::builder::keyboard::{KeyboardHandler, get_default_shortcuts};
-use crate::constants::{
-    DEFAULT_LEFT_SIDEBAR_WIDTH, DEFAULT_RIGHT_SIDEBAR_WIDTH, STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
-    STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
-};
 use crate::builder::preview::Preview;
 use crate::builder::project_dashboard::ProjectDashboard;
 use crate::builder::property_editor::PropertyEditor;
@@ -31,6 +27,10 @@ use crate::builder::theme_editor::ThemeEditor;
 use crate::builder::toolbar::Toolbar;
 use crate::builder::tree_view::TreeView;
 use crate::builder::welcome_modal::WelcomeModal;
+use crate::constants::{
+    DEFAULT_LEFT_SIDEBAR_WIDTH, DEFAULT_RIGHT_SIDEBAR_WIDTH, STORAGE_KEY_LEFT_SIDEBAR_WIDTH,
+    STORAGE_KEY_RIGHT_SIDEBAR_WIDTH,
+};
 use crate::services::analytics_service::AnalyticsService;
 use crate::services::event_bus::EventBus;
 use crate::services::template_service::TemplateService;
@@ -74,7 +74,12 @@ pub fn App() -> impl IntoView {
     Effect::new(move |_| {
         if let Ok(storage_opt) = window().local_storage() {
             if let Some(storage) = storage_opt {
-                if storage.get_item(STORAGE_KEY_VISITED).ok().flatten().is_none() {
+                if storage
+                    .get_item(STORAGE_KEY_VISITED)
+                    .ok()
+                    .flatten()
+                    .is_none()
+                {
                     show_welcome.set(true);
                 }
             }

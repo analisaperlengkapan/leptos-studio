@@ -154,8 +154,12 @@ impl CanvasState {
         // I will change this method to accept a closure to support partial updates more efficiently.
         // BUT, I need to implement the recursion carefully.
 
-        fn recurse(components: &mut [CanvasComponent], id: &ComponentId, f: &mut Option<impl FnOnce(&mut CanvasComponent)>) -> bool {
-             for comp in components.iter_mut() {
+        fn recurse(
+            components: &mut [CanvasComponent],
+            id: &ComponentId,
+            f: &mut Option<impl FnOnce(&mut CanvasComponent)>,
+        ) -> bool {
+            for comp in components.iter_mut() {
                 if comp.id() == id {
                     if let Some(func) = f.take() {
                         func(comp);
@@ -166,10 +170,14 @@ impl CanvasState {
                 // Recurse into children
                 match comp {
                     CanvasComponent::Container(c) => {
-                        if recurse(&mut c.children, id, f) { return true; }
+                        if recurse(&mut c.children, id, f) {
+                            return true;
+                        }
                     }
                     CanvasComponent::Card(c) => {
-                        if recurse(&mut c.children, id, f) { return true; }
+                        if recurse(&mut c.children, id, f) {
+                            return true;
+                        }
                     }
                     _ => {}
                 }
@@ -487,7 +495,9 @@ impl AppState {
                 state.canvas.components.set(legacy.components);
                 state.canvas.selected.set(legacy.selected);
                 state.variables.set(legacy.variables);
-                state.project_name.set("Recovered Legacy Project".to_string());
+                state
+                    .project_name
+                    .set("Recovered Legacy Project".to_string());
 
                 // Manually save to handle success/failure explicitly
                 let project = state.to_project();
@@ -501,10 +511,15 @@ impl AppState {
                         if let Ok(Some(storage)) = window().local_storage() {
                             let _ = storage.remove_item(CanvasData::storage_key());
                         }
-                        ui.notify(Notification::success("Legacy project migrated to backend".to_string()));
-                    },
+                        ui.notify(Notification::success(
+                            "Legacy project migrated to backend".to_string(),
+                        ));
+                    }
                     Err(e) => {
-                        ui.notify(Notification::error(format!("Migration failed: {}. Legacy data preserved locally.", e.user_message())));
+                        ui.notify(Notification::error(format!(
+                            "Migration failed: {}. Legacy data preserved locally.",
+                            e.user_message()
+                        )));
                     }
                 }
                 return;
@@ -515,8 +530,8 @@ impl AppState {
                 if let Some(latest) = projects.first() {
                     // Load the latest project
                     if let Ok(project) = ProjectManager::load_project(&latest.id).await {
-                         state.apply_project(project);
-                         state.current_project_id.set(Some(latest.id.clone()));
+                        state.apply_project(project);
+                        state.current_project_id.set(Some(latest.id.clone()));
                     }
                 }
             }
@@ -550,12 +565,11 @@ impl AppState {
     pub fn save(&self) {
         let project = self.to_project();
         // Optimistically set ID if None to prevent duplicate saves (race condition)
-        let id = self.current_project_id.get()
-            .unwrap_or_else(|| {
-                let new_id = ProjectManager::generate_id();
-                self.current_project_id.set(Some(new_id.clone()));
-                new_id
-            });
+        let id = self.current_project_id.get().unwrap_or_else(|| {
+            let new_id = ProjectManager::generate_id();
+            self.current_project_id.set(Some(new_id.clone()));
+            new_id
+        });
 
         let ui = self.ui;
         // We capture id by value for the async block
@@ -563,8 +577,10 @@ impl AppState {
         leptos::task::spawn_local(async move {
             match ProjectManager::save_project(&id, &project).await {
                 Ok(_) => {
-                    ui.notify(Notification::success("Project saved successfully".to_string()));
-                },
+                    ui.notify(Notification::success(
+                        "Project saved successfully".to_string(),
+                    ));
+                }
                 Err(e) => {
                     ui.notify(Notification::error(e.user_message()));
                 }
@@ -582,8 +598,10 @@ impl AppState {
                 Ok(project) => {
                     state.apply_project(project);
                     state.current_project_id.set(Some(id));
-                    state.ui.notify(Notification::success("Project loaded".to_string()));
-                },
+                    state
+                        .ui
+                        .notify(Notification::success("Project loaded".to_string()));
+                }
                 Err(e) => {
                     state.ui.notify(Notification::error(e.user_message()));
                 }

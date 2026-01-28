@@ -4,11 +4,7 @@ use axum::{
     Json,
 };
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashMap,
-    path::Path as FilePath,
-    sync::Arc,
-};
+use std::{collections::HashMap, path::Path as FilePath, sync::Arc};
 use tokio::sync::RwLock;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

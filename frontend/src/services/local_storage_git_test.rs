@@ -1,9 +1,9 @@
 #[cfg(test)]
+use crate::builder::design_tokens::DesignTokens;
+#[cfg(test)]
 use crate::services::RepoStatus;
 #[cfg(test)]
 use crate::services::local_storage_git::{LocalCommit, RepositoryState};
-#[cfg(test)]
-use crate::builder::design_tokens::DesignTokens;
 #[cfg(test)]
 use crate::state::app_state::SettingsState;
 #[cfg(test)]

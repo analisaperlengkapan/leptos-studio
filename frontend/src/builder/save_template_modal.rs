@@ -3,10 +3,7 @@ use crate::state::app_state::{AppState, Notification};
 use leptos::prelude::*;
 
 #[component]
-pub fn SaveTemplateModal(
-    show: RwSignal<bool>,
-    on_close: Callback<()>,
-) -> impl IntoView {
+pub fn SaveTemplateModal(show: RwSignal<bool>, on_close: Callback<()>) -> impl IntoView {
     let app_state = AppState::expect_context();
 
     let name = RwSignal::new(String::new());
@@ -17,7 +14,9 @@ pub fn SaveTemplateModal(
     let on_save = move |_| {
         let name_val = name.get();
         if name_val.trim().is_empty() {
-            app_state.ui.notify(Notification::error("Template name is required".to_string()));
+            app_state
+                .ui
+                .notify(Notification::error("Template name is required".to_string()));
             return;
         }
 
@@ -27,7 +26,8 @@ pub fn SaveTemplateModal(
         let components = app_state.canvas.components.get();
 
         // Create tags list
-        let tag_list: Vec<String> = tags.get()
+        let tag_list: Vec<String> = tags
+            .get()
             .split(',')
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty())
@@ -39,19 +39,25 @@ pub fn SaveTemplateModal(
             &description.get(),
             TemplateCategory::Custom,
             components,
-        ).with_tags(tag_list.iter().map(|s| s.as_str()).collect());
+        )
+        .with_tags(tag_list.iter().map(|s| s.as_str()).collect());
 
         leptos::task::spawn_local(async move {
             match TemplateService::save_custom_template(&template).await {
                 Ok(_) => {
-                    app_state.ui.notify(Notification::success("Template saved successfully".to_string()));
+                    app_state.ui.notify(Notification::success(
+                        "Template saved successfully".to_string(),
+                    ));
                     name.set(String::new());
                     description.set(String::new());
                     tags.set(String::new());
                     on_close.run(());
                 }
                 Err(e) => {
-                    app_state.ui.notify(Notification::error(format!("Failed to save template: {}", e.user_message())));
+                    app_state.ui.notify(Notification::error(format!(
+                        "Failed to save template: {}",
+                        e.user_message()
+                    )));
                 }
             }
             loading.set(false);

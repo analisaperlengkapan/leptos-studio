@@ -1,6 +1,8 @@
 use super::AnimationPropertyEditor;
 use crate::builder::property_inputs::NumberInput;
-use crate::domain::{CanvasComponent, ComponentId, PropValue, LayoutType, FlexDirection, FlexAlign, FlexJustify};
+use crate::domain::{
+    CanvasComponent, ComponentId, FlexAlign, FlexDirection, FlexJustify, LayoutType, PropValue,
+};
 use crate::services::update_container_prop;
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -43,22 +45,39 @@ pub fn ContainerPropertyEditor(
                     align_items: FlexAlign::Start,
                     justify_content: FlexJustify::Start,
                 },
-                "Grid" => LayoutType::Grid { columns: 2, rows: 2 }, // Default 2x2 grid
+                "Grid" => LayoutType::Grid {
+                    columns: 2,
+                    rows: 2,
+                }, // Default 2x2 grid
                 "Stack" => LayoutType::Stack,
                 _ => return,
             };
 
             let mut new_container = container.clone();
             new_container.layout = new_layout;
-            apply_update(comp_id, CanvasComponent::Container(new_container), "layout".to_string());
+            apply_update(
+                comp_id,
+                CanvasComponent::Container(new_container),
+                "layout".to_string(),
+            );
         }
     };
 
     let is_flex = matches!(container.layout, LayoutType::Flex { .. });
 
     // Extract current flex values if applicable
-    let (direction, align, justify) = if let LayoutType::Flex { direction, align_items, justify_content, .. } = &container.layout {
-        (Some(direction.clone()), Some(align_items.clone()), Some(justify_content.clone()))
+    let (direction, align, justify) = if let LayoutType::Flex {
+        direction,
+        align_items,
+        justify_content,
+        ..
+    } = &container.layout
+    {
+        (
+            Some(direction.clone()),
+            Some(align_items.clone()),
+            Some(justify_content.clone()),
+        )
     } else {
         (None, None, None)
     };

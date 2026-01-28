@@ -109,7 +109,10 @@ impl TemplateService {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
 
         resp.json()
@@ -126,7 +129,10 @@ impl TemplateService {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
         Ok(())
     }
@@ -139,7 +145,10 @@ impl TemplateService {
             .map_err(|e| AppError::Network(e.to_string()))?;
 
         if !resp.ok() {
-            return Err(AppError::Network(format!("Server returned {}", resp.status())));
+            return Err(AppError::Network(format!(
+                "Server returned {}",
+                resp.status()
+            )));
         }
         Ok(())
     }

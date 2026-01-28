@@ -1,8 +1,8 @@
+use leptos_studio::builder::design_tokens::DesignTokens;
 use leptos_studio::services::GitBackend;
 use leptos_studio::services::local_storage_git::LocalStorageGitBackend;
 use leptos_studio::state::app_state::SettingsState;
 use leptos_studio::state::project::Project;
-use leptos_studio::builder::design_tokens::DesignTokens;
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);

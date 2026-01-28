@@ -18,6 +18,7 @@ pub mod hooks;
 pub mod keyboard;
 pub mod preview;
 pub mod project;
+pub mod project_dashboard;
 pub mod property_editor;
 pub mod property_editors;
 pub mod property_inputs;
@@ -34,7 +35,6 @@ pub mod tree_view;
 pub mod variable_binding;
 pub mod variable_panel;
 pub mod welcome_modal;
-pub mod project_dashboard;
 
 // Re-export components for easier imports
 pub use accessibility::{
@@ -52,13 +52,13 @@ pub use component_palette::ComponentPalette;
 pub use preview::Preview;
 pub use property_editor::PropertyEditor;
 pub use responsive_preview::{CanvasViewport, ResponsiveIndicator, ResponsivePreviewControls};
+pub use save_template_modal::SaveTemplateModal;
 pub use status_bar::{StatusBar, StatusIndicator};
 pub use styling_system::{ComponentStyle, StyleEditor, ThemePreset, ThemeSelector};
 pub use template_gallery::TemplateGallery;
-pub use save_template_modal::SaveTemplateModal;
 pub use tree_view::TreeView;
 pub mod debug_panel;
-pub use welcome_modal::WelcomeModal;
+pub use project_dashboard::ProjectDashboard;
 pub use variable_binding::VariableBinding;
 pub use variable_panel::VariablePanel;
-pub use project_dashboard::ProjectDashboard;
+pub use welcome_modal::WelcomeModal;

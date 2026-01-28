@@ -17,7 +17,6 @@ pub fn Toolbar(
         app_state.save();
     };
 
-
     // Export handler
     let do_export = use_export_actions(show_export, export_code, export_template);
 
