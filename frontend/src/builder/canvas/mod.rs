@@ -42,7 +42,7 @@ pub fn Canvas() -> impl IntoView {
     let app_state = AppState::expect_context();
 
     // Track canvas element for dimension measurements
-    let canvas_ref = create_node_ref::<html::Div>();
+    let canvas_ref = NodeRef::<html::Div>::new();
 
     // Context Menu State
     let (cm_visible, set_cm_visible) = signal(false);
