@@ -6,6 +6,7 @@ use crate::builder::canvas::Canvas;
 use crate::builder::code_panel::CodePanel;
 use crate::builder::command_palette::CommandPalette;
 use crate::builder::component_palette::ComponentPalette;
+use crate::builder::debug_panel::DebugPanel;
 use crate::builder::design_tokens::DesignTokenProvider;
 use crate::builder::drag_drop::DragPreview;
 use crate::builder::export_modal::ExportModal;
@@ -47,7 +48,10 @@ pub fn App() -> impl IntoView {
     // Initialize services
     let _event_bus = StoredValue::new(EventBus::new());
     let _template_service = StoredValue::new(TemplateService::new());
-    let _analytics_service = StoredValue::new(AnalyticsService::new());
+
+    // Provide AnalyticsService to context so it can be used by child components
+    AnalyticsService::provide_context();
+    let _analytics_service = StoredValue::new(AnalyticsService::use_context()); // Keep ref if needed, or just rely on context
 
     // Create and provide derived state for memoized computations
     DerivedState::provide_context(app_state);
@@ -132,6 +136,7 @@ pub fn App() -> impl IntoView {
         Git,
         Code,
         History,
+        Debug,
     }
 
     let active_right_tab = RwSignal::new(RightPanelTab::Properties);
@@ -271,10 +276,17 @@ pub fn App() -> impl IntoView {
                                         >
                                             "Git"
                                         </button>
+                                        <button
+                                            class=move || if active_right_tab.get() == RightPanelTab::Debug { "tab active" } else { "tab" }
+                                            on:click=move |_| active_right_tab.set(RightPanelTab::Debug)
+                                        >
+                                            "Debug"
+                                        </button>
                                     </div>
 
                                     <div class="panel-content">
                                         {move || match active_right_tab.get() {
+                                            RightPanelTab::Debug => view! { <DebugPanel /> }.into_any(),
                                             RightPanelTab::Git => view! { <GitPanel /> }.into_any(),
                                             RightPanelTab::Code => view! { <CodePanel /> }.into_any(),
                                             RightPanelTab::History => view! { <HistoryPanel /> }.into_any(),

@@ -14,6 +14,7 @@ use std::{
 use tokio::sync::RwLock;
 use tower_http::cors::{Any, CorsLayer};
 
+mod analytics;
 mod git;
 mod templates;
 
@@ -68,6 +69,9 @@ async fn main() {
     let initial_git = git::load_git_data();
     let git_store = Arc::new(RwLock::new(initial_git));
 
+    let initial_analytics = analytics::load_analytics();
+    let analytics_store = Arc::new(RwLock::new(initial_analytics));
+
     // CORS
     // Use CORS_ORIGIN env var if set, otherwise default to Any (for dev)
     let cors_origin = std::env::var("CORS_ORIGIN").ok();
@@ -99,10 +103,15 @@ async fn main() {
         .route("/api/projects/:id/commits", get(git::get_log).post(git::post_commit).delete(git::delete_history))
         .with_state(git_store);
 
+    let analytics_routes = Router::new()
+        .route("/api/analytics", axum::routing::post(analytics::post_analytics))
+        .with_state(analytics_store);
+
     let app = Router::new()
         .merge(project_routes)
         .merge(template_routes)
         .merge(git_routes)
+        .merge(analytics_routes)
         .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
