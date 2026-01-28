@@ -7,6 +7,7 @@ pub mod git_service;
 pub mod local_storage_git;
 pub mod project_service;
 pub mod property_service;
+pub mod remote_git;
 pub mod template_service;
 pub mod project_manager;
 
