@@ -18,16 +18,15 @@ pub fn handle_drop(ev: ev::DragEvent, _target_id: Option<ComponentId>, app_state
     ev.stop_propagation();
 
     let drag_ev = ev.unchecked_into::<web_sys::DragEvent>();
-    if let Some(dt) = drag_ev.data_transfer() {
-        if let Some(component_type_str) = dt.get_data("component").ok() {
-            // Use factory method from component_library
-            if let Some(new_component) = create_canvas_component(&component_type_str) {
-                if let Some(target) = _target_id {
-                    app_state.canvas.add_child_component(&target, new_component);
-                } else {
-                    app_state.canvas.add_component(new_component);
-                }
-            }
+    if let Some(dt) = drag_ev.data_transfer()
+        && let Ok(component_type_str) = dt.get_data("component")
+        // Use factory method from component_library
+        && let Some(new_component) = create_canvas_component(&component_type_str)
+    {
+        if let Some(target) = _target_id {
+            app_state.canvas.add_child_component(&target, new_component);
+        } else {
+            app_state.canvas.add_component(new_component);
         }
     }
 
@@ -64,20 +63,20 @@ pub fn Canvas() -> impl IntoView {
         let target = event_target::<web_sys::Element>(&ev);
 
         // Find closest component ID
-        if let Some(closest) = target.closest("[data-component-id]").ok().flatten() {
-            if let Some(id_str) = closest.get_attribute("data-component-id") {
-                let components = app_state.canvas.components.get_untracked();
-                let found_id = find_component_id_by_string(&components, &id_str);
+        if let Some(closest) = target.closest("[data-component-id]").ok().flatten()
+            && let Some(id_str) = closest.get_attribute("data-component-id")
+        {
+            let components = app_state.canvas.components.get_untracked();
+            let found_id = find_component_id_by_string(&components, &id_str);
 
-                if let Some(id) = found_id {
-                    set_cm_target_id.set(Some(id));
-                    set_cm_position.set((ev.client_x() as f64, ev.client_y() as f64));
-                    set_cm_visible.set(true);
+            if let Some(id) = found_id {
+                set_cm_target_id.set(Some(id));
+                set_cm_position.set((ev.client_x() as f64, ev.client_y() as f64));
+                set_cm_visible.set(true);
 
-                    // Also select it
-                    app_state.canvas.selected.set(Some(id));
-                    return;
-                }
+                // Also select it
+                app_state.canvas.selected.set(Some(id));
+                return;
             }
         }
 
@@ -105,7 +104,7 @@ pub fn Canvas() -> impl IntoView {
             <div
                 class="flex-1 relative overflow-auto flex flex-col items-center justify-center p-8 canvas-area"
                 on:click=on_canvas_click
-                on:dragover=move |ev| handle_drag_over(ev)
+                on:dragover=handle_drag_over
                 on:drop=move |ev| handle_drop(ev, None, app_state)
             >
                 <div

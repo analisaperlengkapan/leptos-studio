@@ -72,24 +72,21 @@ pub fn App() -> impl IntoView {
 
     // Check local storage for welcome modal
     Effect::new(move |_| {
-        if let Ok(Some(storage)) = window().local_storage() {
-            if storage
+        if let Ok(Some(storage)) = window().local_storage()
+            && storage
                 .get_item(STORAGE_KEY_VISITED)
                 .ok()
                 .flatten()
                 .is_none()
-            {
-                show_welcome.set(true);
-            }
+        {
+            show_welcome.set(true);
         }
     });
 
     let close_welcome = Callback::new(move |_| {
         show_welcome.set(false);
-        if let Ok(storage_opt) = window().local_storage() {
-            if let Some(storage) = storage_opt {
-                let _ = storage.set_item(STORAGE_KEY_VISITED, "true");
-            }
+        if let Ok(Some(storage)) = window().local_storage() {
+            let _ = storage.set_item(STORAGE_KEY_VISITED, "true");
         }
     });
 

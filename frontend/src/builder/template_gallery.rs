@@ -58,7 +58,7 @@ pub fn TemplateGallery(
                     || t.description.to_lowercase().contains(&query)
                     || t.tags.iter().any(|tag| tag.to_lowercase().contains(&query));
 
-                let matches_category = category.map_or(true, |c| t.category == c);
+                let matches_category = category.is_none_or(|c| t.category == c);
 
                 matches_search && matches_category
             })
@@ -74,7 +74,7 @@ pub fn TemplateGallery(
         }
 
         leptos::task::spawn_local(async move {
-            if let Ok(_) = TemplateService::delete_custom_template(&id).await {
+            if TemplateService::delete_custom_template(&id).await.is_ok() {
                 refresh_templates();
                 app_state
                     .ui
@@ -128,6 +128,7 @@ pub fn TemplateGallery(
                 <div class="template-categories">
                     {category_button(None, "All")}
                     {category_button(Some(TemplateCategory::Custom), "User")}
+                    {category_button(Some(TemplateCategory::LandingPage), "Landing")}
                     {category_button(Some(TemplateCategory::Form), "Forms")}
                     {category_button(Some(TemplateCategory::Hero), "Hero")}
                     {category_button(Some(TemplateCategory::Navigation), "Nav")}

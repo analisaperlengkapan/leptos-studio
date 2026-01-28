@@ -30,9 +30,9 @@ pub fn AnimationPropertyEditor(
     let anim_type_for_delay = anim_type_val.clone();
     let anim_type_for_infinite = anim_type_val.clone();
 
-    let update_anim_dur = update_anim.clone();
-    let update_anim_delay = update_anim.clone();
-    let update_anim_inf = update_anim.clone();
+    let update_anim_dur = update_anim;
+    let update_anim_delay = update_anim;
+    let update_anim_inf = update_anim;
 
     view! {
         <div class="property-group">
@@ -70,8 +70,10 @@ pub fn AnimationPropertyEditor(
                         _ => AnimationType::None,
                     };
 
-                    let mut new_anim = Animation::default();
-                    new_anim.animation_type = new_type;
+                    let mut new_anim = Animation {
+                        animation_type: new_type.clone(),
+                        ..Default::default()
+                    };
                     // Preserve other values if we're switching between active animations
                     if anim_type_val != AnimationType::None {
                          new_anim.duration = duration_val;
@@ -89,9 +91,9 @@ pub fn AnimationPropertyEditor(
                 let anim_type_delay = anim_type_for_delay.clone();
                 let anim_type_inf = anim_type_for_infinite.clone();
 
-                let update_dur = update_anim_dur.clone();
-                let update_delay = update_anim_delay.clone();
-                let update_inf = update_anim_inf.clone();
+                let update_dur = update_anim_dur;
+                let update_delay = update_anim_delay;
+                let update_inf = update_anim_inf;
 
                 if anim_type != AnimationType::None {
                     view! {
