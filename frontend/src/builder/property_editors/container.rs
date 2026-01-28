@@ -16,8 +16,6 @@ pub fn ContainerPropertyEditor(
     let ui_state = app_state.ui;
     let canvas_state = app_state.canvas;
 
-    let comp_id = id;
-
     // Helper to apply updates
     let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
         if let Err(e) = updated.validate() {
@@ -35,8 +33,6 @@ pub fn ContainerPropertyEditor(
     // Helper to switch layout type
     let switch_layout = {
         let container = container.clone();
-        let apply_update = apply_update.clone();
-        let comp_id = comp_id;
         move |new_type: &str| {
             let new_layout = match new_type {
                 "Flex" => LayoutType::Flex {
@@ -56,7 +52,7 @@ pub fn ContainerPropertyEditor(
             let mut new_container = container.clone();
             new_container.layout = new_layout;
             apply_update(
-                comp_id,
+                id,
                 CanvasComponent::Container(new_container),
                 "layout".to_string(),
             );
@@ -117,7 +113,7 @@ pub fn ContainerPropertyEditor(
                     <button
                          class={
                             let c = container.clone();
-                            move || if matches!(c.layout, LayoutType::Stack { .. }) { "layout-btn active" } else { "layout-btn" }
+                            move || if matches!(c.layout, LayoutType::Stack) { "layout-btn active" } else { "layout-btn" }
                         }
                         on:click={
                             let switch_layout = switch_layout.clone();
@@ -133,8 +129,6 @@ pub fn ContainerPropertyEditor(
             // 2. Flex Controls (Conditional)
             {if is_flex {
                 let container = container.clone();
-                let apply_update = apply_update.clone();
-                let comp_id = comp_id;
 
                 let current_dir = direction.unwrap_or(FlexDirection::Column);
                 let current_align = align.unwrap_or(FlexAlign::Start);
@@ -153,10 +147,10 @@ pub fn ContainerPropertyEditor(
                                     title="Row"
                                     on:click={
                                         let c = container.clone();
-                                        let a = apply_update.clone();
+                                        let a = apply_update;
                                         move |_| {
                                             let updated = update_container_prop(c.clone(), "layout", PropValue::String("FlexRow".to_string()));
-                                            a(comp_id, CanvasComponent::Container(updated), "direction".to_string());
+                                            a(id, CanvasComponent::Container(updated), "direction".to_string());
                                         }
                                     }
                                 >"→"</button>
@@ -165,10 +159,10 @@ pub fn ContainerPropertyEditor(
                                     title="Column"
                                     on:click={
                                         let c = container.clone();
-                                        let a = apply_update.clone();
+                                        let a = apply_update;
                                         move |_| {
                                             let updated = update_container_prop(c.clone(), "layout", PropValue::String("FlexColumn".to_string()));
-                                            a(comp_id, CanvasComponent::Container(updated), "direction".to_string());
+                                            a(id, CanvasComponent::Container(updated), "direction".to_string());
                                         }
                                     }
                                 >"↓"</button>
@@ -182,20 +176,20 @@ pub fn ContainerPropertyEditor(
                                 <button class=if matches!(current_align, FlexAlign::Start) { "toggle-btn active" } else { "toggle-btn" }
                                     title="Start"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "align_items", PropValue::String("Start".to_string())); a(comp_id, CanvasComponent::Container(u), "align".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "align_items", PropValue::String("Start".to_string())); a(id, CanvasComponent::Container(u), "align".to_string()); }
                                     }>"├"</button>
                                 <button class=if matches!(current_align, FlexAlign::Center) { "toggle-btn active" } else { "toggle-btn" }
                                     title="Center"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "align_items", PropValue::String("Center".to_string())); a(comp_id, CanvasComponent::Container(u), "align".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "align_items", PropValue::String("Center".to_string())); a(id, CanvasComponent::Container(u), "align".to_string()); }
                                     }>"┼"</button>
                                 <button class=if matches!(current_align, FlexAlign::End) { "toggle-btn active" } else { "toggle-btn" }
                                     title="End"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "align_items", PropValue::String("End".to_string())); a(comp_id, CanvasComponent::Container(u), "align".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "align_items", PropValue::String("End".to_string())); a(id, CanvasComponent::Container(u), "align".to_string()); }
                                     }>"┤"</button>
                             </div>
                         </div>
@@ -207,26 +201,26 @@ pub fn ContainerPropertyEditor(
                                 <button class=if matches!(current_justify, FlexJustify::Start) { "toggle-btn active" } else { "toggle-btn" }
                                     title="Start"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("Start".to_string())); a(comp_id, CanvasComponent::Container(u), "justify".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("Start".to_string())); a(id, CanvasComponent::Container(u), "justify".to_string()); }
                                     }>"├"</button>
                                 <button class=if matches!(current_justify, FlexJustify::Center) { "toggle-btn active" } else { "toggle-btn" }
                                     title="Center"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("Center".to_string())); a(comp_id, CanvasComponent::Container(u), "justify".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("Center".to_string())); a(id, CanvasComponent::Container(u), "justify".to_string()); }
                                     }>"┼"</button>
                                 <button class=if matches!(current_justify, FlexJustify::End) { "toggle-btn active" } else { "toggle-btn" }
                                     title="End"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("End".to_string())); a(comp_id, CanvasComponent::Container(u), "justify".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("End".to_string())); a(id, CanvasComponent::Container(u), "justify".to_string()); }
                                     }>"┤"</button>
                                 <button class=if matches!(current_justify, FlexJustify::Between) { "toggle-btn active" } else { "toggle-btn" }
                                     title="Between"
                                     on:click={
-                                        let c = container.clone(); let a = apply_update.clone();
-                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("Between".to_string())); a(comp_id, CanvasComponent::Container(u), "justify".to_string()); }
+                                        let c = container.clone(); let a = apply_update;
+                                        move |_| { let u = update_container_prop(c.clone(), "justify_content", PropValue::String("Between".to_string())); a(id, CanvasComponent::Container(u), "justify".to_string()); }
                                     }>"↔"</button>
                             </div>
                         </div>
@@ -246,8 +240,8 @@ pub fn ContainerPropertyEditor(
                             value={container.padding.top as f64}
                             label="".to_string()
                             on_change={
-                                let c = container.clone(); let a = apply_update.clone();
-                                move |v| { let u = update_container_prop(c.clone(), "padding_top", PropValue::Number(v)); a(comp_id, CanvasComponent::Container(u), "padding-top".to_string()); }
+                                let c = container.clone(); let a = apply_update;
+                                move |v| { let u = update_container_prop(c.clone(), "padding_top", PropValue::Number(v)); a(id, CanvasComponent::Container(u), "padding-top".to_string()); }
                             }
                         />
                     </div>
@@ -257,8 +251,8 @@ pub fn ContainerPropertyEditor(
                                 value={container.padding.left as f64}
                                 label="".to_string()
                                 on_change={
-                                    let c = container.clone(); let a = apply_update.clone();
-                                    move |v| { let u = update_container_prop(c.clone(), "padding_left", PropValue::Number(v)); a(comp_id, CanvasComponent::Container(u), "padding-left".to_string()); }
+                                    let c = container.clone(); let a = apply_update;
+                                    move |v| { let u = update_container_prop(c.clone(), "padding_left", PropValue::Number(v)); a(id, CanvasComponent::Container(u), "padding-left".to_string()); }
                                 }
                             />
                         </div>
@@ -268,8 +262,8 @@ pub fn ContainerPropertyEditor(
                                 value={container.padding.right as f64}
                                 label="".to_string()
                                 on_change={
-                                    let c = container.clone(); let a = apply_update.clone();
-                                    move |v| { let u = update_container_prop(c.clone(), "padding_right", PropValue::Number(v)); a(comp_id, CanvasComponent::Container(u), "padding-right".to_string()); }
+                                    let c = container.clone(); let a = apply_update;
+                                    move |v| { let u = update_container_prop(c.clone(), "padding_right", PropValue::Number(v)); a(id, CanvasComponent::Container(u), "padding-right".to_string()); }
                                 }
                             />
                         </div>
@@ -279,8 +273,8 @@ pub fn ContainerPropertyEditor(
                             value={container.padding.bottom as f64}
                             label="".to_string()
                             on_change={
-                                let c = container.clone(); let a = apply_update.clone();
-                                move |v| { let u = update_container_prop(c.clone(), "padding_bottom", PropValue::Number(v)); a(comp_id, CanvasComponent::Container(u), "padding-bottom".to_string()); }
+                                let c = container.clone(); let a = apply_update;
+                                move |v| { let u = update_container_prop(c.clone(), "padding_bottom", PropValue::Number(v)); a(id, CanvasComponent::Container(u), "padding-bottom".to_string()); }
                             }
                         />
                     </div>
@@ -291,20 +285,20 @@ pub fn ContainerPropertyEditor(
                         value={container.gap as f64}
                         label="Gap (px)".to_string()
                         on_change={
-                            let c = container.clone(); let a = apply_update.clone();
-                            move |v| { let u = update_container_prop(c.clone(), "gap", PropValue::Number(v)); a(comp_id, CanvasComponent::Container(u), "gap".to_string()); }
+                            let c = container.clone(); let a = apply_update;
+                            move |v| { let u = update_container_prop(c.clone(), "gap", PropValue::Number(v)); a(id, CanvasComponent::Container(u), "gap".to_string()); }
                         }
                     />
                 </div>
             </div>
 
             <AnimationPropertyEditor
-                _id=comp_id
+                _id=id
                 animation=container.animation.clone()
                 on_change=move |new_anim| {
                     let mut updated = container.clone();
                     updated.animation = new_anim;
-                    apply_update(comp_id, CanvasComponent::Container(updated), "animation".to_string());
+                    apply_update(id, CanvasComponent::Container(updated), "animation".to_string());
                 }
             />
 

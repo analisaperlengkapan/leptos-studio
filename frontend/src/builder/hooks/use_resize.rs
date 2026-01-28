@@ -56,7 +56,7 @@ pub fn use_resizable_sidebar(
                 window_width - ev.client_x()
             };
 
-            let clamped = new_width.max(MIN_SIDEBAR_WIDTH).min(MAX_SIDEBAR_WIDTH);
+            let clamped = new_width.clamp(MIN_SIDEBAR_WIDTH, MAX_SIDEBAR_WIDTH);
             width.set(clamped);
         }
     });

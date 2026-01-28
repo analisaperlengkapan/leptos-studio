@@ -61,10 +61,10 @@ pub fn ProjectDashboard() -> impl IntoView {
                 refresh_projects();
 
                 // If we deleted the current project, reset
-                if let Some(curr) = app_state.current_project_id.get() {
-                    if curr == id {
-                        app_state.create_new_project();
-                    }
+                if let Some(curr) = app_state.current_project_id.get()
+                    && curr == id
+                {
+                    app_state.create_new_project();
                 }
             }
         });

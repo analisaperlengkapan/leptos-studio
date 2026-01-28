@@ -526,13 +526,13 @@ impl AppState {
             }
 
             // 2. If no legacy data, check backend projects
-            if let Ok(projects) = ProjectManager::list_projects().await {
-                if let Some(latest) = projects.first() {
-                    // Load the latest project
-                    if let Ok(project) = ProjectManager::load_project(&latest.id).await {
-                        state.apply_project(project);
-                        state.current_project_id.set(Some(latest.id.clone()));
-                    }
+            if let Ok(projects) = ProjectManager::list_projects().await
+                && let Some(latest) = projects.first()
+            {
+                // Load the latest project
+                if let Ok(project) = ProjectManager::load_project(&latest.id).await {
+                    state.apply_project(project);
+                    state.current_project_id.set(Some(latest.id.clone()));
                 }
             }
         });
