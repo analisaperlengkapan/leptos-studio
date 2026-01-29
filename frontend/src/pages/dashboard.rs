@@ -1,5 +1,6 @@
 use crate::services::project_manager::{ProjectManager, ProjectMetadata};
 use crate::state::app_state::{AppState, Notification};
+use crate::state::project::Project;
 use leptos::prelude::*;
 use leptos_router::components::A;
 
@@ -10,6 +11,7 @@ pub fn DashboardPage() -> impl IntoView {
     let loading = RwSignal::new(true);
     let editing_id = RwSignal::new(None::<String>);
     let edit_name = RwSignal::new(String::new());
+    let import_input_ref = NodeRef::<leptos::html::Input>::new();
 
     let refresh_projects = move || {
         loading.set(true);
@@ -45,6 +47,51 @@ pub fn DashboardPage() -> impl IntoView {
                 refresh_projects();
             }
         });
+    };
+
+    let on_import_click = move |_| {
+        if let Some(input) = import_input_ref.get() {
+            input.click();
+        }
+    };
+
+    let on_file_change = move |ev: leptos::ev::Event| {
+        let target = event_target::<web_sys::HtmlInputElement>(&ev);
+        if let Some(files) = target.files()
+            && let Some(file) = files.get(0)
+        {
+            leptos::task::spawn_local(async move {
+                let text = wasm_bindgen_futures::JsFuture::from(file.text())
+                        .await
+                        .ok()
+                        .and_then(|t| t.as_string())
+                        .unwrap_or_default();
+
+                    match serde_json::from_str::<Project>(&text) {
+                        Ok(mut project) => {
+                            // Generate a new ID for the imported project to avoid conflicts
+                            let new_id = ProjectManager::generate_id();
+                            project.name = format!("{} (Imported)", project.name);
+
+                            match ProjectManager::save_project(&new_id, &project).await {
+                                Ok(_) => {
+                                    app_state.ui.notify(Notification::success("Project imported successfully".to_string()));
+                                    refresh_projects();
+                                }
+                                Err(e) => {
+                                    app_state.ui.notify(Notification::error(format!("Failed to save imported project: {}", e.user_message())));
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            app_state.ui.notify(Notification::error(format!("Invalid project file: {}", e)));
+                        }
+                    }
+
+                    // Reset input
+                    target.set_value("");
+            });
+        }
     };
 
     let on_new = move |_| {
@@ -105,6 +152,16 @@ pub fn DashboardPage() -> impl IntoView {
                 <div class="header-content">
                     <h1>"Leptos Studio"</h1>
                     <div class="header-actions">
+                        <input
+                            type="file"
+                            accept=".json"
+                            node_ref=import_input_ref
+                            style="display: none"
+                            on:change=on_file_change
+                        />
+                        <button class="btn btn-secondary" on:click=on_import_click>
+                            <span class="icon">"📥"</span> "Import"
+                        </button>
                         <button class="btn btn-primary" on:click=on_new>
                             <span class="icon">"+"</span> "New Project"
                         </button>
