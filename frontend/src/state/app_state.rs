@@ -42,20 +42,27 @@ impl CanvasState {
         self.add_component_without_snapshot(component);
     }
 
-    /// Add a child component to a specific parent
-    pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) {
-        self.record_snapshot("Add Child Component");
-        self.add_child_component_without_snapshot(parent_id, component);
+    /// Add a child component to a specific parent. Returns true if successful.
+    pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) -> bool {
+        // Optimistically record snapshot? Or only if successful?
+        // Let's only record if successful to avoid empty history entries
+        if self.add_child_component_without_snapshot(parent_id, component.clone()) {
+            self.record_snapshot("Add Child Component");
+            return true;
+        }
+        false
     }
 
     pub fn add_child_component_without_snapshot(
         &self,
         parent_id: &ComponentId,
         component: CanvasComponent,
-    ) {
+    ) -> bool {
+        let mut result = false;
         self.components.update(|components| {
-            Self::add_child_recursive(&mut components[..], parent_id, component);
+            result = Self::add_child_recursive(&mut components[..], parent_id, component);
         });
+        result
     }
 
     fn add_child_recursive(

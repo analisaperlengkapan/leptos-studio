@@ -157,14 +157,23 @@ pub fn use_keyboard_actions(
                 if let Some(comp) = create_canvas_component(&type_name) {
                     if let Some(selected_id) = app_state.canvas.selected.get() {
                         // Try to add as child if selected is container
-                        app_state.canvas.add_child_component(&selected_id, comp);
-                        app_state
-                            .ui
-                            .notification
-                            .set(Some(Notification::success(format!(
-                                "➕ Added {} to selected container",
-                                type_name
-                            ))));
+                        if app_state
+                            .canvas
+                            .add_child_component(&selected_id, comp.clone())
+                        {
+                            app_state
+                                .ui
+                                .notification
+                                .set(Some(Notification::success(format!(
+                                    "➕ Added {} to selected container",
+                                    type_name
+                                ))));
+                        } else {
+                            // If adding as child failed (not a container), notify user
+                            app_state.ui.notification.set(Some(Notification::warning(
+                                "⚠️ Selected component cannot accept children. Select a Container or Card, or deselect to add to root.".to_string(),
+                            )));
+                        }
                     } else {
                         // Add to root
                         app_state.canvas.add_component(comp);
