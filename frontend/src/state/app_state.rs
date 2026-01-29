@@ -201,6 +201,56 @@ impl CanvasState {
         self.update_component(id, |c| *c = new_component);
     }
 
+    /// Move a component up within its parent container
+    pub fn move_component_up(&self, id: &ComponentId) {
+        self.move_component(id, -1);
+    }
+
+    /// Move a component down within its parent container
+    pub fn move_component_down(&self, id: &ComponentId) {
+        self.move_component(id, 1);
+    }
+
+    fn move_component(&self, id: &ComponentId, offset: i32) {
+        let mut components = self.components.get();
+        if Self::move_recursive(&mut components, id, offset) {
+            self.record_snapshot(if offset < 0 {
+                "Move Component Up"
+            } else {
+                "Move Component Down"
+            });
+            self.components.set(components);
+        }
+    }
+
+    fn move_recursive(
+        components: &mut [CanvasComponent],
+        id: &ComponentId,
+        offset: i32,
+    ) -> bool {
+        if let Some(index) = components.iter().position(|c| c.id() == id) {
+            let new_index = index as i32 + offset;
+            if new_index >= 0 && new_index < components.len() as i32 {
+                components.swap(index, new_index as usize);
+                return true;
+            }
+            return false;
+        }
+
+        for comp in components.iter_mut() {
+            if let CanvasComponent::Container(container) = comp {
+                if Self::move_recursive(&mut container.children, id, offset) {
+                    return true;
+                }
+            } else if let CanvasComponent::Card(card) = comp
+                && Self::move_recursive(&mut card.children, id, offset)
+            {
+                return true;
+            }
+        }
+        false
+    }
+
     /// Record a snapshot for undo/redo
     pub fn record_snapshot(&self, description: &str) {
         let snapshot = Snapshot::new(

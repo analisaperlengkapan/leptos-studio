@@ -249,6 +249,16 @@ pub fn use_keyboard_actions(
             KeyboardAction::ShowShortcuts => {
                 app_state.ui.show_shortcuts_modal.set(true);
             }
+            KeyboardAction::MoveUp => {
+                if let Some(id) = app_state.canvas.selected.get() {
+                    app_state.canvas.move_component_up(&id);
+                }
+            }
+            KeyboardAction::MoveDown => {
+                if let Some(id) = app_state.canvas.selected.get() {
+                    app_state.canvas.move_component_down(&id);
+                }
+            }
             // Add other cases if any
             _ => {}
         }

@@ -146,6 +146,9 @@ fn get_commands() -> Vec<Command> {
             "Components",
             KeyboardAction::AddComponent("Image".to_string()),
         ),
+        // Arrange
+        Command::new("move_up", "Move Up", "Arrange", KeyboardAction::MoveUp),
+        Command::new("move_down", "Move Down", "Arrange", KeyboardAction::MoveDown),
     ]
 }
 
