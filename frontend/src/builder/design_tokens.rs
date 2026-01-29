@@ -481,6 +481,18 @@ impl DesignTokens {
             }
         }
     }
+
+    pub fn update_spacing(&mut self, name: &str, value: String) {
+        if let Some(token) = self.spacing.iter_mut().find(|s| s.name == name) {
+            token.value = value;
+        }
+    }
+
+    pub fn update_border_radius(&mut self, name: &str, value: String) {
+        if let Some(token) = self.border_radius.iter_mut().find(|r| r.name == name) {
+            token.value = value;
+        }
+    }
 }
 
 #[component]
