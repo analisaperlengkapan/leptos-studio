@@ -59,22 +59,22 @@ pub fn Canvas() -> impl IntoView {
                     window.prompt_with_message("Enter name for custom component:")
                 && !name.is_empty()
             {
-                        let lib_comp = crate::builder::component_library::LibraryComponent {
-                            name: name.clone(),
-                            kind: comp.component_type().to_string(),
-                            category: "Custom".to_string(),
-                            description: Some("User saved component".to_string()),
-                            template: Some(serde_json::to_string_pretty(&comp).unwrap_or_default()),
-                            props_schema: None, // Simplified
-                        };
+                let lib_comp = crate::builder::component_library::LibraryComponent {
+                    name: name.clone(),
+                    kind: comp.component_type().to_string(),
+                    category: "Custom".to_string(),
+                    description: Some("User saved component".to_string()),
+                    template: Some(serde_json::to_string_pretty(&comp).unwrap_or_default()),
+                    props_schema: None, // Simplified
+                };
 
-                        app_state.ui.custom_components.update(|c| c.push(lib_comp));
-                        app_state
-                            .ui
-                            .notify(crate::state::app_state::Notification::success(format!(
-                                "Saved '{}' to custom components",
-                                name
-                            )));
+                app_state.ui.custom_components.update(|c| c.push(lib_comp));
+                app_state
+                    .ui
+                    .notify(crate::state::app_state::Notification::success(format!(
+                        "Saved '{}' to custom components",
+                        name
+                    )));
             }
         }
     };

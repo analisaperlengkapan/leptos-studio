@@ -1,3 +1,4 @@
+use crate::builder::snackbar::Snackbar;
 use crate::services::project_manager::{ProjectManager, ProjectMetadata};
 use crate::state::app_state::{AppState, Notification};
 use crate::state::project::Project;
@@ -12,6 +13,7 @@ pub fn DashboardPage() -> impl IntoView {
     let editing_id = RwSignal::new(None::<String>);
     let edit_name = RwSignal::new(String::new());
     let import_input_ref = NodeRef::<leptos::html::Input>::new();
+    let navigate = leptos_router::hooks::use_navigate();
 
     let refresh_projects = move || {
         loading.set(true);
@@ -108,11 +110,11 @@ pub fn DashboardPage() -> impl IntoView {
 
         // Save the empty project to ensure it exists on backend
         let project = app_state.to_project();
+        let navigate = navigate.clone();
 
         leptos::task::spawn_local(async move {
             match ProjectManager::save_project(&new_id, &project).await {
                 Ok(_) => {
-                    let navigate = leptos_router::hooks::use_navigate();
                     navigate(&format!("/editor/{}", new_id), Default::default());
                     app_state
                         .ui
@@ -153,6 +155,8 @@ pub fn DashboardPage() -> impl IntoView {
         editing_id.set(None);
     };
 
+    let on_new_header = on_new.clone();
+
     view! {
         <div class="dashboard-page">
             <header class="dashboard-header">
@@ -169,7 +173,7 @@ pub fn DashboardPage() -> impl IntoView {
                         <button class="btn btn-secondary" on:click=on_import_click>
                             <span class="icon">"📥"</span> "Import"
                         </button>
-                        <button class="btn btn-primary" on:click=on_new>
+                        <button class="btn btn-primary" on:click=on_new_header>
                             <span class="icon">"+"</span> "New Project"
                         </button>
                     </div>
@@ -177,6 +181,7 @@ pub fn DashboardPage() -> impl IntoView {
             </header>
 
             <main class="dashboard-content">
+                <Snackbar notification=app_state.ui.notification />
                 <div class="projects-section">
                     <div class="section-header">
                         <h2>"My Projects"</h2>
@@ -193,7 +198,7 @@ pub fn DashboardPage() -> impl IntoView {
                                 <div style="font-size: 48px; margin-bottom: 16px;">"📂"</div>
                                 <h3>"No projects yet"</h3>
                                 <p>"Create your first project to get started building!"</p>
-                                <button class="btn btn-primary mt-4" on:click=on_new>"Create Project"</button>
+                                <button class="btn btn-primary mt-4" on:click=on_new.clone()>"Create Project"</button>
                             </div>
                         }.into_any()
                     } else {

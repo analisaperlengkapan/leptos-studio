@@ -19,15 +19,17 @@ pub fn HistoryPanel() -> impl IntoView {
 
     // Memoize the history list to avoid issues inside view macro
     let history_list = Memo::new(move |_| {
-        history
-            .get()
-            .get_undo_stack()
+        let stack = history.get().get_undo_stack();
+        // We want to show latest at top, but preserve original index for restoration
+        stack
             .into_iter()
             .enumerate()
+            .rev() // Reverse iterator to show latest first
             .collect::<Vec<_>>()
     });
 
     let restore = move |index: usize| {
+        // Index comes from the enumeration of the original stack order
         if let Some(snapshot) = history.write().restore_to_index(index) {
             app_state.canvas.apply_snapshot(&snapshot);
             app_state

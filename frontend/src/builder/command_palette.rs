@@ -242,7 +242,9 @@ where
                                     ev.prevent_default();
                                     set_selected_index.update(|idx| {
                                         let len = filtered_commands.get().len();
-                                        *idx = (*idx + 1) % len;
+                                        if len > 0 {
+                                            *idx = (*idx + 1) % len;
+                                        }
                                     });
                                 }
                                 "Enter" => {
