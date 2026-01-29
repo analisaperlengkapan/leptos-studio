@@ -49,60 +49,70 @@ pub fn VariablePanel() -> impl IntoView {
 
     view! {
         <div class="sidebar-section variable-panel">
-            <b>"Global Variables"</b>
+            <h3 class="panel-title">"Global Variables"</h3>
+            <p class="panel-description">"Define variables to bind to component properties."</p>
 
-            <form on:submit=add_variable style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
-                <input
-                    type="text"
-                    placeholder="Name (e.g., count)"
-                    prop:value=move || new_name.get()
-                    on:input=move |ev| new_name.set(event_target_value(&ev))
-                    style="width: 100%; padding: 4px;"
-                />
-                <select
-                    on:change=move |ev| {
-                        let val = event_target_value(&ev);
-                        let t = match val.as_str() {
-                            "Number" => VariableType::Number,
-                            "Boolean" => VariableType::Boolean,
-                            _ => VariableType::String,
-                        };
-                        new_type.set(t);
-                    }
-                    style="width: 100%; padding: 4px;"
-                >
-                    <option value="String">"String"</option>
-                    <option value="Number">"Number"</option>
-                    <option value="Boolean">"Boolean"</option>
-                </select>
-                <input
-                    type="text"
-                    placeholder="Default Value"
-                    prop:value=move || new_default.get()
-                    on:input=move |ev| new_default.set(event_target_value(&ev))
-                    style="width: 100%; padding: 4px;"
-                />
-                <button type="submit" style="padding: 4px;">"Add Variable"</button>
+            <form on:submit=add_variable class="variable-form">
+                <div class="form-group">
+                    <label>"Name"</label>
+                    <input
+                        type="text"
+                        class="input-text"
+                        placeholder="e.g., user_name"
+                        prop:value=move || new_name.get()
+                        on:input=move |ev| new_name.set(event_target_value(&ev))
+                    />
+                </div>
+                <div class="form-group">
+                    <label>"Type"</label>
+                    <select
+                        class="input-select"
+                        on:change=move |ev| {
+                            let val = event_target_value(&ev);
+                            let t = match val.as_str() {
+                                "Number" => VariableType::Number,
+                                "Boolean" => VariableType::Boolean,
+                                _ => VariableType::String,
+                            };
+                            new_type.set(t);
+                        }
+                    >
+                        <option value="String">"String"</option>
+                        <option value="Number">"Number"</option>
+                        <option value="Boolean">"Boolean"</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>"Default Value"</label>
+                    <input
+                        type="text"
+                        class="input-text"
+                        placeholder="Value..."
+                        prop:value=move || new_default.get()
+                        on:input=move |ev| new_default.set(event_target_value(&ev))
+                    />
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm" style="width: 100%">"Add Variable"</button>
             </form>
 
             {move || if !error_msg.get().is_empty() {
-                view! { <div style="color: red; font-size: 12px; margin-top: 4px;">{error_msg.get()}</div> }.into_any()
+                view! { <div class="error-message">{error_msg.get()}</div> }.into_any()
             } else {
                 ().into_any()
             }}
 
-            <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 4px;">
+            <div class="variables-list">
                 {move || variables.get().into_iter().enumerate().map(|(idx, var)| {
                     view! {
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #f0f0f0; padding: 4px 8px; border-radius: 4px;">
-                            <div style="display: flex; flex-direction: column; overflow: hidden;">
-                                <span style="font-weight: bold; font-size: 12px;">{var.name}</span>
-                                <span style="font-size: 10px; color: #666;">{var.data_type.to_string()} " = " {var.default_value}</span>
+                        <div class="variable-item">
+                            <div class="variable-info">
+                                <span class="variable-name">{var.name}</span>
+                                <span class="variable-meta">{var.data_type.to_string()} " = " {var.default_value}</span>
                             </div>
                             <button
+                                class="btn-icon"
                                 on:click=move |_| delete_variable(idx)
-                                style="border: none; background: none; color: #999; cursor: pointer;"
-                                title="Delete"
+                                title="Delete variable"
                             >
                                 "×"
                             </button>

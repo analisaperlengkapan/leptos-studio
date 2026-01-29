@@ -77,7 +77,8 @@ impl LeptosCodeGenerator {
                 let click_handler = if let Some(handler) = &btn.on_click {
                     format!("on:click={}", handler)
                 } else {
-                    "on:click=move |_| { /* TODO: Handle click */ }".to_string()
+                    "on:click=move |_| { web_sys::console::log_1(&\"Clicked\".into()); }"
+                        .to_string()
                 };
 
                 // Add interactive scaffolding

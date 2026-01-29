@@ -49,8 +49,9 @@ impl RemoteGitBackend {
                 return Ok(Vec::new());
             }
             return Err(AppError::Network(format!(
-                "Server returned {}",
-                resp.status()
+                "Server returned {}: {}",
+                resp.status(),
+                resp.status_text()
             )));
         }
 

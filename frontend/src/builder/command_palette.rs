@@ -109,6 +109,51 @@ fn get_commands() -> Vec<Command> {
             "Components",
             KeyboardAction::NewComponent,
         ),
+        // Specific components
+        Command::new(
+            "add_button",
+            "Add Button",
+            "Components",
+            KeyboardAction::AddComponent("Button".to_string()),
+        ),
+        Command::new(
+            "add_text",
+            "Add Text",
+            "Components",
+            KeyboardAction::AddComponent("Text".to_string()),
+        ),
+        Command::new(
+            "add_input",
+            "Add Input",
+            "Components",
+            KeyboardAction::AddComponent("Input".to_string()),
+        ),
+        Command::new(
+            "add_container",
+            "Add Container",
+            "Components",
+            KeyboardAction::AddComponent("Container".to_string()),
+        ),
+        Command::new(
+            "add_card",
+            "Add Card",
+            "Components",
+            KeyboardAction::AddComponent("Card".to_string()),
+        ),
+        Command::new(
+            "add_image",
+            "Add Image",
+            "Components",
+            KeyboardAction::AddComponent("Image".to_string()),
+        ),
+        // Arrange
+        Command::new("move_up", "Move Up", "Arrange", KeyboardAction::MoveUp),
+        Command::new(
+            "move_down",
+            "Move Down",
+            "Arrange",
+            KeyboardAction::MoveDown,
+        ),
     ]
 }
 

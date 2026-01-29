@@ -65,6 +65,56 @@ pub fn ThemeEditor(tokens: RwSignal<DesignTokens>) -> impl IntoView {
                     />
                 </div>
             </div>
+
+            <div class="theme-section">
+                <h4 class="theme-section-title">"Spacing"</h4>
+                <div class="spacing-list">
+                    <For
+                        each=move || tokens.get().spacing
+                        key=|s| s.name.clone()
+                        children=move |s| {
+                            let name_clone = s.name.clone();
+                            view! {
+                                <div class="spacing-item">
+                                    <div class="spacing-name">{s.name}</div>
+                                    <StringInput
+                                        label="Value".to_string()
+                                        value=s.value
+                                        on_change=move |val| {
+                                            tokens.update(|t| t.update_spacing(&name_clone, val));
+                                        }
+                                    />
+                                </div>
+                            }
+                        }
+                    />
+                </div>
+            </div>
+
+            <div class="theme-section">
+                <h4 class="theme-section-title">"Border Radius"</h4>
+                <div class="radius-list">
+                    <For
+                        each=move || tokens.get().border_radius
+                        key=|r| r.name.clone()
+                        children=move |r| {
+                            let name_clone = r.name.clone();
+                            view! {
+                                <div class="radius-item">
+                                    <div class="radius-name">{r.name}</div>
+                                    <StringInput
+                                        label="Value".to_string()
+                                        value=r.value
+                                        on_change=move |val| {
+                                            tokens.update(|t| t.update_border_radius(&name_clone, val));
+                                        }
+                                    />
+                                </div>
+                            }
+                        }
+                    />
+                </div>
+            </div>
         </div>
     }
 }

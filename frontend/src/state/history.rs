@@ -108,6 +108,29 @@ impl History {
         self.undo_stack.clear();
         self.redo_stack.clear();
     }
+
+    /// Restore to a specific index in the undo stack
+    /// Index 0 is the oldest action.
+    /// This function moves newer actions to the redo stack.
+    pub fn restore_to_index(&mut self, index: usize) -> Option<Snapshot> {
+        if index >= self.undo_stack.len() {
+            return None;
+        }
+
+        // We want to keep elements up to `index` (inclusive) in the undo stack.
+        // Elements after `index` should be moved to redo stack in reverse order.
+        let keep_count = index + 1;
+        let remove_count = self.undo_stack.len() - keep_count;
+
+        for _ in 0..remove_count {
+            if let Some(snapshot) = self.undo_stack.pop_back() {
+                self.redo_stack.push_back(snapshot);
+            }
+        }
+
+        // Return the snapshot at the new tip of undo stack
+        self.undo_stack.back().cloned()
+    }
 }
 
 impl Default for History {

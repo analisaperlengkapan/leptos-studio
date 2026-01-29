@@ -27,8 +27,12 @@ pub enum KeyboardAction {
     Save,
     Export,
     NewComponent,
+    AddComponent(String),
     Duplicate,
     Cut,
+    ShowShortcuts,
+    MoveUp,
+    MoveDown,
 }
 
 /// Defines a keyboard shortcut with modifiers and action
@@ -268,6 +272,33 @@ pub fn get_default_shortcuts() -> Vec<KeyboardShortcut> {
             false,
             KeyboardAction::Cut,
             "Cut selected component",
+        ),
+        KeyboardShortcut::new(
+            "?",
+            false,
+            true, // ? is Shift+/ usually, but event.key is "?"
+            false,
+            false,
+            KeyboardAction::ShowShortcuts,
+            "Show shortcuts",
+        ),
+        KeyboardShortcut::new(
+            "ArrowUp",
+            false,
+            false,
+            true, // Alt + Up
+            false,
+            KeyboardAction::MoveUp,
+            "Move component up",
+        ),
+        KeyboardShortcut::new(
+            "ArrowDown",
+            false,
+            false,
+            true, // Alt + Down
+            false,
+            KeyboardAction::MoveDown,
+            "Move component down",
         ),
     ]
 }
