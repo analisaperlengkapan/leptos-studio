@@ -27,6 +27,17 @@ pub fn HistoryPanel() -> impl IntoView {
             .collect::<Vec<_>>()
     });
 
+    let restore = move |index: usize| {
+        if let Some(snapshot) = history.write().restore_to_index(index) {
+            app_state.canvas.apply_snapshot(&snapshot);
+            app_state
+                .ui
+                .notify(crate::state::app_state::Notification::info(
+                    "Restored history state".to_string(),
+                ));
+        }
+    };
+
     view! {
         <div class="history-panel">
             <h4 class="panel-title">"History"</h4>
@@ -34,9 +45,13 @@ pub fn HistoryPanel() -> impl IntoView {
                 <For
                     each=move || history_list.get()
                     key=|(i, _)| *i
-                    children=move |(_i, snapshot)| {
+                    children=move |(i, snapshot)| {
                         view! {
-                            <div class="history-item">
+                            <div
+                                class="history-item clickable"
+                                on:click=move |_| restore(i)
+                                title="Click to restore this state"
+                            >
                                 <span class="history-time">{format_time(snapshot.timestamp)}</span>
                                 <span class="history-desc">{snapshot.description}</span>
                             </div>
