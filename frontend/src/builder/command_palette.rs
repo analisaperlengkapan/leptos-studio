@@ -148,7 +148,12 @@ fn get_commands() -> Vec<Command> {
         ),
         // Arrange
         Command::new("move_up", "Move Up", "Arrange", KeyboardAction::MoveUp),
-        Command::new("move_down", "Move Down", "Arrange", KeyboardAction::MoveDown),
+        Command::new(
+            "move_down",
+            "Move Down",
+            "Arrange",
+            KeyboardAction::MoveDown,
+        ),
     ]
 }
 

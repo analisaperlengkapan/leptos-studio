@@ -223,11 +223,7 @@ impl CanvasState {
         }
     }
 
-    fn move_recursive(
-        components: &mut [CanvasComponent],
-        id: &ComponentId,
-        offset: i32,
-    ) -> bool {
+    fn move_recursive(components: &mut [CanvasComponent], id: &ComponentId, offset: i32) -> bool {
         if let Some(index) = components.iter().position(|c| c.id() == id) {
             let new_index = index as i32 + offset;
             if new_index >= 0 && new_index < components.len() as i32 {
