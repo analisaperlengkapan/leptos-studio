@@ -46,8 +46,8 @@ pub fn EditorPage() -> impl IntoView {
                 app_state.load_project(&id);
             }
         } else {
-             // If no ID (shouldn't happen with correct routing), maybe new project?
-             // But EditorPage is bound to /editor/:id
+            // If no ID (shouldn't happen with correct routing), maybe new project?
+            // But EditorPage is bound to /editor/:id
         }
     });
 

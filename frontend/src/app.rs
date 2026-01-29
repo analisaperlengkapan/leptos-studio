@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use leptos_router::components::{Router, Routes, Route};
+use leptos_router::components::{Route, Router, Routes};
 use leptos_router::path;
 
 use crate::pages::dashboard::DashboardPage;

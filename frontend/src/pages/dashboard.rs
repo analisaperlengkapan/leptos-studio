@@ -59,10 +59,7 @@ pub fn DashboardPage() -> impl IntoView {
             match ProjectManager::save_project(&new_id, &project).await {
                 Ok(_) => {
                     let navigate = leptos_router::hooks::use_navigate();
-                    navigate(
-                        &format!("/editor/{}", new_id),
-                        Default::default(),
-                    );
+                    navigate(&format!("/editor/{}", new_id), Default::default());
                     app_state
                         .ui
                         .notify(Notification::success("New project created".to_string()));
