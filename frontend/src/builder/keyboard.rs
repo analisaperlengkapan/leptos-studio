@@ -30,6 +30,7 @@ pub enum KeyboardAction {
     AddComponent(String),
     Duplicate,
     Cut,
+    ShowShortcuts,
 }
 
 /// Defines a keyboard shortcut with modifiers and action
@@ -269,6 +270,15 @@ pub fn get_default_shortcuts() -> Vec<KeyboardShortcut> {
             false,
             KeyboardAction::Cut,
             "Cut selected component",
+        ),
+        KeyboardShortcut::new(
+            "?",
+            false,
+            true, // ? is Shift+/ usually, but event.key is "?"
+            false,
+            false,
+            KeyboardAction::ShowShortcuts,
+            "Show shortcuts",
         ),
     ]
 }

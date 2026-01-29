@@ -21,6 +21,7 @@ use crate::builder::property_editor::PropertyEditor;
 use crate::builder::responsive_preview::{CanvasViewport, ResponsivePreviewControls};
 use crate::builder::save_template_modal::SaveTemplateModal;
 use crate::builder::settings_modal::SettingsModal;
+use crate::builder::shortcuts_modal::ShortcutsModal;
 use crate::builder::snackbar::Snackbar;
 use crate::builder::status_bar::StatusBar;
 use crate::builder::template_gallery::TemplateGallery;
@@ -303,6 +304,7 @@ pub fn EditorPage() -> impl IntoView {
                     }}
 
                 <SettingsModal />
+                <ShortcutsModal />
 
                 {move || if show_save_template.get() {
                     view! {

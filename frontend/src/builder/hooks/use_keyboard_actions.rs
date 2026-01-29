@@ -246,6 +246,9 @@ pub fn use_keyboard_actions(
                     )));
                 }
             }
+            KeyboardAction::ShowShortcuts => {
+                app_state.ui.show_shortcuts_modal.set(true);
+            }
             // Add other cases if any
             _ => {}
         }

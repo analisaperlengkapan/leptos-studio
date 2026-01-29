@@ -197,6 +197,13 @@ pub fn Toolbar(
                 >
                     <span class="icon">"⚙️"</span>
                 </button>
+                <button
+                    class="btn btn-ghost btn-sm"
+                    on:click=move |_| app_state.ui.show_shortcuts_modal.set(true)
+                    title="Shortcuts (?)"
+                >
+                    <span class="icon">"❓"</span>
+                </button>
             </div>
         </header>
     }
