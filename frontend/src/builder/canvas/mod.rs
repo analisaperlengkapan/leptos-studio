@@ -54,11 +54,11 @@ pub fn Canvas() -> impl IntoView {
             // Convert CanvasComponent to LibraryComponent
             // This is a simplified conversion. Realistically we need a name prompt.
             // For now, we'll use a prompt via window.prompt (not ideal UX but functional for MVP)
-            if let Some(window) = web_sys::window() {
-                if let Ok(Some(name)) =
+            if let Some(window) = web_sys::window()
+                && let Ok(Some(name)) =
                     window.prompt_with_message("Enter name for custom component:")
-                {
-                    if !name.is_empty() {
+                && !name.is_empty()
+            {
                         let lib_comp = crate::builder::component_library::LibraryComponent {
                             name: name.clone(),
                             kind: comp.component_type().to_string(),
@@ -75,8 +75,6 @@ pub fn Canvas() -> impl IntoView {
                                 "Saved '{}' to custom components",
                                 name
                             )));
-                    }
-                }
             }
         }
     };

@@ -67,10 +67,10 @@ pub fn ContextMenu(
                 <button
                     class="w-full text-left px-4 py-2 hover:bg-purple-50 text-sm text-gray-700 flex items-center gap-2 transition-colors"
                     on:click=move |_| {
-                         if let Some(id) = component_id.get() {
-                            if let Some(cb) = on_save_custom {
+                         if let Some(id) = component_id.get()
+                            && let Some(cb) = on_save_custom
+                         {
                                 cb.run(id);
-                            }
                          }
                         on_close.run(());
                     }
