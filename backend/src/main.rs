@@ -119,7 +119,8 @@ async fn main() {
         .with_state(analytics_store);
 
     // Serve frontend static files
-    let static_files = ServeDir::new("dist").fallback(ServeDir::new("dist").append_index_html_on_directories(true));
+    let static_files = ServeDir::new("dist")
+        .fallback(ServeDir::new("dist").append_index_html_on_directories(true));
 
     let app = Router::new()
         .merge(project_routes)
