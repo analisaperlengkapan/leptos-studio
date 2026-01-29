@@ -62,34 +62,41 @@ pub fn DashboardPage() -> impl IntoView {
         {
             leptos::task::spawn_local(async move {
                 let text = wasm_bindgen_futures::JsFuture::from(file.text())
-                        .await
-                        .ok()
-                        .and_then(|t| t.as_string())
-                        .unwrap_or_default();
+                    .await
+                    .ok()
+                    .and_then(|t| t.as_string())
+                    .unwrap_or_default();
 
-                    match serde_json::from_str::<Project>(&text) {
-                        Ok(mut project) => {
-                            // Generate a new ID for the imported project to avoid conflicts
-                            let new_id = ProjectManager::generate_id();
-                            project.name = format!("{} (Imported)", project.name);
+                match serde_json::from_str::<Project>(&text) {
+                    Ok(mut project) => {
+                        // Generate a new ID for the imported project to avoid conflicts
+                        let new_id = ProjectManager::generate_id();
+                        project.name = format!("{} (Imported)", project.name);
 
-                            match ProjectManager::save_project(&new_id, &project).await {
-                                Ok(_) => {
-                                    app_state.ui.notify(Notification::success("Project imported successfully".to_string()));
-                                    refresh_projects();
-                                }
-                                Err(e) => {
-                                    app_state.ui.notify(Notification::error(format!("Failed to save imported project: {}", e.user_message())));
-                                }
+                        match ProjectManager::save_project(&new_id, &project).await {
+                            Ok(_) => {
+                                app_state.ui.notify(Notification::success(
+                                    "Project imported successfully".to_string(),
+                                ));
+                                refresh_projects();
+                            }
+                            Err(e) => {
+                                app_state.ui.notify(Notification::error(format!(
+                                    "Failed to save imported project: {}",
+                                    e.user_message()
+                                )));
                             }
                         }
-                        Err(e) => {
-                            app_state.ui.notify(Notification::error(format!("Invalid project file: {}", e)));
-                        }
                     }
+                    Err(e) => {
+                        app_state
+                            .ui
+                            .notify(Notification::error(format!("Invalid project file: {}", e)));
+                    }
+                }
 
-                    // Reset input
-                    target.set_value("");
+                // Reset input
+                target.set_value("");
             });
         }
     };
