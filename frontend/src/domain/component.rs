@@ -106,6 +106,12 @@ pub enum ComponentType {
     Custom,
 }
 
+impl std::fmt::Display for ComponentType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 /// Core component trait for all UI components
 pub trait Component: Clone {
     fn component_type(&self) -> ComponentType;

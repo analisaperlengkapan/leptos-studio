@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, net::SocketAddr, path::Path as FilePath, sync::Arc};
 use tokio::sync::RwLock;
 use tower_http::cors::{Any, CorsLayer};
-use tower_http::services::ServeDir;
+use tower_http::services::{ServeDir, ServeFile};
 
 mod analytics;
 mod git;
@@ -119,8 +119,9 @@ async fn main() {
         .with_state(analytics_store);
 
     // Serve frontend static files
+    // Fallback to index.html for SPA routing
     let static_files = ServeDir::new("dist")
-        .fallback(ServeDir::new("dist").append_index_html_on_directories(true));
+        .fallback(ServeFile::new("dist/index.html"));
 
     let app = Router::new()
         .merge(project_routes)
