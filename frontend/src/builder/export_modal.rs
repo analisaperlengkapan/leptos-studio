@@ -52,18 +52,20 @@ pub fn ExportModal(
             "json" | "jsonschema" => "json",
             "typescript" => "ts",
             "markdown" => "md",
-            _ => "txt"
+            _ => "txt",
         };
 
         let filename = format!("leptos-export.{}", ext);
         if let Err(e) = download_file(&code_text, &filename, mime) {
-             notification_signal.set(Some(Notification::error(
-                format!("❌ Download failed: {}", e.user_message()),
-            )));
+            notification_signal.set(Some(Notification::error(format!(
+                "❌ Download failed: {}",
+                e.user_message()
+            ))));
         } else {
-             notification_signal.set(Some(Notification::success(
-                format!("⬇️ Downloaded {}", filename),
-            )));
+            notification_signal.set(Some(Notification::success(format!(
+                "⬇️ Downloaded {}",
+                filename
+            ))));
         }
     };
 

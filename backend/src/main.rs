@@ -120,8 +120,7 @@ async fn main() {
 
     // Serve frontend static files
     // Fallback to index.html for SPA routing
-    let static_files = ServeDir::new("dist")
-        .fallback(ServeFile::new("dist/index.html"));
+    let static_files = ServeDir::new("dist").fallback(ServeFile::new("dist/index.html"));
 
     let app = Router::new()
         .merge(project_routes)
