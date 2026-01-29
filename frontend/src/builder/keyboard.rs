@@ -27,6 +27,7 @@ pub enum KeyboardAction {
     Save,
     Export,
     NewComponent,
+    AddComponent(String),
     Duplicate,
     Cut,
 }

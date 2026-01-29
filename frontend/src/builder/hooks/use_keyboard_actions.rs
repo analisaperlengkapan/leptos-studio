@@ -1,3 +1,4 @@
+use crate::builder::component_library::create_canvas_component;
 use crate::builder::keyboard::KeyboardAction;
 use crate::domain::CanvasComponent;
 use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
@@ -151,6 +152,23 @@ pub fn use_keyboard_actions(
                 app_state.ui.notification.set(Some(Notification::info(
                     "ℹ️ Drag component from sidebar to add".to_string(),
                 )));
+            }
+            KeyboardAction::AddComponent(type_name) => {
+                if let Some(comp) = create_canvas_component(&type_name) {
+                    if let Some(selected_id) = app_state.canvas.selected.get() {
+                        // Try to add as child if selected is container
+                        app_state.canvas.add_child_component(&selected_id, comp);
+                        app_state.ui.notification.set(Some(Notification::success(
+                            format!("➕ Added {} to selected container", type_name),
+                        )));
+                    } else {
+                        // Add to root
+                        app_state.canvas.add_component(comp);
+                        app_state.ui.notification.set(Some(Notification::success(
+                            format!("➕ Added {}", type_name),
+                        )));
+                    }
+                }
             }
             KeyboardAction::OpenCommandPalette => {
                 app_state.ui.show_command_palette.set(true);
