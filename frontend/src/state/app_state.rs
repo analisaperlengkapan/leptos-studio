@@ -299,7 +299,6 @@ pub enum ResponsiveMode {
 pub struct UiState {
     pub show_command_palette: RwSignal<bool>,
     pub show_export_modal: RwSignal<bool>,
-    pub show_project_dashboard: RwSignal<bool>,
     pub show_git_panel: RwSignal<bool>,
     pub show_debug_panel: RwSignal<bool>,
     pub preview_mode: RwSignal<bool>,
@@ -317,7 +316,6 @@ impl UiState {
         Self {
             show_command_palette: RwSignal::new(false),
             show_export_modal: RwSignal::new(false),
-            show_project_dashboard: RwSignal::new(false),
             show_git_panel: RwSignal::new(false),
             show_debug_panel: RwSignal::new(false),
             preview_mode: RwSignal::new(false),
