@@ -72,16 +72,36 @@ impl CanvasState {
     ) -> bool {
         for comp in components.iter_mut() {
             if comp.id() == parent_id {
-                if let CanvasComponent::Container(container) = comp {
-                    container.children.push(child);
-                    return true;
+                match comp {
+                    CanvasComponent::Container(container) => {
+                        container.children.push(child);
+                        return true;
+                    }
+                    CanvasComponent::Card(card) => {
+                        card.children.push(child);
+                        return true;
+                    }
+                    _ => return false,
                 }
-                return false;
             }
-            if let CanvasComponent::Container(container) = comp
-                && Self::add_child_recursive(&mut container.children[..], parent_id, child.clone())
-            {
-                return true;
+
+            // Recurse into children
+            match comp {
+                CanvasComponent::Container(container) => {
+                    if Self::add_child_recursive(
+                        &mut container.children[..],
+                        parent_id,
+                        child.clone(),
+                    ) {
+                        return true;
+                    }
+                }
+                CanvasComponent::Card(card) => {
+                    if Self::add_child_recursive(&mut card.children[..], parent_id, child.clone()) {
+                        return true;
+                    }
+                }
+                _ => {}
             }
         }
         false
@@ -98,8 +118,14 @@ impl CanvasState {
     fn remove_recursive(components: &mut Vec<CanvasComponent>, id: &ComponentId) {
         components.retain(|c| c.id() != id);
         for comp in components.iter_mut() {
-            if let CanvasComponent::Container(container) = comp {
-                Self::remove_recursive(&mut container.children, id);
+            match comp {
+                CanvasComponent::Container(container) => {
+                    Self::remove_recursive(&mut container.children, id);
+                }
+                CanvasComponent::Card(card) => {
+                    Self::remove_recursive(&mut card.children, id);
+                }
+                _ => {}
             }
         }
     }
@@ -115,10 +141,18 @@ impl CanvasState {
             if comp.id() == id {
                 return Some(comp.clone());
             }
-            if let CanvasComponent::Container(container) = comp
-                && let Some(found) = Self::get_recursive(&container.children, id)
-            {
-                return Some(found);
+            match comp {
+                CanvasComponent::Container(container) => {
+                    if let Some(found) = Self::get_recursive(&container.children, id) {
+                        return Some(found);
+                    }
+                }
+                CanvasComponent::Card(card) => {
+                    if let Some(found) = Self::get_recursive(&card.children, id) {
+                        return Some(found);
+                    }
+                }
+                _ => {}
             }
         }
         None
