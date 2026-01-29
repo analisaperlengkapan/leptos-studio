@@ -787,11 +787,11 @@ mod tests {
 
         assert_ne!(original.id(), duplicated.id());
 
-        if let CanvasComponent::Container(orig_c) = &original {
-            if let CanvasComponent::Container(dup_c) = &duplicated {
-                assert_eq!(orig_c.children.len(), dup_c.children.len());
-                assert_ne!(orig_c.children[0].id(), dup_c.children[0].id());
-            }
+        if let CanvasComponent::Container(orig_c) = &original
+            && let CanvasComponent::Container(dup_c) = &duplicated
+        {
+            assert_eq!(orig_c.children.len(), dup_c.children.len());
+            assert_ne!(orig_c.children[0].id(), dup_c.children[0].id());
         }
     }
 }
