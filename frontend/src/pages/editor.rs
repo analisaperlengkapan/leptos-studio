@@ -57,7 +57,6 @@ pub fn EditorPage() -> impl IntoView {
     let export_template = RwSignal::new("leptos".to_string());
     let show_template_gallery = RwSignal::new(false);
     let show_save_template = RwSignal::new(false);
-    let _show_welcome = RwSignal::new(false); // Maybe don't show welcome in editor?
 
     let show_left_sidebar_mobile = RwSignal::new(false);
 

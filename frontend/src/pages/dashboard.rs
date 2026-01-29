@@ -49,28 +49,29 @@ pub fn DashboardPage() -> impl IntoView {
 
     let on_new = move |_| {
         app_state.create_new_project();
-        // We need to save it to get an ID, then navigate
-        // Or we can just navigate to a new ID and let the editor handle creation on save?
-        // AppState::create_new_project clears the state.
-        // But to navigate to /editor/:id we need an ID.
-        // Let's generate one.
         let new_id = ProjectManager::generate_id();
         app_state.current_project_id.set(Some(new_id.clone()));
 
-        // We should probably save the empty project so it exists?
-        // Or we just navigate and let the user save later.
-        // If we just navigate, `load_project` might fail (404).
-        // So we should probably initialize it.
+        // Save the empty project to ensure it exists on backend
+        let project = app_state.to_project();
 
-        let navigate = leptos_router::hooks::use_navigate();
-        navigate(
-            &format!("/editor/{}", new_id),
-            Default::default(),
-        );
-
-        app_state
-            .ui
-            .notify(Notification::success("New project created".to_string()));
+        leptos::task::spawn_local(async move {
+            match ProjectManager::save_project(&new_id, &project).await {
+                Ok(_) => {
+                    let navigate = leptos_router::hooks::use_navigate();
+                    navigate(
+                        &format!("/editor/{}", new_id),
+                        Default::default(),
+                    );
+                    app_state
+                        .ui
+                        .notify(Notification::success("New project created".to_string()));
+                }
+                Err(e) => {
+                    app_state.ui.notify(Notification::error(e.user_message()));
+                }
+            }
+        });
     };
 
     let start_rename = move |id: String, current_name: String| {
