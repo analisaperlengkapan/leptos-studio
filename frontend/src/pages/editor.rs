@@ -110,6 +110,7 @@ pub fn EditorPage() -> impl IntoView {
         Add,
         Layers,
         Theme,
+        Variables,
     }
 
     let active_left_tab = RwSignal::new(LeftPanelTab::Add);
@@ -177,12 +178,19 @@ pub fn EditorPage() -> impl IntoView {
                                 >
                                     "Theme"
                                 </button>
+                                <button
+                                    class=move || if active_left_tab.get() == LeftPanelTab::Variables { "tab active" } else { "tab" }
+                                    on:click=move |_| active_left_tab.set(LeftPanelTab::Variables)
+                                >
+                                    "Vars"
+                                </button>
                             </div>
                             <div class="panel-content">
                                 {move || match active_left_tab.get() {
                                     LeftPanelTab::Add => view! { <ComponentPalette /> }.into_any(),
                                     LeftPanelTab::Layers => view! { <TreeView /> }.into_any(),
                                     LeftPanelTab::Theme => view! { <ThemeEditor tokens=app_state.ui.design_tokens /> }.into_any(),
+                                    LeftPanelTab::Variables => view! { <crate::builder::variable_panel::VariablePanel /> }.into_any(),
                                 }}
                             </div>
                         </aside>
