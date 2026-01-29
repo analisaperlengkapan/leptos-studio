@@ -49,6 +49,16 @@ The project is structured as a Cargo workspace:
 
 3.  Open [http://localhost:8899](http://localhost:8899) in your browser.
 
+### Docker Deployment
+
+To run the full stack in a container:
+
+```bash
+docker-compose up --build
+```
+
+Access the application at [http://localhost:3000](http://localhost:3000).
+
 ## Keyboard Shortcuts
 
 - **General**:

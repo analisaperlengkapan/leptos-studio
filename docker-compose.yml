@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - LEPTOS_API_URL=http://localhost:3000
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DATA_FILE=/app/data/projects.json
+      - TEMPLATES_FILE=/app/data/templates.json
+      - GIT_DATA_FILE=/app/data/git_data.json
+      - ANALYTICS_DATA_FILE=/app/data/analytics.json
