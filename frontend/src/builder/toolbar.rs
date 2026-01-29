@@ -187,6 +187,16 @@ pub fn Toolbar(
                     <span class="icon">"📑"</span>
                     <span class="label">"Templates"</span>
                 </button>
+
+                <div class="divider-vertical"></div>
+
+                <button
+                    class="btn btn-ghost btn-sm"
+                    on:click=move |_| app_state.ui.show_settings_modal.set(true)
+                    title="Settings"
+                >
+                    <span class="icon">"⚙️"</span>
+                </button>
             </div>
         </header>
     }

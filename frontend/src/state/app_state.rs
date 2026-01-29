@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsCast;
 
 use super::history::{History, Snapshot};
 use super::persistence::Persistable;
@@ -299,6 +300,7 @@ pub enum ResponsiveMode {
 pub struct UiState {
     pub show_command_palette: RwSignal<bool>,
     pub show_export_modal: RwSignal<bool>,
+    pub show_settings_modal: RwSignal<bool>,
     pub show_git_panel: RwSignal<bool>,
     pub show_debug_panel: RwSignal<bool>,
     pub preview_mode: RwSignal<bool>,
@@ -316,6 +318,7 @@ impl UiState {
         Self {
             show_command_palette: RwSignal::new(false),
             show_export_modal: RwSignal::new(false),
+            show_settings_modal: RwSignal::new(false),
             show_git_panel: RwSignal::new(false),
             show_debug_panel: RwSignal::new(false),
             preview_mode: RwSignal::new(false),
@@ -481,7 +484,44 @@ impl AppState {
         // Attempt to load the most recent project or legacy data
         state.initialize_project_state();
 
+        // Setup auto-save listener
+        state.setup_auto_save();
+
         state
+    }
+
+    fn setup_auto_save(&self) {
+        let state = *self;
+        // Debounce auto-save
+        let mut timer_handle: Option<i32> = None;
+
+        Effect::new(move |_| {
+            // Track relevant signals
+            let _ = state.last_modified.get();
+            let settings = state.settings.get();
+
+            if settings.auto_save {
+                // Clear previous timer if exists
+                if let Some(handle) = timer_handle {
+                    window().clear_timeout_with_handle(handle);
+                }
+
+                // Set new timer (2 seconds debounce)
+                let handle = window()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        &wasm_bindgen::closure::Closure::once_into_js(move || {
+                            // Only save if we have a project ID (don't auto-save new untitled projects until first manual save)
+                            if state.current_project_id.get().is_some() {
+                                state.save();
+                            }
+                        })
+                        .unchecked_into::<js_sys::Function>(),
+                        2000,
+                    )
+                    .unwrap_or(0);
+                timer_handle = Some(handle);
+            }
+        });
     }
 
     fn initialize_project_state(&self) {

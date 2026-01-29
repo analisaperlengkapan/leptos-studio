@@ -23,6 +23,7 @@ pub mod property_editors;
 pub mod property_inputs;
 pub mod responsive_preview;
 pub mod save_template_modal;
+pub mod settings_modal;
 pub mod sidebar;
 pub mod snackbar;
 pub mod status_bar;

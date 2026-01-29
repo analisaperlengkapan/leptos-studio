@@ -158,15 +158,23 @@ pub fn use_keyboard_actions(
                     if let Some(selected_id) = app_state.canvas.selected.get() {
                         // Try to add as child if selected is container
                         app_state.canvas.add_child_component(&selected_id, comp);
-                        app_state.ui.notification.set(Some(Notification::success(
-                            format!("➕ Added {} to selected container", type_name),
-                        )));
+                        app_state
+                            .ui
+                            .notification
+                            .set(Some(Notification::success(format!(
+                                "➕ Added {} to selected container",
+                                type_name
+                            ))));
                     } else {
                         // Add to root
                         app_state.canvas.add_component(comp);
-                        app_state.ui.notification.set(Some(Notification::success(
-                            format!("➕ Added {}", type_name),
-                        )));
+                        app_state
+                            .ui
+                            .notification
+                            .set(Some(Notification::success(format!(
+                                "➕ Added {}",
+                                type_name
+                            ))));
                     }
                 }
             }
