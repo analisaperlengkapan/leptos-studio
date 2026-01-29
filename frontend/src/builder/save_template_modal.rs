@@ -11,7 +11,7 @@ pub fn SaveTemplateModal(show: RwSignal<bool>, on_close: Callback<()>) -> impl I
     let tags = RwSignal::new(String::new());
     let loading = RwSignal::new(false);
 
-    let on_save = move |_| {
+    let save_action = move || {
         let name_val = name.get();
         if name_val.trim().is_empty() {
             app_state
@@ -64,63 +64,79 @@ pub fn SaveTemplateModal(show: RwSignal<bool>, on_close: Callback<()>) -> impl I
         });
     };
 
+    let on_keydown = move |ev: leptos::web_sys::KeyboardEvent| {
+        if ev.key() == "Enter" {
+            save_action();
+        }
+    };
+
     view! {
         <Show when=move || show.get()>
-            <div class="modal-overlay">
-                <div class="modal-content" style="max-width: 500px">
-                    <h3>"Save as Template"</h3>
-
-                    <div class="form-group" style="margin-bottom: 1rem">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500">"Name"</label>
-                        <input
-                            type="text"
-                            class="input"
-                            prop:value=name
-                            on:input=move |ev| name.set(event_target_value(&ev))
-                            placeholder="My Awesome Template"
-                            style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;"
-                            autofocus
-                        />
+            <div
+                class="modal-backdrop"
+                on:click=move |_| on_close.run(())
+            >
+                <div
+                    class="modal-content"
+                    style="max-width: 500px"
+                    on:click=move |ev: web_sys::MouseEvent| ev.stop_propagation()
+                    on:keydown=on_keydown
+                >
+                    <div class="modal-header">
+                        <h3>"Save as Template"</h3>
+                        <button class="close-btn" on:click=move |_| on_close.run(())>"×"</button>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 1rem">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500">"Description"</label>
-                        <textarea
-                            class="input"
-                            prop:value=description
-                            on:input=move |ev| description.set(event_target_value(&ev))
-                            placeholder="Describe your template..."
-                            rows=3
-                            style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;"
-                        />
-                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>"Name"</label>
+                            <input
+                                type="text"
+                                class="input-text"
+                                prop:value=name
+                                on:input=move |ev| name.set(event_target_value(&ev))
+                                placeholder="My Awesome Template"
+                                autofocus
+                            />
+                        </div>
 
-                    <div class="form-group" style="margin-bottom: 1.5rem">
-                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500">"Tags (comma separated)"</label>
-                        <input
-                            type="text"
-                            class="input"
-                            prop:value=tags
-                            on:input=move |ev| tags.set(event_target_value(&ev))
-                            placeholder="landing, dark, mobile"
-                            style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;"
-                        />
-                    </div>
+                        <div class="form-group">
+                            <label>"Description"</label>
+                            <textarea
+                                class="input-text"
+                                prop:value=description
+                                on:input=move |ev| description.set(event_target_value(&ev))
+                                placeholder="Describe your template..."
+                                rows=3
+                            />
+                        </div>
 
-                    <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 0.5rem">
-                        <button
-                            class="btn btn-primary"
-                            disabled=move || loading.get()
-                            on:click=on_save
-                        >
-                            {move || if loading.get() { "Saving..." } else { "Save Template" }}
-                        </button>
-                        <button
-                            class="btn btn-ghost"
-                            on:click=move |_| on_close.run(())
-                        >
-                            "Cancel"
-                        </button>
+                        <div class="form-group">
+                            <label>"Tags (comma separated)"</label>
+                            <input
+                                type="text"
+                                class="input-text"
+                                prop:value=tags
+                                on:input=move |ev| tags.set(event_target_value(&ev))
+                                placeholder="landing, dark, mobile"
+                            />
+                        </div>
+
+                        <div class="modal-actions">
+                            <button
+                                class="btn btn-primary"
+                                disabled=move || loading.get()
+                                on:click=move |_| save_action()
+                            >
+                                {move || if loading.get() { "Saving..." } else { "Save Template" }}
+                            </button>
+                            <button
+                                class="btn btn-ghost"
+                                on:click=move |_| on_close.run(())
+                            >
+                                "Cancel"
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
