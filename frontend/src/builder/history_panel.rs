@@ -19,12 +19,17 @@ pub fn HistoryPanel() -> impl IntoView {
 
     // Memoize the history list to avoid issues inside view macro
     let history_list = Memo::new(move |_| {
+        // get_undo_stack returns reversed list (Newest -> Oldest)
         let stack = history.get().get_undo_stack();
-        // We want to show latest at top, but preserve original index for restoration
+        let len = stack.len();
+
+        // Map to (internal_index, snapshot)
+        // stack[0] is newest. internal index should be len - 1.
+        // stack[len-1] is oldest. internal index should be 0.
         stack
             .into_iter()
             .enumerate()
-            .rev() // Reverse iterator to show latest first
+            .map(|(i, snap)| (len - 1 - i, snap))
             .collect::<Vec<_>>()
     });
 
