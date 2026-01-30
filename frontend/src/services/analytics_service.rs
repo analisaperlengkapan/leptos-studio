@@ -108,33 +108,37 @@ impl AnalyticsService {
 
     /// Create new analytics service
     pub fn new() -> Self {
-        let service = Self {
+        Self {
             session: RwSignal::new(SessionInfo::new()),
             metrics: RwSignal::new(Vec::new()),
             enabled: RwSignal::new(true),
             last_synced: RwSignal::new(0.0),
-        };
-        service.start_auto_flush();
-        service
+        }
     }
 
     /// Provide analytics in Leptos context
     pub fn provide_context() {
-        provide_context(Self::new());
+        let service = Self::new();
+        service.start_auto_flush();
+        provide_context(service);
     }
 
     fn start_auto_flush(&self) {
         let service = *self;
         // Flush every 30 seconds
+        // Use a static check or ownership to ensure only one loop?
+        // Since `provide_context` is called only once at root, this should be fine.
+        // However, if App remounts (which it shouldn't in standard Leptos CSR), we might duplicate.
+        // For CSR, App::provide_context is top-level.
+
         leptos::task::spawn_local(async move {
             let mut interval = gloo_timers::future::IntervalStream::new(30_000);
             use futures::StreamExt;
             while interval.next().await.is_some() {
-                if service.is_enabled()
-                    && !service.metrics.get().is_empty()
-                    && let Err(e) = service.flush_to_backend().await
-                {
-                    web_sys::console::warn_1(&format!("Analytics flush failed: {}", e).into());
+                if service.is_enabled() && !service.metrics.get().is_empty() {
+                    if let Err(e) = service.flush_to_backend().await {
+                        web_sys::console::warn_1(&format!("Analytics flush failed: {}", e).into());
+                    }
                 }
             }
         });

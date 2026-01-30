@@ -44,10 +44,22 @@ impl CanvasState {
 
     /// Add a child component to a specific parent. Returns true if successful.
     pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) -> bool {
-        // Optimistically record snapshot? Or only if successful?
-        // Let's only record if successful to avoid empty history entries
-        if self.add_child_component_without_snapshot(parent_id, component.clone()) {
+        // Check if we can add child first (simple check: does parent exist and support children?)
+        let can_add = self.components.with(|comps| {
+            let parent = Self::get_recursive(comps, parent_id);
+            if let Some(p) = parent {
+                match p {
+                    CanvasComponent::Container(_) | CanvasComponent::Card(_) => true,
+                    _ => false,
+                }
+            } else {
+                false
+            }
+        });
+
+        if can_add {
             self.record_snapshot("Add Child Component");
+            self.add_child_component_without_snapshot(parent_id, component);
             return true;
         }
         false
