@@ -1,3 +1,4 @@
+use crate::builder::component_library::create_canvas_component;
 use crate::builder::keyboard::KeyboardAction;
 use crate::domain::CanvasComponent;
 use crate::services::export_service::{CodeGenerator, LeptosCodeGenerator};
@@ -152,6 +153,40 @@ pub fn use_keyboard_actions(
                     "ℹ️ Drag component from sidebar to add".to_string(),
                 )));
             }
+            KeyboardAction::AddComponent(type_name) => {
+                if let Some(comp) = create_canvas_component(&type_name) {
+                    if let Some(selected_id) = app_state.canvas.selected.get() {
+                        // Try to add as child if selected is container
+                        if app_state
+                            .canvas
+                            .add_child_component(&selected_id, comp.clone())
+                        {
+                            app_state
+                                .ui
+                                .notification
+                                .set(Some(Notification::success(format!(
+                                    "➕ Added {} to selected container",
+                                    type_name
+                                ))));
+                        } else {
+                            // If adding as child failed (not a container), notify user
+                            app_state.ui.notification.set(Some(Notification::warning(
+                                "⚠️ Selected component cannot accept children. Select a Container or Card, or deselect to add to root.".to_string(),
+                            )));
+                        }
+                    } else {
+                        // Add to root
+                        app_state.canvas.add_component(comp);
+                        app_state
+                            .ui
+                            .notification
+                            .set(Some(Notification::success(format!(
+                                "➕ Added {}",
+                                type_name
+                            ))));
+                    }
+                }
+            }
             KeyboardAction::OpenCommandPalette => {
                 app_state.ui.show_command_palette.set(true);
             }
@@ -218,6 +253,19 @@ pub fn use_keyboard_actions(
                     app_state.ui.notification.set(Some(Notification::warning(
                         "⚠️ No component selected".to_string(),
                     )));
+                }
+            }
+            KeyboardAction::ShowShortcuts => {
+                app_state.ui.show_shortcuts_modal.set(true);
+            }
+            KeyboardAction::MoveUp => {
+                if let Some(id) = app_state.canvas.selected.get() {
+                    app_state.canvas.move_component_up(&id);
+                }
+            }
+            KeyboardAction::MoveDown => {
+                if let Some(id) = app_state.canvas.selected.get() {
+                    app_state.canvas.move_component_down(&id);
                 }
             }
             // Add other cases if any

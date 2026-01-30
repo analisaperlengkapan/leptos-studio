@@ -1,4 +1,3 @@
-use crate::builder::component_library::ComponentRegistry;
 use crate::services::analytics_service::AnalyticsService;
 use crate::state::app_state::{AppState, Notification};
 use leptos::prelude::*;
@@ -46,38 +45,74 @@ pub fn DebugPanel() -> impl IntoView {
     };
 
     view! {
-        <div class="debug-panel">
-            <b>"🐛 Debug Panel"</b>
-            <div><b>"Components:"</b> {move || format!("{}", app_state.canvas.components.get().len())}</div>
-            <div><b>"Custom Components:"</b> {move || {
-                let lib = app_state.ui.component_library.get();
-                let count = ComponentRegistry::custom_from_library(&lib).len();
-                format!("{}", count)
-            }}</div>
-            <div><b>"Can Undo:"</b> {move || format!("{}", app_state.canvas.history.with(|h| h.can_undo()))}</div>
-            <div><b>"Can Redo:"</b> {move || format!("{}", app_state.canvas.history.with(|h| h.can_redo()))}</div>
-            <div><b>"Render count:"</b> {move || app_state.ui.render_count.get()}</div>
-            <div><b>"Render time:"</b> {move || format!("{:.2} ms", app_state.ui.render_time.get())}</div>
+        <div class="sidebar-section debug-panel">
+            <h3 class="panel-title">"🐛 Debug & Metrics"</h3>
 
-            <div class="debug-separator" style="margin: 0.5rem 0; border-top: 1px solid #ccc;"></div>
-
-            <div><b>"Analytics:"</b></div>
-            <div style="font-size: 0.8em; margin-bottom: 4px;">
-                "Recorded: " {move || analytics.metrics_summary().total_metrics}
+            <div class="debug-group">
+                <h4 class="debug-subtitle">"State"</h4>
+                <div class="debug-row">
+                    <span>"Components:"</span>
+                    <span class="debug-val">{move || format!("{}", app_state.canvas.components.get().len())}</span>
+                </div>
+                <div class="debug-row">
+                    <span>"History:"</span>
+                    <span class="debug-val">{move || format!("U:{} / R:{}",
+                        if app_state.canvas.history.with(|h| h.can_undo()) { "Yes" } else { "No" },
+                        if app_state.canvas.history.with(|h| h.can_redo()) { "Yes" } else { "No" }
+                    )}</span>
+                </div>
             </div>
-            <div style="font-size: 0.8em; margin-bottom: 4px;">
-                "Last Sync: " {last_sync_display}
-            </div>
-            <button
-                class="btn btn-sm btn-secondary"
-                style="width: 100%; margin-top: 4px;"
-                disabled=move || sync_loading.get()
-                on:click=sync_analytics
-            >
-                {move || if sync_loading.get() { "Syncing..." } else { "Sync Stats" }}
-            </button>
 
-            <details class="debug-details" style="margin-top: 1rem;"><summary>"📦 Dump State"</summary>
+            <div class="debug-group">
+                <h4 class="debug-subtitle">"Performance"</h4>
+                <div class="debug-row">
+                    <span>"Render Time:"</span>
+                    <span class="debug-val">{move || format!("{:.2} ms", app_state.ui.render_time.get())}</span>
+                </div>
+                <div class="debug-row">
+                    <span>"Renders:"</span>
+                    <span class="debug-val">{move || app_state.ui.render_count.get()}</span>
+                </div>
+            </div>
+
+            <div class="debug-group">
+                <h4 class="debug-subtitle">"Session Analytics"</h4>
+                <div class="debug-row">
+                    <span>"Recorded:"</span>
+                    <span class="debug-val">{move || analytics.metrics_summary().total_metrics}</span>
+                </div>
+                <div class="debug-row">
+                    <span>"Avg Render:"</span>
+                    <span class="debug-val">{move || format!("{:.2} ms", analytics.metrics_summary().avg_render_time)}</span>
+                </div>
+                <div class="debug-row">
+                    <span>"Last Sync:"</span>
+                    <span class="debug-val">{last_sync_display}</span>
+                </div>
+
+                <div class="session-stats">
+                    <div class="stat-badge" title="Components Created">
+                        "➕ " {move || analytics.session_info().components_created}
+                    </div>
+                    <div class="stat-badge" title="Saves">
+                        "💾 " {move || analytics.session_info().saves_count}
+                    </div>
+                    <div class="stat-badge" title="Undos">
+                        "↩️ " {move || analytics.session_info().undo_count}
+                    </div>
+                </div>
+
+                <button
+                    class="btn btn-sm btn-outline width-full mt-2"
+                    disabled=move || sync_loading.get()
+                    on:click=sync_analytics
+                >
+                    {move || if sync_loading.get() { "Syncing..." } else { "Force Sync Stats" }}
+                </button>
+            </div>
+
+            <details class="debug-details">
+                <summary>"📦 Raw State Dump"</summary>
                 <pre class="debug-dump">
                     {move || format!("{:#?}", app_state.canvas.components.get())}
                 </pre>

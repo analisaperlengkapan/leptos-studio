@@ -10,6 +10,7 @@ pub fn ContextMenu(
     on_delete: Callback<ComponentId>,
     on_duplicate: Callback<ComponentId>,
     on_select_parent: Callback<ComponentId>,
+    #[prop(optional)] on_save_custom: Option<Callback<ComponentId>>,
 ) -> impl IntoView {
     // We attach a click listener to the window to close the menu when clicking outside
     // This is handled by the parent component or via a global listener, but usually
@@ -61,6 +62,22 @@ pub fn ContextMenu(
             >
                 <span>"📋"</span> "Duplicate"
             </button>
+
+            <Show when=move || on_save_custom.is_some()>
+                <button
+                    class="w-full text-left px-4 py-2 hover:bg-purple-50 text-sm text-gray-700 flex items-center gap-2 transition-colors"
+                    on:click=move |_| {
+                         if let Some(id) = component_id.get()
+                            && let Some(cb) = on_save_custom
+                         {
+                                cb.run(id);
+                         }
+                        on_close.run(());
+                    }
+                >
+                    <span>"💾"</span> "Save to Library"
+                </button>
+            </Show>
 
             <div class="h-px bg-gray-100 my-1"></div>
 

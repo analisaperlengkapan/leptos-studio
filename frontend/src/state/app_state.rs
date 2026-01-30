@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 use serde::{Deserialize, Serialize};
+use wasm_bindgen::JsCast;
 
 use super::history::{History, Snapshot};
 use super::persistence::Persistable;
@@ -41,20 +42,33 @@ impl CanvasState {
         self.add_component_without_snapshot(component);
     }
 
-    /// Add a child component to a specific parent
-    pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) {
-        self.record_snapshot("Add Child Component");
-        self.add_child_component_without_snapshot(parent_id, component);
+    /// Add a child component to a specific parent. Returns true if successful.
+    pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) -> bool {
+        // Check if we can add child first (simple check: does parent exist and support children?)
+        let can_add = self.components.with(|comps| {
+            Self::get_recursive(comps, parent_id).is_some_and(|p| {
+                matches!(p, CanvasComponent::Container(_) | CanvasComponent::Card(_))
+            })
+        });
+
+        if can_add {
+            self.record_snapshot("Add Child Component");
+            self.add_child_component_without_snapshot(parent_id, component);
+            return true;
+        }
+        false
     }
 
     pub fn add_child_component_without_snapshot(
         &self,
         parent_id: &ComponentId,
         component: CanvasComponent,
-    ) {
+    ) -> bool {
+        let mut result = false;
         self.components.update(|components| {
-            Self::add_child_recursive(&mut components[..], parent_id, component);
+            result = Self::add_child_recursive(&mut components[..], parent_id, component);
         });
+        result
     }
 
     fn add_child_recursive(
@@ -64,16 +78,36 @@ impl CanvasState {
     ) -> bool {
         for comp in components.iter_mut() {
             if comp.id() == parent_id {
-                if let CanvasComponent::Container(container) = comp {
-                    container.children.push(child);
-                    return true;
-                }
-                return false;
+                return match comp {
+                    CanvasComponent::Container(container) => {
+                        container.children.push(child);
+                        true
+                    }
+                    CanvasComponent::Card(card) => {
+                        card.children.push(child);
+                        true
+                    }
+                    _ => false,
+                };
             }
-            if let CanvasComponent::Container(container) = comp
-                && Self::add_child_recursive(&mut container.children[..], parent_id, child.clone())
-            {
-                return true;
+
+            // Recurse into children
+            match comp {
+                CanvasComponent::Container(container) => {
+                    if Self::add_child_recursive(
+                        &mut container.children[..],
+                        parent_id,
+                        child.clone(),
+                    ) {
+                        return true;
+                    }
+                }
+                CanvasComponent::Card(card) => {
+                    if Self::add_child_recursive(&mut card.children[..], parent_id, child.clone()) {
+                        return true;
+                    }
+                }
+                _ => {}
             }
         }
         false
@@ -90,8 +124,14 @@ impl CanvasState {
     fn remove_recursive(components: &mut Vec<CanvasComponent>, id: &ComponentId) {
         components.retain(|c| c.id() != id);
         for comp in components.iter_mut() {
-            if let CanvasComponent::Container(container) = comp {
-                Self::remove_recursive(&mut container.children, id);
+            match comp {
+                CanvasComponent::Container(container) => {
+                    Self::remove_recursive(&mut container.children, id);
+                }
+                CanvasComponent::Card(card) => {
+                    Self::remove_recursive(&mut card.children, id);
+                }
+                _ => {}
             }
         }
     }
@@ -107,10 +147,18 @@ impl CanvasState {
             if comp.id() == id {
                 return Some(comp.clone());
             }
-            if let CanvasComponent::Container(container) = comp
-                && let Some(found) = Self::get_recursive(&container.children, id)
-            {
-                return Some(found);
+            match comp {
+                CanvasComponent::Container(container) => {
+                    if let Some(found) = Self::get_recursive(&container.children, id) {
+                        return Some(found);
+                    }
+                }
+                CanvasComponent::Card(card) => {
+                    if let Some(found) = Self::get_recursive(&card.children, id) {
+                        return Some(found);
+                    }
+                }
+                _ => {}
             }
         }
         None
@@ -198,6 +246,52 @@ impl CanvasState {
     ) {
         self.record_snapshot(description);
         self.update_component(id, |c| *c = new_component);
+    }
+
+    /// Move a component up within its parent container
+    pub fn move_component_up(&self, id: &ComponentId) {
+        self.move_component(id, -1);
+    }
+
+    /// Move a component down within its parent container
+    pub fn move_component_down(&self, id: &ComponentId) {
+        self.move_component(id, 1);
+    }
+
+    fn move_component(&self, id: &ComponentId, offset: i32) {
+        let mut components = self.components.get();
+        if Self::move_recursive(&mut components, id, offset) {
+            self.record_snapshot(if offset < 0 {
+                "Move Component Up"
+            } else {
+                "Move Component Down"
+            });
+            self.components.set(components);
+        }
+    }
+
+    fn move_recursive(components: &mut [CanvasComponent], id: &ComponentId, offset: i32) -> bool {
+        if let Some(index) = components.iter().position(|c| c.id() == id) {
+            let new_index = index as i32 + offset;
+            if new_index >= 0 && new_index < components.len() as i32 {
+                components.swap(index, new_index as usize);
+                return true;
+            }
+            return false;
+        }
+
+        for comp in components.iter_mut() {
+            if let CanvasComponent::Container(container) = comp {
+                if Self::move_recursive(&mut container.children, id, offset) {
+                    return true;
+                }
+            } else if let CanvasComponent::Card(card) = comp
+                && Self::move_recursive(&mut card.children, id, offset)
+            {
+                return true;
+            }
+        }
+        false
     }
 
     /// Record a snapshot for undo/redo
@@ -299,12 +393,14 @@ pub enum ResponsiveMode {
 pub struct UiState {
     pub show_command_palette: RwSignal<bool>,
     pub show_export_modal: RwSignal<bool>,
-    pub show_project_dashboard: RwSignal<bool>,
+    pub show_settings_modal: RwSignal<bool>,
+    pub show_shortcuts_modal: RwSignal<bool>,
     pub show_git_panel: RwSignal<bool>,
     pub show_debug_panel: RwSignal<bool>,
     pub preview_mode: RwSignal<bool>,
     pub notification: RwSignal<Option<Notification>>,
     pub responsive_mode: RwSignal<ResponsiveMode>,
+    pub canvas_zoom: RwSignal<f64>,
     pub custom_components: RwSignal<Vec<LibraryComponent>>,
     pub component_library: RwSignal<Vec<LibraryComponent>>,
     pub design_tokens: RwSignal<DesignTokens>,
@@ -317,12 +413,14 @@ impl UiState {
         Self {
             show_command_palette: RwSignal::new(false),
             show_export_modal: RwSignal::new(false),
-            show_project_dashboard: RwSignal::new(false),
+            show_settings_modal: RwSignal::new(false),
+            show_shortcuts_modal: RwSignal::new(false),
             show_git_panel: RwSignal::new(false),
             show_debug_panel: RwSignal::new(false),
             preview_mode: RwSignal::new(false),
             notification: RwSignal::new(None),
             responsive_mode: RwSignal::new(ResponsiveMode::default()),
+            canvas_zoom: RwSignal::new(1.0),
             custom_components: RwSignal::new(Vec::new()),
             component_library: RwSignal::new(Self::default_components()),
             design_tokens: RwSignal::new(DesignTokens::default()),
@@ -483,7 +581,44 @@ impl AppState {
         // Attempt to load the most recent project or legacy data
         state.initialize_project_state();
 
+        // Setup auto-save listener
+        state.setup_auto_save();
+
         state
+    }
+
+    fn setup_auto_save(&self) {
+        let state = *self;
+        // Debounce auto-save
+        let mut timer_handle: Option<i32> = None;
+
+        Effect::new(move |_| {
+            // Track relevant signals
+            let _ = state.last_modified.get();
+            let settings = state.settings.get();
+
+            if settings.auto_save {
+                // Clear previous timer if exists
+                if let Some(handle) = timer_handle {
+                    window().clear_timeout_with_handle(handle);
+                }
+
+                // Set new timer (2 seconds debounce)
+                let handle = window()
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        &wasm_bindgen::closure::Closure::once_into_js(move || {
+                            // Only save if we have a project ID (don't auto-save new untitled projects until first manual save)
+                            if state.current_project_id.get().is_some() {
+                                state.save();
+                            }
+                        })
+                        .unchecked_into::<js_sys::Function>(),
+                        2000,
+                    )
+                    .unwrap_or(0);
+                timer_handle = Some(handle);
+            }
+        });
     }
 
     fn initialize_project_state(&self) {

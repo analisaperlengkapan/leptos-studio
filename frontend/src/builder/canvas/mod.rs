@@ -48,6 +48,37 @@ pub fn Canvas() -> impl IntoView {
     let (cm_position, set_cm_position) = signal((0.0, 0.0));
     let (cm_target_id, set_cm_target_id) = signal(Option::<ComponentId>::None);
 
+    // Save Custom Component Logic
+    let save_custom_component = move |id: ComponentId| {
+        if let Some(comp) = app_state.canvas.get_component(&id) {
+            // Convert CanvasComponent to LibraryComponent
+            // This is a simplified conversion. Realistically we need a name prompt.
+            // For now, we'll use a prompt via window.prompt (not ideal UX but functional for MVP)
+            if let Some(window) = web_sys::window()
+                && let Ok(Some(name)) =
+                    window.prompt_with_message("Enter name for custom component:")
+                && !name.is_empty()
+            {
+                let lib_comp = crate::builder::component_library::LibraryComponent {
+                    name: name.clone(),
+                    kind: comp.component_type().to_string(),
+                    category: "Custom".to_string(),
+                    description: Some("User saved component".to_string()),
+                    template: Some(serde_json::to_string_pretty(&comp).unwrap_or_default()),
+                    props_schema: None, // Simplified
+                };
+
+                app_state.ui.custom_components.update(|c| c.push(lib_comp));
+                app_state
+                    .ui
+                    .notify(crate::state::app_state::Notification::success(format!(
+                        "Saved '{}' to custom components",
+                        name
+                    )));
+            }
+        }
+    };
+
     // Handle background click to deselect
     let on_canvas_click = move |ev: ev::MouseEvent| {
         // Only deselect if clicking the canvas background directly
@@ -178,6 +209,9 @@ pub fn Canvas() -> impl IntoView {
                      if let Some(parent_id) = find_parent_id(&app_state.canvas.components.get_untracked(), id) {
                          app_state.canvas.selected.set(Some(parent_id));
                      }
+                })
+                on_save_custom=Callback::new(move |id| {
+                     save_custom_component(id);
                 })
             />
         </div>

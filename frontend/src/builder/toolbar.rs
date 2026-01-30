@@ -1,6 +1,7 @@
 use crate::builder::hooks::use_export_actions::use_export_actions;
 use crate::state::app_state::{AppState, Notification, ResponsiveMode};
 use leptos::prelude::*;
+use leptos_router::components::A;
 
 #[component]
 pub fn Toolbar(
@@ -70,14 +71,10 @@ pub fn Toolbar(
                 <div class="divider-vertical"></div>
 
                 <div class="toolbar-group">
-                    <button
-                        on:click=move |_| app_state.ui.show_project_dashboard.set(true)
-                        class="btn btn-ghost btn-sm"
-                        title="Manage Projects"
-                    >
+                    <A href="/" attr:class="btn btn-ghost btn-sm" attr:title="Manage Projects">
                         <span class="icon">"📁"</span>
                         <span class="label">"Projects"</span>
-                    </button>
+                    </A>
                 </div>
 
                 <div class="divider-vertical"></div>
@@ -189,6 +186,23 @@ pub fn Toolbar(
                 >
                     <span class="icon">"📑"</span>
                     <span class="label">"Templates"</span>
+                </button>
+
+                <div class="divider-vertical"></div>
+
+                <button
+                    class="btn btn-ghost btn-sm"
+                    on:click=move |_| app_state.ui.show_settings_modal.set(true)
+                    title="Settings"
+                >
+                    <span class="icon">"⚙️"</span>
+                </button>
+                <button
+                    class="btn btn-ghost btn-sm"
+                    on:click=move |_| app_state.ui.show_shortcuts_modal.set(true)
+                    title="Shortcuts (?)"
+                >
+                    <span class="icon">"❓"</span>
                 </button>
             </div>
         </header>

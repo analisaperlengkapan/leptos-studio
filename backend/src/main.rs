@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, net::SocketAddr, path::Path as FilePath, sync::Arc};
 use tokio::sync::RwLock;
 use tower_http::cors::{Any, CorsLayer};
+use tower_http::services::{ServeDir, ServeFile};
 
 mod analytics;
 mod git;
@@ -117,14 +118,19 @@ async fn main() {
         )
         .with_state(analytics_store);
 
+    // Serve frontend static files
+    // Fallback to index.html for SPA routing
+    let static_files = ServeDir::new("dist").fallback(ServeFile::new("dist/index.html"));
+
     let app = Router::new()
         .merge(project_routes)
         .merge(template_routes)
         .merge(git_routes)
         .merge(analytics_routes)
+        .fallback_service(static_files)
         .layer(cors);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::info!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();

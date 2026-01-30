@@ -1,6 +1,5 @@
 use crate::state::app_state::Notification;
 use crate::utils::copy_to_clipboard;
-use js_sys::encode_uri_component;
 use leptos::prelude::*;
 
 #[component]
@@ -34,22 +33,39 @@ pub fn ExportModal(
 
     let download_handler = move |_| {
         let code_text = code.get();
-        let mime = match format.get().as_str() {
+        let selected_format = format.get();
+        let mime = match selected_format.as_str() {
             "html" => "text/html",
             "markdown" => "text/markdown",
             "json" => "application/json",
             _ => "text/plain",
         };
 
-        let encoded = encode_uri_component(&code_text);
-        let url = format!("data:{};charset=utf-8,{}", mime, encoded);
+        // Use the shared download utility instead of window.open data URI
+        use crate::utils::file::download_file;
+        let ext = match selected_format.as_str() {
+            "leptos" => "rs",
+            "react" => "tsx",
+            "vue" => "vue",
+            "svelte" => "svelte",
+            "html" | "tailwind" => "html",
+            "json" | "jsonschema" => "json",
+            "typescript" => "ts",
+            "markdown" => "md",
+            _ => "txt",
+        };
 
-        if let Some(window) = web_sys::window() {
-            let _ = window.open_with_url_and_target(&url, "_blank");
+        let filename = format!("leptos-export.{}", ext);
+        if let Err(e) = download_file(&code_text, &filename, mime) {
+            notification_signal.set(Some(Notification::error(format!(
+                "❌ Download failed: {}",
+                e.user_message()
+            ))));
         } else {
-            notification_signal.set(Some(Notification::error(
-                "❌ Unable to open download window".to_string(),
-            )));
+            notification_signal.set(Some(Notification::success(format!(
+                "⬇️ Downloaded {}",
+                filename
+            ))));
         }
     };
 

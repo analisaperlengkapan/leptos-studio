@@ -19,13 +19,31 @@ pub fn HistoryPanel() -> impl IntoView {
 
     // Memoize the history list to avoid issues inside view macro
     let history_list = Memo::new(move |_| {
-        history
-            .get()
-            .get_undo_stack()
+        // get_undo_stack returns reversed list (Newest -> Oldest)
+        let stack = history.get().get_undo_stack();
+        let len = stack.len();
+
+        // Map to (internal_index, snapshot)
+        // stack[0] is newest. internal index should be len - 1.
+        // stack[len-1] is oldest. internal index should be 0.
+        stack
             .into_iter()
             .enumerate()
+            .map(|(i, snap)| (len - 1 - i, snap))
             .collect::<Vec<_>>()
     });
+
+    let restore = move |index: usize| {
+        // Index comes from the enumeration of the original stack order
+        if let Some(snapshot) = history.write().restore_to_index(index) {
+            app_state.canvas.apply_snapshot(&snapshot);
+            app_state
+                .ui
+                .notify(crate::state::app_state::Notification::info(
+                    "Restored history state".to_string(),
+                ));
+        }
+    };
 
     view! {
         <div class="history-panel">
@@ -34,9 +52,13 @@ pub fn HistoryPanel() -> impl IntoView {
                 <For
                     each=move || history_list.get()
                     key=|(i, _)| *i
-                    children=move |(_i, snapshot)| {
+                    children=move |(i, snapshot)| {
                         view! {
-                            <div class="history-item">
+                            <div
+                                class="history-item clickable"
+                                on:click=move |_| restore(i)
+                                title="Click to restore this state"
+                            >
                                 <span class="history-time">{format_time(snapshot.timestamp)}</span>
                                 <span class="history-desc">{snapshot.description}</span>
                             </div>

@@ -137,6 +137,49 @@ pub fn ResponsivePreviewControls() -> impl IntoView {
             >
                 "🔄 Rotate"
             </button>
+
+            <span class="responsive-sep">"|"</span>
+
+            <ZoomControls />
+        </div>
+    }
+}
+
+#[component]
+fn ZoomControls() -> impl IntoView {
+    let app_state = AppState::expect_context();
+    let zoom = app_state.ui.canvas_zoom;
+
+    let zoom_in = move |_| zoom.update(|z| *z = (*z + 0.1).min(2.0));
+    let zoom_out = move |_| zoom.update(|z| *z = (*z - 0.1).max(0.2));
+    let zoom_reset = move |_| zoom.set(1.0);
+
+    view! {
+        <div class="btn-group">
+            <button
+                class="responsive-btn"
+                on:click=zoom_out
+                title="Zoom Out"
+            >
+                "➖"
+            </button>
+            <span class="zoom-level" style="font-size: 0.8rem; padding: 0 4px; min-width: 3.5em; text-align: center; display: inline-block;">
+                {move || format!("{:.0}%", zoom.get() * 100.0)}
+            </span>
+            <button
+                class="responsive-btn"
+                on:click=zoom_in
+                title="Zoom In"
+            >
+                "➕"
+            </button>
+            <button
+                class="responsive-btn"
+                on:click=zoom_reset
+                title="Reset Zoom"
+            >
+                "1:1"
+            </button>
         </div>
     }
 }
@@ -163,7 +206,11 @@ pub fn CanvasViewport(children: Children) -> impl IntoView {
                 }
             }}
         >
-            <div class="canvas-viewport" style="width: 100%; height: 100%;">
+            <div
+                class="canvas-viewport"
+                style="width: 100%; height: 100%; transform-origin: center top;"
+                style:transform=move || format!("scale({})", app_state.ui.canvas_zoom.get())
+            >
                 {children()}
             </div>
         </div>
