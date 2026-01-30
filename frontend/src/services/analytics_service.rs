@@ -135,10 +135,11 @@ impl AnalyticsService {
             let mut interval = gloo_timers::future::IntervalStream::new(30_000);
             use futures::StreamExt;
             while interval.next().await.is_some() {
-                if service.is_enabled() && !service.metrics.get().is_empty() {
-                    if let Err(e) = service.flush_to_backend().await {
-                        web_sys::console::warn_1(&format!("Analytics flush failed: {}", e).into());
-                    }
+                if service.is_enabled()
+                    && !service.metrics.get().is_empty()
+                    && let Err(e) = service.flush_to_backend().await
+                {
+                    web_sys::console::warn_1(&format!("Analytics flush failed: {}", e).into());
                 }
             }
         });

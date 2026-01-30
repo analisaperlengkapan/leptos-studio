@@ -46,15 +46,9 @@ impl CanvasState {
     pub fn add_child_component(&self, parent_id: &ComponentId, component: CanvasComponent) -> bool {
         // Check if we can add child first (simple check: does parent exist and support children?)
         let can_add = self.components.with(|comps| {
-            let parent = Self::get_recursive(comps, parent_id);
-            if let Some(p) = parent {
-                match p {
-                    CanvasComponent::Container(_) | CanvasComponent::Card(_) => true,
-                    _ => false,
-                }
-            } else {
-                false
-            }
+            Self::get_recursive(comps, parent_id).is_some_and(|p| {
+                matches!(p, CanvasComponent::Container(_) | CanvasComponent::Card(_))
+            })
         });
 
         if can_add {
@@ -84,17 +78,17 @@ impl CanvasState {
     ) -> bool {
         for comp in components.iter_mut() {
             if comp.id() == parent_id {
-                match comp {
+                return match comp {
                     CanvasComponent::Container(container) => {
                         container.children.push(child);
-                        return true;
+                        true
                     }
                     CanvasComponent::Card(card) => {
                         card.children.push(child);
-                        return true;
+                        true
                     }
-                    _ => return false,
-                }
+                    _ => false,
+                };
             }
 
             // Recurse into children
