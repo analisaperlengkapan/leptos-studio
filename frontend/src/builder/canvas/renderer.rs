@@ -102,12 +102,13 @@ fn render_button(button: ButtonComponent) -> impl IntoView {
     };
 
     let anim_style = get_animation_style(&button.animation);
+    let custom_style = button.style.to_css_string();
 
     view! {
         <button
             class=format!("canvas-button {} {}", variant_class, size_class)
             disabled=button.disabled
-            style=anim_style
+            style=format!("{} {}", anim_style, custom_style)
         >
             {button.label}
         </button>
@@ -132,9 +133,13 @@ fn render_text(text: TextComponent) -> impl IntoView {
     };
 
     let anim_style = get_animation_style(&text.animation);
+    let custom_style = text.custom_style.to_css_string();
 
     view! {
-        <span class=format!("canvas-text {} {}", tag_class, style_class) style=anim_style>
+        <span
+            class=format!("canvas-text {} {}", tag_class, style_class)
+            style=format!("{} {}", anim_style, custom_style)
+        >
             {text.content}
         </span>
     }
@@ -150,6 +155,7 @@ fn render_input(input: InputComponent) -> impl IntoView {
     };
 
     let anim_style = get_animation_style(&input.animation);
+    let custom_style = input.style.to_css_string();
 
     view! {
         <input
@@ -158,7 +164,7 @@ fn render_input(input: InputComponent) -> impl IntoView {
             placeholder=input.placeholder
             required=input.required
             disabled=input.disabled
-            style=anim_style
+            style=format!("{} {}", anim_style, custom_style)
         />
     }
 }
@@ -171,9 +177,14 @@ fn render_select(select: SelectComponent) -> impl IntoView {
         .collect();
 
     let anim_style = get_animation_style(&select.animation);
+    let custom_style = select.style.to_css_string();
 
     view! {
-        <select class="canvas-select" disabled=select.disabled style=anim_style>
+        <select
+            class="canvas-select"
+            disabled=select.disabled
+            style=format!("{} {}", anim_style, custom_style)
+        >
             {if !select.placeholder.is_empty() {
                 Some(view! { <option value="" disabled selected>{select.placeholder}</option> })
             } else {
@@ -237,16 +248,18 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
     };
 
     let anim_style = get_animation_style(&container.animation);
+    let custom_style = container.style.to_css_string();
 
     let style = format!(
-        "gap: {}px; padding: {}px {}px {}px {}px; {} {}",
+        "gap: {}px; padding: {}px {}px {}px {}px; {} {} {}",
         container.gap,
         container.padding.top,
         container.padding.right,
         container.padding.bottom,
         container.padding.left,
         align_style,
-        anim_style
+        anim_style,
+        custom_style
     );
 
     let container_id = container.id;
@@ -341,6 +354,7 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
 
 fn render_image(image: ImageComponent) -> impl IntoView {
     let anim_style = get_animation_style(&image.animation);
+    let custom_style = image.style.to_css_string();
 
     view! {
         <img
@@ -350,7 +364,7 @@ fn render_image(image: ImageComponent) -> impl IntoView {
             style:width=image.width
             style:height=image.height
             style:max-width="100%"
-            style=anim_style
+            style=format!("{} {}", anim_style, custom_style)
         />
     }
 }
@@ -364,9 +378,10 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
     let preview_mode = AppState::expect_context().ui.preview_mode;
 
     let anim_style = get_animation_style(&card.animation);
+    let custom_style = card.style.to_css_string();
 
     let style = format!(
-        "padding: {}px; border-radius: {}px; {} {}",
+        "padding: {}px; border-radius: {}px; {} {} {}",
         padding,
         border_radius,
         if card.shadow {
@@ -374,7 +389,8 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
         } else {
             ""
         },
-        anim_style
+        anim_style,
+        custom_style
     );
 
     let border_class = if card.border {
@@ -462,8 +478,9 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
 }
 
 fn render_custom(custom: CustomComponent) -> impl IntoView {
+    let custom_style = custom.style.to_css_string();
     view! {
-        <div class="canvas-custom">
+        <div class="canvas-custom" style=custom_style>
             <div class="custom-header">
                 <span class="custom-name">{custom.name.clone()}</span>
             </div>

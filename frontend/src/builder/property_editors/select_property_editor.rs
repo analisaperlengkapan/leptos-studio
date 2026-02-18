@@ -1,5 +1,6 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, StringInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::{ComponentId, SelectComponent};
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -37,6 +38,8 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
     let select_clone = select.clone();
     let id_clone2 = id;
     let select_clone2 = select_clone.clone();
+    let id_style = id;
+    let select_style = select.clone();
 
     view! {
         <div class="property-group">
@@ -69,6 +72,17 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
                     }
                 });
             })
+        />
+
+        <StyleEditor
+            style=select_style.style
+            on_change=move |new_style| {
+                canvas_state.update_component(&id_style, |c| {
+                     if let crate::domain::CanvasComponent::Select(sel) = c {
+                        sel.style = new_style;
+                    }
+                });
+            }
         />
 
         <AnimationPropertyEditor

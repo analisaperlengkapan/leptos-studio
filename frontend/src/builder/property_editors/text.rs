@@ -1,6 +1,7 @@
 use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{EnumSelect, StringInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::builder::variable_binding::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, PropValue, TextStyle, TextTag};
 use crate::services::update_text_prop;
@@ -38,6 +39,9 @@ pub fn TextPropertyEditor(
             );
         }
     };
+
+    let text_style = text.custom_style.clone();
+    let text_for_style = text.clone();
 
     view! {
         <div class="property-group">
@@ -139,6 +143,15 @@ pub fn TextPropertyEditor(
                 }
                 }).collect::<Vec<_>>()}
         </div>
+
+        <StyleEditor
+            style=text_style
+            on_change=move |new_style| {
+                let mut updated_txt = text_for_style.clone();
+                updated_txt.custom_style = new_style;
+                apply_update(comp_id, CanvasComponent::Text(updated_txt), "custom_style".to_string());
+            }
+        />
 
         <AnimationPropertyEditor
             _id=comp_id

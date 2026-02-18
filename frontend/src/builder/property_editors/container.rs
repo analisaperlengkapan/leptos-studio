@@ -1,5 +1,6 @@
 use super::AnimationPropertyEditor;
 use crate::builder::property_inputs::NumberInput;
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::{
     CanvasComponent, ComponentId, FlexAlign, FlexDirection, FlexJustify, LayoutType, PropValue,
 };
@@ -77,6 +78,9 @@ pub fn ContainerPropertyEditor(
     } else {
         (None, None, None)
     };
+
+    let container_style = container.style.clone();
+    let container_for_style = container.clone();
 
     view! {
         <div class="property-group-container">
@@ -291,6 +295,15 @@ pub fn ContainerPropertyEditor(
                     />
                 </div>
             </div>
+
+            <StyleEditor
+                style=container_style
+                on_change=move |new_style| {
+                    let mut updated = container_for_style.clone();
+                    updated.style = new_style;
+                    apply_update(id, CanvasComponent::Container(updated), "style".to_string());
+                }
+            />
 
             <AnimationPropertyEditor
                 _id=id

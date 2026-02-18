@@ -1,6 +1,7 @@
 use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::builder::variable_binding::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, InputType, PropValue};
 use crate::services::update_input_prop;
@@ -38,6 +39,9 @@ pub fn InputPropertyEditor(
             );
         }
     };
+
+    let input_style = input.style.clone();
+    let input_for_style = input.clone();
 
     view! {
         <div class="property-group">
@@ -150,6 +154,15 @@ pub fn InputPropertyEditor(
                 }
                 }).collect::<Vec<_>>()}
         </div>
+
+        <StyleEditor
+            style=input_style
+            on_change=move |new_style| {
+                let mut updated = input_for_style.clone();
+                updated.style = new_style;
+                apply_update(comp_id, CanvasComponent::Input(updated), "style".to_string());
+            }
+        />
 
         <AnimationPropertyEditor
             _id=comp_id

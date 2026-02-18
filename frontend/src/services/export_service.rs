@@ -713,6 +713,7 @@ mod tests {
             on_change: None,
             animation: None,
             bindings: Default::default(),
+            style: Default::default(),
         });
         let code = generator.generate(&[input]).unwrap();
 
@@ -766,6 +767,7 @@ mod tests {
             disabled: false,
             on_change: None,
             animation: None,
+            style: Default::default(),
         });
         let code = generator.generate(&[select]).unwrap();
 
@@ -786,6 +788,7 @@ mod tests {
             disabled: true,
             on_change: None,
             animation: None,
+            style: Default::default(),
         });
         let code = generator.generate(&[select]).unwrap();
 
@@ -805,6 +808,7 @@ mod tests {
             disabled: false,
             on_change: None,
             animation: None,
+            style: Default::default(),
         });
         let code = generator.generate(&[select]).unwrap();
 

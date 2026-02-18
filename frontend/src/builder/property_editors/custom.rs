@@ -1,4 +1,5 @@
 use crate::builder::property_inputs::StringInput;
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -30,10 +31,16 @@ pub fn CustomPropertyEditor(
     let comp_id = custom.id;
     let custom_for_name = custom.clone();
     let custom_for_template = custom.clone();
+    let custom_for_style = custom.clone();
     let comp_id_for_name = comp_id;
     let comp_id_for_template = comp_id;
-    let apply_update_name = apply_update;
-    let apply_update_template = apply_update;
+    let comp_id_for_style = comp_id;
+
+    let apply_update_name = apply_update.clone();
+    let apply_update_template = apply_update.clone();
+    let apply_update_style = apply_update.clone();
+
+    let custom_style = custom.style.clone();
 
     view! {
         <div class="property-group">
@@ -61,6 +68,15 @@ pub fn CustomPropertyEditor(
                     />
                 </label>
             </div>
+
+            <StyleEditor
+                style=custom_style
+                on_change=move |new_style| {
+                    let mut updated_custom = custom_for_style.clone();
+                    updated_custom.style = new_style;
+                    apply_update_style(comp_id_for_style, CanvasComponent::Custom(updated_custom), "Style".to_string());
+                }
+            />
         </div>
     }
 }

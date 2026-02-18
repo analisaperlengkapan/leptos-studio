@@ -1,6 +1,7 @@
 use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::{ButtonSize, ButtonVariant, CanvasComponent, ComponentId, PropValue};
 use crate::services::update_button_prop;
 use crate::state::AppState;
@@ -28,8 +29,6 @@ pub fn ButtonPropertyEditor(
     // Helper to update component
     let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
         if let Err(e) = updated.validate() {
-            // Notifications are handled by parent or we can use ui_state directly
-            // For now, let's assume we can notify here
             ui_state.notify(crate::state::Notification::error(e.user_message()));
         } else {
             // We need to overwrite the component
@@ -40,6 +39,9 @@ pub fn ButtonPropertyEditor(
             );
         }
     };
+
+    let btn_style = button.style.clone();
+    let btn_for_style = button.clone();
 
     view! {
         <div class="property-group">
@@ -118,6 +120,15 @@ pub fn ButtonPropertyEditor(
                 }
             }).collect::<Vec<_>>()}
         </div>
+
+        <StyleEditor
+            style=btn_style
+            on_change=move |new_style| {
+                let mut updated_btn = btn_for_style.clone();
+                updated_btn.style = new_style;
+                apply_update(comp_id, CanvasComponent::Button(updated_btn), "style".to_string());
+            }
+        />
 
         <AnimationPropertyEditor
             _id=comp_id

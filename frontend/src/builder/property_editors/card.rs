@@ -1,5 +1,6 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, NumberInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::CardComponent;
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -45,6 +46,8 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     let id_clone = id;
     let card_clone2 = card_clone.clone();
     let id_clone2 = id;
+    let card_style = card.clone();
+    let id_style = id;
 
     view! {
         <div class="property-group">
@@ -82,6 +85,17 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
                     }
                 });
             })
+        />
+
+        <StyleEditor
+            style=card_style.style
+            on_change=move |new_style| {
+                canvas_state.update_component(&id_style, |c| {
+                     if let crate::domain::CanvasComponent::Card(card) = c {
+                        card.style = new_style;
+                    }
+                });
+            }
         />
 
         <AnimationPropertyEditor

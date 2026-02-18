@@ -1,5 +1,6 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::StringInput;
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::ImageComponent;
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -53,6 +54,8 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     let img_clone = image.clone();
     let id_clone2 = id;
     let img_clone2 = img_clone.clone();
+    let id_style = id;
+    let img_style = image.clone();
 
     view! {
         <div class="property-group">
@@ -90,6 +93,17 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
                     }
                 });
             })
+        />
+
+        <StyleEditor
+            style=img_style.style
+            on_change=move |new_style| {
+                canvas_state.update_component(&id_style, |c| {
+                     if let crate::domain::CanvasComponent::Image(img) = c {
+                        img.style = new_style;
+                    }
+                });
+            }
         />
 
         <AnimationPropertyEditor
