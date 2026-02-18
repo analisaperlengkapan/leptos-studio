@@ -287,7 +287,9 @@ impl CanvasState {
                     // If insert failed, we should probably just push it to root to avoid data loss.
                     if let Some(c) = comp_opt {
                         components.push(c);
-                        web_sys::console::warn_1(&"Failed to move component to target, moved to root".into());
+                        web_sys::console::warn_1(
+                            &"Failed to move component to target, moved to root".into(),
+                        );
                     }
                 }
             }
@@ -296,7 +298,10 @@ impl CanvasState {
         self.record_snapshot("Reorder Component");
     }
 
-    fn extract_recursive(components: &mut Vec<CanvasComponent>, id: &ComponentId) -> Option<CanvasComponent> {
+    fn extract_recursive(
+        components: &mut Vec<CanvasComponent>,
+        id: &ComponentId,
+    ) -> Option<CanvasComponent> {
         if let Some(pos) = components.iter().position(|c| c.id() == id) {
             return Some(components.remove(pos));
         }
@@ -318,7 +323,11 @@ impl CanvasState {
         None
     }
 
-    fn insert_after_recursive(components: &mut Vec<CanvasComponent>, target_id: &ComponentId, item: &mut Option<CanvasComponent>) -> bool {
+    fn insert_after_recursive(
+        components: &mut Vec<CanvasComponent>,
+        target_id: &ComponentId,
+        item: &mut Option<CanvasComponent>,
+    ) -> bool {
         if let Some(pos) = components.iter().position(|c| c.id() == target_id) {
             if let Some(i) = item.take() {
                 components.insert(pos + 1, i);
@@ -327,7 +336,7 @@ impl CanvasState {
         }
 
         for comp in components.iter_mut() {
-             match comp {
+            match comp {
                 CanvasComponent::Container(c) => {
                     if Self::insert_after_recursive(&mut c.children, target_id, item) {
                         return true;
@@ -339,7 +348,7 @@ impl CanvasState {
                     }
                 }
                 _ => {}
-             }
+            }
         }
         false
     }

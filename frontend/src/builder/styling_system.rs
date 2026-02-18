@@ -27,12 +27,7 @@ pub fn StyleEditor(
             .unwrap_or_default(),
     );
     let border_color = RwSignal::new(style.border_color.clone().unwrap_or_default());
-    let font_size = RwSignal::new(
-        style
-            .font_size
-            .map(|v| v.to_string())
-            .unwrap_or_default(),
-    );
+    let font_size = RwSignal::new(style.font_size.map(|v| v.to_string()).unwrap_or_default());
 
     // We need to clone style for the closures
     let style_tmpl = style.clone();
