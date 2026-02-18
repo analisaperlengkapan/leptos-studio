@@ -36,9 +36,9 @@ pub fn CustomPropertyEditor(
     let comp_id_for_template = comp_id;
     let comp_id_for_style = comp_id;
 
-    let apply_update_name = apply_update.clone();
-    let apply_update_template = apply_update.clone();
-    let apply_update_style = apply_update.clone();
+    let apply_update_name = apply_update;
+    let apply_update_template = apply_update;
+    let apply_update_style = apply_update;
 
     let custom_style = custom.style.clone();
 

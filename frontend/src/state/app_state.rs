@@ -323,6 +323,7 @@ impl CanvasState {
         None
     }
 
+    #[allow(clippy::collapsible_if)]
     fn insert_after_recursive(
         components: &mut Vec<CanvasComponent>,
         target_id: &ComponentId,

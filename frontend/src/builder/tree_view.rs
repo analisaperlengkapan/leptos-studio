@@ -2,7 +2,6 @@ use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::AppState;
 use leptos::prelude::*;
 use std::collections::HashMap;
-use wasm_bindgen::JsCast;
 
 #[component]
 pub fn TreeView() -> impl IntoView {
@@ -131,16 +130,16 @@ fn TreeNode(
                     ev.prevent_default();
                     ev.stop_propagation();
 
-                    if let Some(dt) = ev.data_transfer() {
-                        if let Ok(dragged_id_str) = dt.get_data("move-component") {
-                            // Find matching component ID in the map
-                            let map = component_map.get();
-                            // Search for ID that matches string representation
-                            let dragged_id = map.keys().find(|k| k.to_string() == dragged_id_str).cloned();
+                    if let Some(dragged_id_str) = ev.data_transfer()
+                        .and_then(|dt| dt.get_data("move-component").ok())
+                    {
+                        // Find matching component ID in the map
+                        let map = component_map.get();
+                        // Search for ID that matches string representation
+                        let dragged_id = map.keys().find(|k| k.to_string() == dragged_id_str).cloned();
 
-                            if let Some(did) = dragged_id {
-                                app_state.canvas.move_component_relative(did, id);
-                            }
+                        if let Some(did) = dragged_id {
+                            app_state.canvas.move_component_relative(did, id);
                         }
                     }
                 };
