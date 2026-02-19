@@ -298,6 +298,8 @@ impl CanvasState {
         self.record_snapshot("Reorder Component");
     }
 
+    }
+
     fn extract_recursive(
         components: &mut Vec<CanvasComponent>,
         id: &ComponentId,
