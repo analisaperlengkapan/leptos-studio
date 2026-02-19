@@ -275,6 +275,9 @@ impl CanvasState {
             return;
         }
 
+        // We record the snapshot BEFORE mutation to capture the state we can undo to.
+        self.record_snapshot("Reorder Component");
+
         self.components.update(|components| {
             // 1. Extract
             if let Some(comp) = Self::extract_recursive(components, &id) {
@@ -294,8 +297,6 @@ impl CanvasState {
                 }
             }
         });
-
-        self.record_snapshot("Reorder Component");
     }
 
     fn extract_recursive(
