@@ -99,7 +99,7 @@ pub fn ContainerPropertyEditor(
                             move || if matches!(l, LayoutType::Flex { .. }) { "layout-btn active" } else { "layout-btn" }
                         }
                         on:click={
-                            let switch_layout = switch_layout.clone();
+                            // Removed .clone() as switch_layout is Copy
                             move |_| switch_layout("Flex")
                         }
                     >
@@ -112,7 +112,7 @@ pub fn ContainerPropertyEditor(
                             move || if matches!(l, LayoutType::Grid { .. }) { "layout-btn active" } else { "layout-btn" }
                         }
                         on:click={
-                            let switch_layout = switch_layout.clone();
+                            // Removed .clone() as switch_layout is Copy
                             move |_| switch_layout("Grid")
                         }
                     >
@@ -125,7 +125,7 @@ pub fn ContainerPropertyEditor(
                             move || if matches!(l, LayoutType::Stack) { "layout-btn active" } else { "layout-btn" }
                         }
                         on:click={
-                            let switch_layout = switch_layout.clone();
+                            // Removed .clone() as switch_layout is Copy
                             move |_| switch_layout("Stack")
                         }
                     >

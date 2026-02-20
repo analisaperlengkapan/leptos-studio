@@ -277,11 +277,12 @@ impl CanvasState {
 
         // Check for descendant move to prevent infinite recursion/data loss (Bug 1 & 4)
         let components = self.components.get_untracked();
-        if let Some(parent) = Self::get_recursive(&components, &id) {
-            if Self::is_descendant(&parent, &target_id) {
-                web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
-                return;
-            }
+        // Collapsed if block using is_some_and
+        if Self::get_recursive(&components, &id)
+            .is_some_and(|parent| Self::is_descendant(&parent, &target_id))
+        {
+            web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
+            return;
         }
 
         // We record the snapshot BEFORE mutation to capture the state we can undo to.
@@ -315,16 +316,18 @@ impl CanvasState {
         }
 
         let components = self.components.get_untracked();
-        if let Some(parent) = Self::get_recursive(&components, &id) {
-            if Self::is_descendant(&parent, &parent_id) {
-                web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
-                return;
-            }
+        // Collapsed if block using is_some_and
+        if Self::get_recursive(&components, &id)
+            .is_some_and(|parent| Self::is_descendant(&parent, &parent_id))
+        {
+            web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
+            return;
         }
 
         self.record_snapshot("Move Component Into Parent");
 
         self.components.update(|components| {
+            #[allow(clippy::collapsible_if)]
             if let Some(comp) = Self::extract_recursive(components, &id) {
                 if !Self::add_child_recursive(components, &parent_id, comp.clone()) {
                     // If failed, put back to root to avoid data loss
@@ -338,6 +341,7 @@ impl CanvasState {
     pub fn move_component_to_root(&self, id: ComponentId) {
         self.record_snapshot("Move Component to Root");
         self.components.update(|components| {
+            #[allow(clippy::collapsible_if)]
             if let Some(comp) = Self::extract_recursive(components, &id) {
                 components.push(comp);
             }

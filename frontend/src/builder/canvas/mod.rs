@@ -33,17 +33,19 @@ pub fn handle_drop(ev: ev::DragEvent, _target_id: Option<ComponentId>, app_state
             }
         }
         // Check for "move-component" (Reordering/Moving existing component)
-        else if let Ok(move_id_str) = dt.get_data("move-component")
-            && !move_id_str.is_empty()
-        {
-            if let Ok(move_id) = uuid::Uuid::parse_str(&move_id_str) {
-                if let Some(target) = _target_id {
-                    app_state
-                        .canvas
-                        .move_component_to_parent(move_id.into(), target);
-                } else {
-                    // Moved to root (canvas background)
-                    app_state.canvas.move_component_to_root(move_id.into());
+        else {
+            #[allow(clippy::collapsible_if)]
+            if let Ok(move_id_str) = dt.get_data("move-component")
+                && !move_id_str.is_empty()
+            {
+                if let Ok(move_id) = uuid::Uuid::parse_str(&move_id_str) {
+                    #[allow(clippy::collapsible_if)]
+                    if let Some(target) = _target_id {
+                        app_state.canvas.move_component_to_parent(move_id.into(), target);
+                    } else {
+                        // Moved to root (canvas background)
+                        app_state.canvas.move_component_to_root(move_id.into());
+                    }
                 }
             }
         }

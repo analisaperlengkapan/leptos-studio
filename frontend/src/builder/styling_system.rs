@@ -91,7 +91,7 @@ pub fn StyleEditor(
                             type="color"
                             prop:value=bg_color
                             on:input={
-                                let update = update.clone();
+                                // Removed .clone() as update is Copy
                                 move |ev| update("background_color", event_target_value(&ev))
                             }
                             style="width: 30px; padding: 0; border: none;"
@@ -100,7 +100,7 @@ pub fn StyleEditor(
                             type="text"
                             prop:value=bg_color
                             on:input={
-                                let update = update.clone();
+                                // Removed .clone() as update is Copy
                                 move |ev| update("background_color", event_target_value(&ev))
                             }
                             style="flex: 1; min-width: 0;"
@@ -115,7 +115,7 @@ pub fn StyleEditor(
                             type="color"
                             prop:value=color
                             on:input={
-                                let update = update.clone();
+                                // Removed .clone() as update is Copy
                                 move |ev| update("color", event_target_value(&ev))
                             }
                             style="width: 30px; padding: 0; border: none;"
@@ -124,7 +124,7 @@ pub fn StyleEditor(
                             type="text"
                             prop:value=color
                             on:input={
-                                let update = update.clone();
+                                // Removed .clone() as update is Copy
                                 move |ev| update("color", event_target_value(&ev))
                             }
                             style="flex: 1; min-width: 0;"
@@ -139,7 +139,7 @@ pub fn StyleEditor(
                         placeholder="8px"
                         prop:value=padding
                         on:input={
-                            let update = update.clone();
+                            // Removed .clone() as update is Copy
                             move |ev| update("padding", event_target_value(&ev))
                         }
                     />
@@ -152,7 +152,7 @@ pub fn StyleEditor(
                         placeholder="8px"
                         prop:value=margin
                         on:input={
-                            let update = update.clone();
+                            // Removed .clone() as update is Copy
                             move |ev| update("margin", event_target_value(&ev))
                         }
                     />
@@ -165,7 +165,7 @@ pub fn StyleEditor(
                         min="0"
                         prop:value=border_radius
                         on:input={
-                            let update = update.clone();
+                            // Removed .clone() as update is Copy
                             move |ev| update("border_radius", event_target_value(&ev))
                         }
                     />
@@ -178,7 +178,7 @@ pub fn StyleEditor(
                         min="0"
                         prop:value=border_width
                         on:input={
-                            let update = update.clone();
+                            // Removed .clone() as update is Copy
                             move |ev| update("border_width", event_target_value(&ev))
                         }
                     />
@@ -191,7 +191,7 @@ pub fn StyleEditor(
                             type="color"
                             prop:value=border_color
                             on:input={
-                                let update = update.clone();
+                                // Removed .clone() as update is Copy
                                 move |ev| update("border_color", event_target_value(&ev))
                             }
                             style="width: 30px; padding: 0; border: none;"
@@ -200,7 +200,7 @@ pub fn StyleEditor(
                             type="text"
                             prop:value=border_color
                             on:input={
-                                let update = update.clone();
+                                // Removed .clone() as update is Copy
                                 move |ev| update("border_color", event_target_value(&ev))
                             }
                             style="flex: 1; min-width: 0;"
@@ -215,7 +215,7 @@ pub fn StyleEditor(
                         min="0"
                         prop:value=font_size
                         on:input={
-                            let update = update.clone();
+                            // Removed .clone() as update is Copy
                             move |ev| update("font_size", event_target_value(&ev))
                         }
                     />
