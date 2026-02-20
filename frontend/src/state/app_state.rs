@@ -275,8 +275,9 @@ impl CanvasState {
             return;
         }
 
-        // Check for descendant move to prevent infinite recursion/data loss
+        // Check for descendant move to prevent infinite recursion/data loss (Bug 1 & 4)
         let components = self.components.get_untracked();
+        // Collapsed if block using is_some_and
         if Self::get_recursive(&components, &id)
             .is_some_and(|parent| Self::is_descendant(&parent, &target_id))
         {
@@ -284,33 +285,28 @@ impl CanvasState {
             return;
         }
 
-        // Capture snapshot before mutation
-        let snapshot = Snapshot::new(
-            self.components.get(),
-            self.selected.get(),
-            "Reorder Component".to_string(),
-        );
+        // We record the snapshot BEFORE mutation to capture the state we can undo to.
+        self.record_snapshot("Reorder Component");
 
-        let mut success = false;
         self.components.update(|components| {
+            // 1. Extract
             if let Some(comp) = Self::extract_recursive(components, &id) {
+                // 2. Insert After Target
                 let mut comp_opt = Some(comp);
-                if Self::insert_after_recursive(components, &target_id, &mut comp_opt) {
-                    success = true;
-                } else if let Some(c) = comp_opt {
-                    // Restore component if insertion failed
-                    components.push(c);
-                    success = true; // Still record snapshot so this move can be undone
-                    web_sys::console::warn_1(
-                        &"Failed to move component to target, moved to root".into(),
-                    );
+                if !Self::insert_after_recursive(components, &target_id, &mut comp_opt) {
+                    // Failed to insert (maybe target not found?), put it back?
+                    // For safety, push to root if lost, or try to restore.
+                    // Ideally we should verify target exists first.
+                    // If insert failed, we should probably just push it to root to avoid data loss.
+                    if let Some(c) = comp_opt {
+                        components.push(c);
+                        web_sys::console::warn_1(
+                            &"Failed to move component to target, moved to root".into(),
+                        );
+                    }
                 }
             }
         });
-
-        if success {
-            self.history.update(|h| h.push(snapshot));
-        }
     }
 
     // New: Move component into a parent (for drag and drop)
@@ -320,6 +316,7 @@ impl CanvasState {
         }
 
         let components = self.components.get_untracked();
+        // Collapsed if block using is_some_and
         if Self::get_recursive(&components, &id)
             .is_some_and(|parent| Self::is_descendant(&parent, &parent_id))
         {
@@ -327,50 +324,36 @@ impl CanvasState {
             return;
         }
 
-        let snapshot = Snapshot::new(
-            self.components.get(),
-            self.selected.get(),
-            "Move Component Into Parent".to_string(),
-        );
+        self.record_snapshot("Move Component Into Parent");
 
-        let mut success = false;
         self.components.update(|components| {
+            #[allow(clippy::collapsible_if)]
             if let Some(comp) = Self::extract_recursive(components, &id) {
-                if Self::add_child_recursive(components, &parent_id, comp.clone()) {
-                    success = true;
-                } else {
+                if !Self::add_child_recursive(components, &parent_id, comp.clone()) {
                     // If failed, put back to root to avoid data loss
                     components.push(comp);
-                    success = true; // Still record snapshot so this move can be undone
                 }
             }
         });
-
-        if success {
-            self.history.update(|h| h.push(snapshot));
-        }
     }
 
     // New: Move component to root
     pub fn move_component_to_root(&self, id: ComponentId) {
-        let snapshot = Snapshot::new(
-            self.components.get(),
-            self.selected.get(),
-            "Move Component to Root".to_string(),
-        );
+        // Optimization: Check if already at root
+        if self
+            .components
+            .with(|c| c.iter().any(|comp| *comp.id() == id))
+        {
+            return;
+        }
 
-        let mut success = false;
+        self.record_snapshot("Move Component to Root");
         self.components.update(|components| {
             #[allow(clippy::collapsible_if)]
             if let Some(comp) = Self::extract_recursive(components, &id) {
                 components.push(comp);
-                success = true;
             }
         });
-
-        if success {
-            self.history.update(|h| h.push(snapshot));
-        }
     }
 
     fn is_descendant(parent: &CanvasComponent, target_id: &ComponentId) -> bool {
