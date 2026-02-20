@@ -275,6 +275,17 @@ impl CanvasState {
             return;
         }
 
+        // Check for descendant move to prevent infinite recursion/data loss (Bug 1 & 4)
+        let components = self.components.get_untracked();
+        if let Some(parent) = Self::get_recursive(&components, &id) {
+            if Self::is_descendant(&parent, &target_id) {
+                web_sys::console::warn_1(
+                    &"Cannot move a component into its own descendant".into(),
+                );
+                return;
+            }
+        }
+
         // We record the snapshot BEFORE mutation to capture the state we can undo to.
         self.record_snapshot("Reorder Component");
 
@@ -297,6 +308,71 @@ impl CanvasState {
                 }
             }
         });
+    }
+
+    // New: Move component into a parent (for drag and drop)
+    pub fn move_component_to_parent(&self, id: ComponentId, parent_id: ComponentId) {
+        if id == parent_id {
+            return;
+        }
+
+        let components = self.components.get_untracked();
+        if let Some(parent) = Self::get_recursive(&components, &id) {
+            if Self::is_descendant(&parent, &parent_id) {
+                web_sys::console::warn_1(
+                    &"Cannot move a component into its own descendant".into(),
+                );
+                return;
+            }
+        }
+
+        self.record_snapshot("Move Component Into Parent");
+
+        self.components.update(|components| {
+            if let Some(comp) = Self::extract_recursive(components, &id) {
+                if !Self::add_child_recursive(components, &parent_id, comp.clone()) {
+                     // If failed, put back to root to avoid data loss
+                     components.push(comp);
+                }
+            }
+        });
+    }
+
+    // New: Move component to root
+    pub fn move_component_to_root(&self, id: ComponentId) {
+        self.record_snapshot("Move Component to Root");
+        self.components.update(|components| {
+            if let Some(comp) = Self::extract_recursive(components, &id) {
+                components.push(comp);
+            }
+        });
+    }
+
+    fn is_descendant(parent: &CanvasComponent, target_id: &ComponentId) -> bool {
+        match parent {
+            CanvasComponent::Container(c) => {
+                for child in &c.children {
+                    if child.id() == target_id {
+                        return true;
+                    }
+                    if Self::is_descendant(child, target_id) {
+                        return true;
+                    }
+                }
+            }
+            CanvasComponent::Card(c) => {
+                for child in &c.children {
+                    if child.id() == target_id {
+                        return true;
+                    }
+                    if Self::is_descendant(child, target_id) {
+                        return true;
+                    }
+                }
+            }
+            _ => {}
+        }
+        false
     }
 
     fn extract_recursive(

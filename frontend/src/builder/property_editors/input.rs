@@ -41,7 +41,7 @@ pub fn InputPropertyEditor(
     };
 
     let input_style = input.style.clone();
-    let input_for_style = input.clone();
+    let input_animation = input.animation.clone();
 
     view! {
         <div class="property-group">
@@ -51,22 +51,25 @@ pub fn InputPropertyEditor(
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
                 let comp_id_field = comp_id;
-                let inp_for_field = input.clone();
+
+                // Capture current values for rendering
+                let current_placeholder = input.placeholder.clone();
+                let current_type = input.input_type.clone();
+                let current_required = input.required;
+                let current_disabled = input.disabled;
+                let current_bindings = input.bindings.clone();
 
                 match prop_type {
                     PropType::String => {
                         let value = match prop_name.as_str() {
-                            "placeholder" => inp_for_field.placeholder.clone(),
+                            "placeholder" => current_placeholder.clone(),
                             _ => String::new(),
                         };
 
                         let prop_name_for_input = prop_name.clone();
-                        let inp_for_input = inp_for_field.clone();
                         let comp_id_input = comp_id_field;
 
                         let prop_name_for_bind = prop_name.clone();
-                        let inp_for_bind_read = inp_for_field.clone();
-                        let inp_for_bind_closure = inp_for_field.clone();
                         let comp_id_bind = comp_id_field;
 
                         view! {
@@ -76,27 +79,30 @@ pub fn InputPropertyEditor(
                                         value=value
                                         label=label_text
                                         on_change=move |new_val| {
-                                            let updated_inp = update_input_prop(inp_for_input.clone(), prop_name_for_input.as_str(), PropValue::String(new_val));
-                                            apply_update(comp_id_input, CanvasComponent::Input(updated_inp), prop_name_for_input.clone());
+                                            if let Some(CanvasComponent::Input(latest_inp)) = canvas_state.get_component(&comp_id_input) {
+                                                let updated_inp = update_input_prop(latest_inp, prop_name_for_input.as_str(), PropValue::String(new_val));
+                                                apply_update(comp_id_input, CanvasComponent::Input(updated_inp), prop_name_for_input.clone());
+                                            }
                                         }
                                     />
                                 </div>
                                 {
                                     if prop_name_for_bind.as_str() == "placeholder" {
-                                        let binding_val = inp_for_bind_read.bindings.get("placeholder").cloned();
+                                        let binding_val = current_bindings.get("placeholder").cloned();
 
                                         view! {
                                             <div style="margin-bottom: 8px;">
                                                 <VariableBinding
                                                     value=binding_val
                                                     on_change=move |new_bind| {
-                                                        let mut updated = inp_for_bind_closure.clone();
-                                                        if let Some(v) = new_bind {
-                                                            updated.bindings.insert("placeholder".to_string(), v);
-                                                        } else {
-                                                            updated.bindings.remove("placeholder");
+                                                        if let Some(CanvasComponent::Input(mut updated)) = canvas_state.get_component(&comp_id_bind) {
+                                                            if let Some(v) = new_bind {
+                                                                updated.bindings.insert("placeholder".to_string(), v);
+                                                            } else {
+                                                                updated.bindings.remove("placeholder");
+                                                            }
+                                                            apply_update(comp_id_bind, CanvasComponent::Input(updated), "placeholder binding".to_string());
                                                         }
-                                                        apply_update(comp_id_bind, CanvasComponent::Input(updated), "placeholder binding".to_string());
                                                     }
                                                 />
                                             </div>
@@ -110,7 +116,7 @@ pub fn InputPropertyEditor(
                     },
                         PropType::Enum { options } => {
                         let value = match prop_name.as_str() {
-                            "input_type" => match inp_for_field.input_type {
+                            "input_type" => match current_type {
                                 InputType::Text => "Text",
                                 InputType::Password => "Password",
                                 InputType::Email => "Email",
@@ -126,16 +132,18 @@ pub fn InputPropertyEditor(
                                 label=label_text
                                 options=options
                                 on_change=move |new_val| {
-                                    let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
+                                    if let Some(CanvasComponent::Input(latest_inp)) = canvas_state.get_component(&comp_id_field) {
+                                        let updated_inp = update_input_prop(latest_inp, prop_name_closure.as_str(), PropValue::String(new_val));
+                                        apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
+                                    }
                                 }
                             />
                         }.into_any()
                     },
                     PropType::Bool => {
                         let checked = match prop_name.as_str() {
-                            "required" => inp_for_field.required,
-                            "disabled" => inp_for_field.disabled,
+                            "required" => current_required,
+                            "disabled" => current_disabled,
                             _ => false,
                         };
                         let prop_name_closure = prop_name.clone();
@@ -144,8 +152,10 @@ pub fn InputPropertyEditor(
                                 checked=checked
                                 label=label_text
                                 on_change=move |new_val| {
-                                    let updated_inp = update_input_prop(inp_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
+                                    if let Some(CanvasComponent::Input(latest_inp)) = canvas_state.get_component(&comp_id_field) {
+                                        let updated_inp = update_input_prop(latest_inp, prop_name_closure.as_str(), PropValue::Boolean(new_val));
+                                        apply_update(comp_id_field, CanvasComponent::Input(updated_inp), prop_name_closure.clone());
+                                    }
                                 }
                             />
                         }.into_any()
@@ -158,19 +168,21 @@ pub fn InputPropertyEditor(
         <StyleEditor
             style=input_style
             on_change=move |new_style| {
-                let mut updated = input_for_style.clone();
-                updated.style = new_style;
-                apply_update(comp_id, CanvasComponent::Input(updated), "style".to_string());
+                if let Some(CanvasComponent::Input(mut updated)) = canvas_state.get_component(&comp_id) {
+                    updated.style = new_style;
+                    apply_update(comp_id, CanvasComponent::Input(updated), "style".to_string());
+                }
             }
         />
 
         <AnimationPropertyEditor
             _id=comp_id
-            animation=input.animation.clone()
+            animation=input_animation
             on_change=move |new_anim| {
-                let mut updated = input.clone();
-                updated.animation = new_anim;
-                apply_update(comp_id, CanvasComponent::Input(updated), "animation".to_string());
+                if let Some(CanvasComponent::Input(mut updated)) = canvas_state.get_component(&comp_id) {
+                    updated.animation = new_anim;
+                    apply_update(comp_id, CanvasComponent::Input(updated), "animation".to_string());
+                }
             }
         />
     }

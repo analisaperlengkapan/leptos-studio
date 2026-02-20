@@ -41,7 +41,7 @@ pub fn TextPropertyEditor(
     };
 
     let text_style = text.custom_style.clone();
-    let text_for_style = text.clone();
+    let text_animation = text.animation.clone();
 
     view! {
         <div class="property-group">
@@ -51,22 +51,24 @@ pub fn TextPropertyEditor(
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
                 let comp_id_field = comp_id;
-                let txt_for_field = text.clone();
+
+                // Capture current values for view rendering
+                let current_content = text.content.clone();
+                let current_style = text.style.clone();
+                let current_tag = text.tag.clone();
+                let current_bindings = text.bindings.clone();
 
                 match prop_type {
                     PropType::String => {
                         let value = match prop_name.as_str() {
-                            "content" => txt_for_field.content.clone(),
+                            "content" => current_content.clone(),
                             _ => String::new(),
                         };
 
                         let prop_name_for_input = prop_name.clone();
-                        let txt_for_input = txt_for_field.clone();
                         let comp_id_input = comp_id_field;
 
                         let prop_name_for_bind = prop_name.clone();
-                        let txt_for_bind_read = txt_for_field.clone();
-                        let txt_for_bind_closure = txt_for_field.clone();
                         let comp_id_bind = comp_id_field;
 
                         view! {
@@ -76,27 +78,30 @@ pub fn TextPropertyEditor(
                                         value=value
                                         label=label_text
                                         on_change=move |new_val| {
-                                            let updated_txt = update_text_prop(txt_for_input.clone(), prop_name_for_input.as_str(), PropValue::String(new_val));
-                                            apply_update(comp_id_input, CanvasComponent::Text(updated_txt), prop_name_for_input.clone());
+                                            if let Some(CanvasComponent::Text(latest_txt)) = canvas_state.get_component(&comp_id_input) {
+                                                let updated_txt = update_text_prop(latest_txt, prop_name_for_input.as_str(), PropValue::String(new_val));
+                                                apply_update(comp_id_input, CanvasComponent::Text(updated_txt), prop_name_for_input.clone());
+                                            }
                                         }
                                     />
                                 </div>
                                 {
                                     if prop_name_for_bind.as_str() == "content" {
-                                        let binding_val = txt_for_bind_read.bindings.get("content").cloned();
+                                        let binding_val = current_bindings.get("content").cloned();
 
                                         view! {
                                             <div style="margin-bottom: 8px;">
                                                 <VariableBinding
                                                     value=binding_val
                                                     on_change=move |new_bind| {
-                                                        let mut updated = txt_for_bind_closure.clone();
-                                                        if let Some(v) = new_bind {
-                                                            updated.bindings.insert("content".to_string(), v);
-                                                        } else {
-                                                            updated.bindings.remove("content");
+                                                        if let Some(CanvasComponent::Text(mut updated)) = canvas_state.get_component(&comp_id_bind) {
+                                                            if let Some(v) = new_bind {
+                                                                updated.bindings.insert("content".to_string(), v);
+                                                            } else {
+                                                                updated.bindings.remove("content");
+                                                            }
+                                                            apply_update(comp_id_bind, CanvasComponent::Text(updated), "content binding".to_string());
                                                         }
-                                                        apply_update(comp_id_bind, CanvasComponent::Text(updated), "content binding".to_string());
                                                     }
                                                 />
                                             </div>
@@ -110,14 +115,14 @@ pub fn TextPropertyEditor(
                     },
                     PropType::Enum { options } => {
                         let value = match prop_name.as_str() {
-                            "style" => match txt_for_field.style {
+                            "style" => match current_style {
                                 TextStyle::Heading1 => "Heading1",
                                 TextStyle::Heading2 => "Heading2",
                                 TextStyle::Heading3 => "Heading3",
                                 TextStyle::Body => "Body",
                                 TextStyle::Caption => "Caption",
                             }.to_string(),
-                            "tag" => match txt_for_field.tag {
+                            "tag" => match current_tag {
                                 TextTag::H1 => "H1",
                                 TextTag::H2 => "H2",
                                 TextTag::H3 => "H3",
@@ -133,8 +138,10 @@ pub fn TextPropertyEditor(
                                 label=label_text
                                 options=options
                                 on_change=move |new_val| {
-                                    let updated_txt = update_text_prop(txt_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Text(updated_txt), prop_name_closure.clone());
+                                    if let Some(CanvasComponent::Text(latest_txt)) = canvas_state.get_component(&comp_id_field) {
+                                        let updated_txt = update_text_prop(latest_txt, prop_name_closure.as_str(), PropValue::String(new_val));
+                                        apply_update(comp_id_field, CanvasComponent::Text(updated_txt), prop_name_closure.clone());
+                                    }
                                 }
                             />
                         }.into_any()
@@ -147,19 +154,21 @@ pub fn TextPropertyEditor(
         <StyleEditor
             style=text_style
             on_change=move |new_style| {
-                let mut updated_txt = text_for_style.clone();
-                updated_txt.custom_style = new_style;
-                apply_update(comp_id, CanvasComponent::Text(updated_txt), "custom_style".to_string());
+                if let Some(CanvasComponent::Text(mut updated_txt)) = canvas_state.get_component(&comp_id) {
+                    updated_txt.custom_style = new_style;
+                    apply_update(comp_id, CanvasComponent::Text(updated_txt), "custom_style".to_string());
+                }
             }
         />
 
         <AnimationPropertyEditor
             _id=comp_id
-            animation=text.animation.clone()
+            animation=text_animation
             on_change=move |new_anim| {
-                let mut updated_txt = text.clone();
-                updated_txt.animation = new_anim;
-                apply_update(comp_id, CanvasComponent::Text(updated_txt), "animation".to_string());
+                if let Some(CanvasComponent::Text(mut updated_txt)) = canvas_state.get_component(&comp_id) {
+                    updated_txt.animation = new_anim;
+                    apply_update(comp_id, CanvasComponent::Text(updated_txt), "animation".to_string());
+                }
             }
         />
     }

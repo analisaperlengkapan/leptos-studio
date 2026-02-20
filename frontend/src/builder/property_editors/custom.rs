@@ -6,76 +6,62 @@ use leptos::prelude::*;
 
 #[component]
 pub fn CustomPropertyEditor(
-    #[prop(into)] _id: ComponentId,
+    #[prop(into)] id: ComponentId,
     #[prop(into)] custom: crate::domain::CustomComponent,
 ) -> impl IntoView {
     let app_state = AppState::expect_context();
-    let ui_state = app_state.ui;
     let canvas_state = app_state.canvas;
 
-    let apply_update = move |id: ComponentId, updated: CanvasComponent, prop_name: String| {
-        if let Err(e) = updated.validate() {
-            ui_state.notify(crate::state::Notification::error(e.user_message()));
-        } else {
-            // Overwrite using new signature
-            canvas_state.update_component_with_snapshot(
-                &id,
-                updated,
-                &format!("Update Custom {}", prop_name),
-            );
-        }
+    let update_name = move |new_name: String| {
+         if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
+             c.name = new_name;
+             canvas_state.update_component_with_snapshot(&id, CanvasComponent::Custom(c), "Update Custom Name");
+         }
     };
 
-    let name_value = custom.name.clone();
-    let template_value = custom.template.clone();
-    let comp_id = custom.id;
-    let custom_for_name = custom.clone();
-    let custom_for_template = custom.clone();
-    let custom_for_style = custom.clone();
-    let comp_id_for_name = comp_id;
-    let comp_id_for_template = comp_id;
-    let comp_id_for_style = comp_id;
+    let update_template = move |new_template: String| {
+         if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
+             c.template = new_template;
+             canvas_state.update_component_with_snapshot(&id, CanvasComponent::Custom(c), "Update Custom Template");
+         }
+    };
 
-    let apply_update_name = apply_update;
-    let apply_update_template = apply_update;
-    let apply_update_style = apply_update;
+    let update_style = move |new_style| {
+         if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
+             c.style = new_style;
+             canvas_state.update_component_with_snapshot(&id, CanvasComponent::Custom(c), "Update Custom Style");
+         }
+    };
 
-    let custom_style = custom.style.clone();
+    let current_name = custom.name.clone();
+    let current_template = custom.template.clone();
+    let current_style = custom.style.clone();
 
     view! {
         <div class="property-group">
             <div class="group-title">"Custom Component"</div>
             <StringInput
-                value=name_value
+                value=current_name
                 label="Name".to_string()
-                on_change=move |new_name| {
-                    let mut updated_custom = custom_for_name.clone();
-                    updated_custom.name = new_name;
-                    apply_update_name(comp_id_for_name, CanvasComponent::Custom(updated_custom), "Name".to_string());
-                }
+                on_change=update_name
             />
             <div class="property-field">
                 <label>
                     {"Template"}
                     <textarea
-                        prop:value=template_value
+                        class="property-input"
+                        prop:value=current_template
                         on:input=move |ev| {
-                            let new_template = event_target_value(&ev);
-                            let mut updated_custom = custom_for_template.clone();
-                            updated_custom.template = new_template;
-                            apply_update_template(comp_id_for_template, CanvasComponent::Custom(updated_custom), "Template".to_string());
+                            update_template(event_target_value(&ev));
                         }
+                        style="width: 100%; min-height: 100px; font-family: monospace;"
                     />
                 </label>
             </div>
 
             <StyleEditor
-                style=custom_style
-                on_change=move |new_style| {
-                    let mut updated_custom = custom_for_style.clone();
-                    updated_custom.style = new_style;
-                    apply_update_style(comp_id_for_style, CanvasComponent::Custom(updated_custom), "Style".to_string());
-                }
+                style=current_style
+                on_change=update_style
             />
         </div>
     }

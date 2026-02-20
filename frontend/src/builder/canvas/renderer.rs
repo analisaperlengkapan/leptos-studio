@@ -250,16 +250,17 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
     let anim_style = get_animation_style(&container.animation);
     let custom_style = container.style.to_css_string();
 
+    // Fix Bug 7: Reorder styles to allow specific properties to override generic ones
     let style = format!(
-        "gap: {}px; padding: {}px {}px {}px {}px; {} {} {}",
+        "{} {} {} gap: {}px; padding: {}px {}px {}px {}px;",
+        align_style,
+        anim_style,
+        custom_style,
         container.gap,
         container.padding.top,
         container.padding.right,
         container.padding.bottom,
-        container.padding.left,
-        align_style,
-        anim_style,
-        custom_style
+        container.padding.left
     );
 
     let container_id = container.id;
@@ -380,8 +381,11 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
     let anim_style = get_animation_style(&card.animation);
     let custom_style = card.style.to_css_string();
 
+    // Fix Bug 7: Reorder styles
     let style = format!(
-        "padding: {}px; border-radius: {}px; {} {} {}",
+        "{} {} padding: {}px; border-radius: {}px; {}",
+        anim_style,
+        custom_style,
         padding,
         border_radius,
         if card.shadow {
@@ -389,8 +393,6 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
         } else {
             ""
         },
-        anim_style,
-        custom_style
     );
 
     let border_class = if card.border {

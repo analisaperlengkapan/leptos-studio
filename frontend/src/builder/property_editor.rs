@@ -82,7 +82,7 @@ pub fn PropertyEditor() -> impl IntoView {
                             },
                             CanvasComponent::Custom(custom) => {
                                 view! {
-                                    <CustomPropertyEditor _id=selected_id custom=custom />
+                                    <CustomPropertyEditor id=selected_id custom=custom />
                                 }.into_any()
                             },
                         }

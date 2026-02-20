@@ -29,11 +29,12 @@ pub fn StyleEditor(
     let border_color = RwSignal::new(style.border_color.clone().unwrap_or_default());
     let font_size = RwSignal::new(style.font_size.map(|v| v.to_string()).unwrap_or_default());
 
-    // We need to clone style for the closures
-    let style_tmpl = style.clone();
+    // Fix Bug 3: Use an RwSignal to store the current accumulated style state
+    // instead of capturing a static clone in the closure.
+    let current_style = RwSignal::new(style.clone());
 
     let update = move |field: &str, value: String| {
-        let mut new_style = style_tmpl.clone();
+        let mut new_style = current_style.get();
 
         // Update local signal as well (though input might do it, this keeps it consistent)
         // Actually, for "uncontrolled" inputs that drive state, we need to be careful.
@@ -74,6 +75,7 @@ pub fn StyleEditor(
             }
             _ => {}
         }
+        current_style.set(new_style.clone());
         on_change.run(new_style);
     };
 

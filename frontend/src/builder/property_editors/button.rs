@@ -41,7 +41,7 @@ pub fn ButtonPropertyEditor(
     };
 
     let btn_style = button.style.clone();
-    let btn_for_style = button.clone();
+    let btn_animation = button.animation.clone();
 
     view! {
         <div class="property-group">
@@ -51,12 +51,17 @@ pub fn ButtonPropertyEditor(
                 let prop_type = prop.prop_type.clone();
                 let label_text = prop.name.clone();
                 let comp_id_field = comp_id;
-                let btn_for_field = button.clone();
+
+                // Capture values for view rendering, but NOT for closures
+                let current_label = button.label.clone();
+                let current_variant = button.variant.clone();
+                let current_size = button.size.clone();
+                let current_disabled = button.disabled;
 
                 match prop_type {
                     PropType::String => {
                         let value = match prop_name.as_str() {
-                            "label" => btn_for_field.label.clone(),
+                            "label" => current_label.clone(),
                             _ => String::new(),
                         };
                         let prop_name_closure = prop_name.clone();
@@ -65,21 +70,23 @@ pub fn ButtonPropertyEditor(
                                 value=value
                                 label=label_text
                                 on_change=move |new_val| {
-                                    let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                    if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
+                                        let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::String(new_val));
+                                        apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                    }
                                 }
                             />
                         }.into_any()
                     },
                     PropType::Enum { options } => {
-                            let value = match prop_name.as_str() {
-                            "variant" => match btn_for_field.variant {
+                        let value = match prop_name.as_str() {
+                            "variant" => match current_variant {
                                 ButtonVariant::Primary => "Primary",
                                 ButtonVariant::Secondary => "Secondary",
                                 ButtonVariant::Outline => "Outline",
                                 ButtonVariant::Ghost => "Ghost",
                             }.to_string(),
-                            "size" => match btn_for_field.size {
+                            "size" => match current_size {
                                 ButtonSize::Small => "Small",
                                 ButtonSize::Medium => "Medium",
                                 ButtonSize::Large => "Large",
@@ -93,15 +100,17 @@ pub fn ButtonPropertyEditor(
                                 label=label_text
                                 options=options
                                 on_change=move |new_val| {
-                                    let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::String(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                    if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
+                                        let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::String(new_val));
+                                        apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                    }
                                 }
                             />
                         }.into_any()
                     },
                     PropType::Bool => {
                         let checked = match prop_name.as_str() {
-                            "disabled" => btn_for_field.disabled,
+                            "disabled" => current_disabled,
                             _ => false,
                         };
                         let prop_name_closure = prop_name.clone();
@@ -110,8 +119,10 @@ pub fn ButtonPropertyEditor(
                                 checked=checked
                                 label=label_text
                                 on_change=move |new_val| {
-                                    let updated_btn = update_button_prop(btn_for_field.clone(), prop_name.as_str(), PropValue::Boolean(new_val));
-                                    apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                    if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
+                                        let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::Boolean(new_val));
+                                        apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                    }
                                 }
                             />
                         }.into_any()
@@ -124,19 +135,21 @@ pub fn ButtonPropertyEditor(
         <StyleEditor
             style=btn_style
             on_change=move |new_style| {
-                let mut updated_btn = btn_for_style.clone();
-                updated_btn.style = new_style;
-                apply_update(comp_id, CanvasComponent::Button(updated_btn), "style".to_string());
+                if let Some(CanvasComponent::Button(mut latest_btn)) = canvas_state.get_component(&comp_id) {
+                    latest_btn.style = new_style;
+                    apply_update(comp_id, CanvasComponent::Button(latest_btn), "style".to_string());
+                }
             }
         />
 
         <AnimationPropertyEditor
             _id=comp_id
-            animation=button.animation.clone()
+            animation=btn_animation
             on_change=move |new_anim| {
-                let mut updated_btn = button.clone();
-                updated_btn.animation = new_anim;
-                apply_update(comp_id, CanvasComponent::Button(updated_btn), "animation".to_string());
+                if let Some(CanvasComponent::Button(mut latest_btn)) = canvas_state.get_component(&comp_id) {
+                    latest_btn.animation = new_anim;
+                    apply_update(comp_id, CanvasComponent::Button(latest_btn), "animation".to_string());
+                }
             }
         />
     }

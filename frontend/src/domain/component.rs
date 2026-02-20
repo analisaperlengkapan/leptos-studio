@@ -10,6 +10,12 @@ use super::validation::Validator;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ComponentId(Uuid);
 
+impl From<Uuid> for ComponentId {
+    fn from(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
+
 /// Animation types
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub enum AnimationType {
