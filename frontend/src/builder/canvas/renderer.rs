@@ -391,10 +391,19 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
         border_radius,
         if card.shadow {
             "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"
+    let style = format!(
+        "{} padding: {}px; border-radius: {}px; {} {}",
+        anim_style,
+        padding,
+        border_radius,
+        if card.shadow {
+            "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"
         } else {
             ""
         },
+        custom_style,
     );
+
 
     let border_class = if card.border {
         "border border-gray-200"
