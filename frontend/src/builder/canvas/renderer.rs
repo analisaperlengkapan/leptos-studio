@@ -252,7 +252,7 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
 
     // Fix Bug 7: Reorder styles to allow specific properties to override generic ones
     let style = format!(
-        "{} {} gap: {}px; padding: {}px {}px {}px {}px; {} {}",
+        "{} {} gap: {}px; padding: {}px {}px {}px {}px; {}",
         align_style,
         anim_style,
         container.gap,
@@ -262,6 +262,7 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
         container.padding.left,
         custom_style,
     );
+
 
 
     let container_id = container.id;
