@@ -252,17 +252,16 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
 
     // Fix Bug 7: Reorder styles to allow specific properties to override generic ones
     let style = format!(
-        "{} {} gap: {}px; padding: {}px {}px {}px {}px; {} {}",
+        "{} {} {} gap: {}px; padding: {}px {}px {}px {}px;",
         align_style,
         anim_style,
+        custom_style,
         container.gap,
         container.padding.top,
         container.padding.right,
         container.padding.bottom,
-        container.padding.left,
-        custom_style,
+        container.padding.left
     );
-
 
     let container_id = container.id;
 
@@ -383,27 +382,16 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
     let custom_style = card.style.to_css_string();
 
     // Fix Bug 7: Reorder styles
+    let shadow_style = if card.shadow {
+        "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"
+    } else {
+        ""
+    };
+
     let style = format!(
         "{} {} padding: {}px; border-radius: {}px; {}",
-        anim_style,
-        custom_style,
-        padding,
-        border_radius,
-        if card.shadow {
-            "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"
-    let style = format!(
-        "{} padding: {}px; border-radius: {}px; {} {}",
-        anim_style,
-        padding,
-        border_radius,
-        if card.shadow {
-            "box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);"
-        } else {
-            ""
-        },
-        custom_style,
+        anim_style, custom_style, padding, border_radius, shadow_style
     );
-
 
     let border_class = if card.border {
         "border border-gray-200"

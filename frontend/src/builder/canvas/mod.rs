@@ -38,10 +38,12 @@ pub fn handle_drop(ev: ev::DragEvent, _target_id: Option<ComponentId>, app_state
         {
             if let Ok(move_id) = uuid::Uuid::parse_str(&move_id_str) {
                 if let Some(target) = _target_id {
-                     app_state.canvas.move_component_to_parent(move_id.into(), target);
+                    app_state
+                        .canvas
+                        .move_component_to_parent(move_id.into(), target);
                 } else {
-                     // Moved to root (canvas background)
-                     app_state.canvas.move_component_to_root(move_id.into());
+                    // Moved to root (canvas background)
+                    app_state.canvas.move_component_to_root(move_id.into());
                 }
             }
         }

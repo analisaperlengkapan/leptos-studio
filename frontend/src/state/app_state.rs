@@ -279,9 +279,7 @@ impl CanvasState {
         let components = self.components.get_untracked();
         if let Some(parent) = Self::get_recursive(&components, &id) {
             if Self::is_descendant(&parent, &target_id) {
-                web_sys::console::warn_1(
-                    &"Cannot move a component into its own descendant".into(),
-                );
+                web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
                 return;
             }
         }
@@ -319,9 +317,7 @@ impl CanvasState {
         let components = self.components.get_untracked();
         if let Some(parent) = Self::get_recursive(&components, &id) {
             if Self::is_descendant(&parent, &parent_id) {
-                web_sys::console::warn_1(
-                    &"Cannot move a component into its own descendant".into(),
-                );
+                web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
                 return;
             }
         }
@@ -331,8 +327,8 @@ impl CanvasState {
         self.components.update(|components| {
             if let Some(comp) = Self::extract_recursive(components, &id) {
                 if !Self::add_child_recursive(components, &parent_id, comp.clone()) {
-                     // If failed, put back to root to avoid data loss
-                     components.push(comp);
+                    // If failed, put back to root to avoid data loss
+                    components.push(comp);
                 }
             }
         });

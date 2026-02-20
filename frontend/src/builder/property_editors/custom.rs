@@ -13,24 +13,36 @@ pub fn CustomPropertyEditor(
     let canvas_state = app_state.canvas;
 
     let update_name = move |new_name: String| {
-         if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
-             c.name = new_name;
-             canvas_state.update_component_with_snapshot(&id, CanvasComponent::Custom(c), "Update Custom Name");
-         }
+        if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
+            c.name = new_name;
+            canvas_state.update_component_with_snapshot(
+                &id,
+                CanvasComponent::Custom(c),
+                "Update Custom Name",
+            );
+        }
     };
 
     let update_template = move |new_template: String| {
-         if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
-             c.template = new_template;
-             canvas_state.update_component_with_snapshot(&id, CanvasComponent::Custom(c), "Update Custom Template");
-         }
+        if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
+            c.template = new_template;
+            canvas_state.update_component_with_snapshot(
+                &id,
+                CanvasComponent::Custom(c),
+                "Update Custom Template",
+            );
+        }
     };
 
     let update_style = move |new_style| {
-         if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
-             c.style = new_style;
-             canvas_state.update_component_with_snapshot(&id, CanvasComponent::Custom(c), "Update Custom Style");
-         }
+        if let Some(CanvasComponent::Custom(mut c)) = canvas_state.get_component(&id) {
+            c.style = new_style;
+            canvas_state.update_component_with_snapshot(
+                &id,
+                CanvasComponent::Custom(c),
+                "Update Custom Style",
+            );
+        }
     };
 
     let current_name = custom.name.clone();

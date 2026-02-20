@@ -33,8 +33,10 @@ pub fn ContainerPropertyEditor(
 
     // Helper to switch layout type
     let switch_layout = move |new_type: &str| {
-        if let Some(CanvasComponent::Container(mut current_container)) = canvas_state.get_component(&id) {
-             let new_layout = match new_type {
+        if let Some(CanvasComponent::Container(mut current_container)) =
+            canvas_state.get_component(&id)
+        {
+            let new_layout = match new_type {
                 "Flex" => LayoutType::Flex {
                     direction: FlexDirection::Column,
                     wrap: false,
