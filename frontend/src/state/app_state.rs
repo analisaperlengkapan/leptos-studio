@@ -341,6 +341,7 @@ impl CanvasState {
                 } else {
                     // If failed, put back to root to avoid data loss
                     components.push(comp);
+                    success = true; // Still record snapshot so this move can be undone
                 }
             }
         });
