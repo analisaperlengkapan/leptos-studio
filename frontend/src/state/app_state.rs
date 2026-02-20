@@ -300,6 +300,7 @@ impl CanvasState {
                 } else if let Some(c) = comp_opt {
                     // Restore component if insertion failed
                     components.push(c);
+                    success = true; // Still record snapshot so this move can be undone
                     web_sys::console::warn_1(
                         &"Failed to move component to target, moved to root".into(),
                     );
