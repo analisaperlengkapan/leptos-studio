@@ -338,6 +338,7 @@ impl CanvasState {
     }
 
     // New: Move component to root
+    // New: Move component to root
     pub fn move_component_to_root(&self, id: ComponentId) {
         // Optimization: Check if already at root
         if self
@@ -347,15 +348,16 @@ impl CanvasState {
             return;
         }
 
+        self.record_snapshot("Move Component To Root");
+
         self.components.update(|components| {
             #[allow(clippy::collapsible_if)]
             if let Some(comp) = Self::extract_recursive(components, &id) {
                 components.push(comp);
             }
         });
-        // Only record snapshot if mutation actually happened (component was found and moved)
-        // Note: For a more robust fix, check the return value of extract_recursive before recording.
     }
+
 
     fn is_descendant(parent: &CanvasComponent, target_id: &ComponentId) -> bool {
         match parent {
