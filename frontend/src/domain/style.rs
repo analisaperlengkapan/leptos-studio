@@ -44,19 +44,9 @@ impl ComponentStyle {
         if let Some(ref val) = self.background_color {
             css.push_str(&format!("background-color: {};", val));
         }
-        match (&self.border_color, self.border_width) {
-            (Some(color), Some(width)) => {
-                css.push_str(&format!("border: {}px solid {};", width, color));
-            }
-            (None, Some(width)) => {
-                css.push_str(&format!("border: {}px solid;", width));
-            }
-            (Some(color), None) => {
-                css.push_str(&format!("border-color: {};", color));
-            }
-            _ => {}
+        if let (Some(val), Some(width)) = (&self.border_color, self.border_width) {
+            css.push_str(&format!("border: {}px solid {};", width, val));
         }
-
         if let Some(radius) = self.border_radius {
             css.push_str(&format!("border-radius: {}px;", radius));
         }

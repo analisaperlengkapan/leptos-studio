@@ -129,11 +129,6 @@ fn TreeNode(
                 };
 
                 let on_drop = move |ev: leptos::ev::DragEvent| {
-                    // Only stop propagation if we actually handle the drop.
-                    // However, we are in a tree node. If we don't handle it, should it bubble?
-                    // Bubbling would mean dropping "on" the node might trigger the parent container's drop handler?
-                    // In a tree view, usually dropping on a node targets that node (e.g. as parent or sibling).
-
                     let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
                     let mut handled = false;
 
@@ -157,19 +152,63 @@ fn TreeNode(
                                 && !component_type_str.is_empty()
                             {
                                 if let Some(new_component) = create_canvas_component(&component_type_str) {
-                                    // Add as child if container/card, otherwise add after (sibling)?
-                                    // For consistency with move_component_relative, we might want "insert after" logic
-                                    // unless we explicitly drop "into".
-                                    // But `add_child_component` tries to add as child.
+                                    // Try to add as child first (if container)
+                                    let added_as_child = app_state.canvas.add_child_component(&id, new_component.clone());
 
-                                    // Let's try to add as child first (if container)
-                                    let added = app_state.canvas.add_child_component(&id, new_component.clone());
-                                    if !added {
-                                        // Fallback: Add to parent of this node?
-                                        // Or for now, just let it fail if not a container.
-                                        // Or bubble up?
-                                    } else {
+                                    if added_as_child {
                                         handled = true;
+                                    } else {
+                                        // If not a container, find parent and add as sibling (insert after)
+                                        let components = app_state.canvas.components.get_untracked();
+                                        // We need to find the parent of the current node 'id'
+                                        // Since we don't have a direct parent map, we can search.
+
+                                        // Helper to find parent ID - duplicated logic for now, ideally move to app_state or helper
+                                        fn find_parent_id_recursive(
+                                            comps: &[CanvasComponent],
+                                            target_id: &ComponentId
+                                        ) -> Option<ComponentId> {
+                                            for c in comps {
+                                                match c {
+                                                    CanvasComponent::Container(cont) => {
+                                                        if cont.children.iter().any(|child| child.id() == target_id) {
+                                                            return Some(*c.id());
+                                                        }
+                                                        if let Some(pid) = find_parent_id_recursive(&cont.children, target_id) {
+                                                            return Some(pid);
+                                                        }
+                                                    },
+                                                    CanvasComponent::Card(card) => {
+                                                        if card.children.iter().any(|child| child.id() == target_id) {
+                                                            return Some(*c.id());
+                                                        }
+                                                        if let Some(pid) = find_parent_id_recursive(&card.children, target_id) {
+                                                            return Some(pid);
+                                                        }
+                                                    },
+                                                    _ => {}
+                                                }
+                                            }
+                                            None
+                                        }
+
+                                        if let Some(parent_id) = find_parent_id_recursive(&components, &id) {
+                                            // Add to parent, effectively as a sibling.
+                                            // But standard add_child appends to end.
+                                            // Ideally we want "insert after".
+                                            // For now, let's just append to parent which is a safe default for "dropping near".
+                                            // Or we could implement `insert_component_after(target_id, new_component)` in AppState.
+
+                                            // Using add_child_component on parent
+                                            if app_state.canvas.add_child_component(&parent_id, new_component) {
+                                                handled = true;
+                                            }
+                                        } else {
+                                            // No parent found, means it's a root component.
+                                            // Add to root (canvas)
+                                            app_state.canvas.add_component(new_component);
+                                            handled = true;
+                                        }
                                     }
                                 }
                             }
@@ -180,8 +219,6 @@ fn TreeNode(
                         ev.prevent_default();
                         ev.stop_propagation();
                     }
-                    // If not handled, we don't stop propagation, so it might bubble up to a parent container
-                    // or the root canvas drop handler.
                 };
 
                 let children = match &comp {
