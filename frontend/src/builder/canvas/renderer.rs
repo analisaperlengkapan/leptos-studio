@@ -250,17 +250,19 @@ fn render_container(container: ContainerComponent, canvas_state: CanvasState) ->
     let anim_style = get_animation_style(&container.animation);
     let custom_style = container.style.to_css_string();
 
-    // Fix Bug 7: Reorder styles to allow specific properties to override generic ones
+    // Fix Bug 7: Reorder styles.
+    // For Container, specific props (gap, padding) should override generic custom_style
+    // because Container has a dedicated, high-fidelity Spacing editor.
     let style = format!(
-        "{} {} gap: {}px; padding: {}px {}px {}px {}px; {}",
+        "{} {} {} gap: {}px; padding: {}px {}px {}px {}px;",
         align_style,
         anim_style,
+        custom_style,
         container.gap,
         container.padding.top,
         container.padding.right,
         container.padding.bottom,
         container.padding.left,
-        custom_style,
     );
 
     let container_id = container.id;
