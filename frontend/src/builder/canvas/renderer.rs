@@ -391,8 +391,8 @@ fn render_card(card: CardComponent, canvas_state: CanvasState) -> impl IntoView 
     };
 
     let style = format!(
-        "{} padding: {}px; border-radius: {}px; {} {}",
-        anim_style, padding, border_radius, shadow_style, custom_style
+        "{} {} padding: {}px; border-radius: {}px; {}",
+        anim_style, custom_style, padding, border_radius, shadow_style
     );
 
     let border_class = if card.border {
