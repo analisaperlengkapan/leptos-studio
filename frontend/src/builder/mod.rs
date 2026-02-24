@@ -38,6 +38,7 @@ pub mod variable_panel;
 pub mod welcome_modal;
 
 // Re-export components for easier imports
+pub use crate::domain::{ComponentStyle, ThemePreset};
 pub use accessibility::{
     Announcer, FocusTrap, KeyboardHint, LiveRegion, ProgressBar, SkipLink, Tooltip, VisuallyHidden,
 };
@@ -55,7 +56,7 @@ pub use property_editor::PropertyEditor;
 pub use responsive_preview::{CanvasViewport, ResponsiveIndicator, ResponsivePreviewControls};
 pub use save_template_modal::SaveTemplateModal;
 pub use status_bar::{StatusBar, StatusIndicator};
-pub use styling_system::{ComponentStyle, StyleEditor, ThemePreset, ThemeSelector};
+pub use styling_system::{StyleEditor, ThemeSelector};
 pub use template_gallery::TemplateGallery;
 pub use tree_view::TreeView;
 pub mod debug_panel;

@@ -3,11 +3,18 @@ use std::collections::HashMap;
 use uuid::Uuid;
 
 use super::error::ValidationError;
+use super::style::ComponentStyle;
 use super::validation::Validator;
 
 /// Component ID for unique identification
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ComponentId(Uuid);
+
+impl From<Uuid> for ComponentId {
+    fn from(uuid: Uuid) -> Self {
+        Self(uuid)
+    }
+}
 
 /// Animation types
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -149,6 +156,8 @@ pub struct ButtonComponent {
     pub animation: Option<Animation>,
     #[serde(default)]
     pub bindings: HashMap<String, String>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl ButtonComponent {
@@ -162,6 +171,7 @@ impl ButtonComponent {
             on_click: None,
             animation: None,
             bindings: HashMap::new(),
+            style: ComponentStyle::default(),
         }
     }
 }
@@ -217,6 +227,8 @@ pub struct TextComponent {
     pub animation: Option<Animation>,
     #[serde(default)]
     pub bindings: HashMap<String, String>,
+    #[serde(default)]
+    pub custom_style: ComponentStyle, // renamed to avoid conflict with existing 'style' field
 }
 
 impl TextComponent {
@@ -228,6 +240,7 @@ impl TextComponent {
             tag: TextTag::P,
             animation: None,
             bindings: HashMap::new(),
+            custom_style: ComponentStyle::default(),
         }
     }
 }
@@ -271,6 +284,8 @@ pub struct InputComponent {
     pub animation: Option<Animation>,
     #[serde(default)]
     pub bindings: HashMap<String, String>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl InputComponent {
@@ -285,6 +300,7 @@ impl InputComponent {
             on_input: None,
             animation: None,
             bindings: HashMap::new(),
+            style: ComponentStyle::default(),
         }
     }
 }
@@ -319,6 +335,8 @@ pub struct SelectComponent {
     pub on_change: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl SelectComponent {
@@ -330,6 +348,7 @@ impl SelectComponent {
             disabled: false,
             on_change: None,
             animation: None,
+            style: ComponentStyle::default(),
         }
     }
 }
@@ -419,6 +438,8 @@ pub struct ContainerComponent {
     pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl ContainerComponent {
@@ -436,6 +457,7 @@ impl ContainerComponent {
             padding: Spacing::default(),
             on_click: None,
             animation: None,
+            style: ComponentStyle::default(),
         }
     }
 }
@@ -475,6 +497,8 @@ pub struct ImageComponent {
     pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl ImageComponent {
@@ -487,6 +511,7 @@ impl ImageComponent {
             height: None,
             on_click: None,
             animation: None,
+            style: ComponentStyle::default(),
         }
     }
 }
@@ -523,6 +548,8 @@ pub struct CardComponent {
     pub on_click: Option<String>,
     #[serde(default)]
     pub animation: Option<Animation>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl CardComponent {
@@ -536,6 +563,7 @@ impl CardComponent {
             border_radius: 8,
             on_click: None,
             animation: None,
+            style: ComponentStyle::default(),
         }
     }
 }
@@ -579,6 +607,8 @@ pub struct CustomComponent {
     pub name: String,
     pub template: String,
     pub props: HashMap<String, PropValue>,
+    #[serde(default)]
+    pub style: ComponentStyle,
 }
 
 impl CustomComponent {
@@ -588,6 +618,7 @@ impl CustomComponent {
             name,
             template,
             props: HashMap::new(),
+            style: ComponentStyle::default(),
         }
     }
 }

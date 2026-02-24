@@ -18,15 +18,36 @@ pub fn handle_drop(ev: ev::DragEvent, _target_id: Option<ComponentId>, app_state
     ev.stop_propagation();
 
     let drag_ev = ev.unchecked_into::<web_sys::DragEvent>();
-    if let Some(dt) = drag_ev.data_transfer()
-        && let Ok(component_type_str) = dt.get_data("component")
-        // Use factory method from component_library
-        && let Some(new_component) = create_canvas_component(&component_type_str)
-    {
-        if let Some(target) = _target_id {
-            app_state.canvas.add_child_component(&target, new_component);
-        } else {
-            app_state.canvas.add_component(new_component);
+
+    // Check for "component" (New component from palette)
+    if let Some(dt) = drag_ev.data_transfer() {
+        if let Ok(component_type_str) = dt.get_data("component")
+            && !component_type_str.is_empty()
+        {
+            if let Some(new_component) = create_canvas_component(&component_type_str) {
+                if let Some(target) = _target_id {
+                    app_state.canvas.add_child_component(&target, new_component);
+                } else {
+                    app_state.canvas.add_component(new_component);
+                }
+            }
+        }
+        // Check for "move-component" (Reordering/Moving existing component)
+        else {
+            #[allow(clippy::collapsible_if)]
+            if let Ok(move_id_str) = dt.get_data("move-component")
+                && !move_id_str.is_empty()
+            {
+                if let Ok(move_id) = uuid::Uuid::parse_str(&move_id_str) {
+                    #[allow(clippy::collapsible_if)]
+                    if let Some(target) = _target_id {
+                        app_state.canvas.move_component_to_parent(move_id.into(), target);
+                    } else {
+                        // Moved to root (canvas background)
+                        app_state.canvas.move_component_to_root(move_id.into());
+                    }
+                }
+            }
         }
     }
 

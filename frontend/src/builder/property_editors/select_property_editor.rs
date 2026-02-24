@@ -1,5 +1,6 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, StringInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::{ComponentId, SelectComponent};
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -10,6 +11,7 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
     let canvas_state = app_state.canvas;
 
     let update_options = move |val: String| {
+        canvas_state.record_snapshot("Update Select Options");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Select(sel) = c {
                 sel.options = val;
@@ -18,6 +20,7 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
     };
 
     let update_placeholder = move |val: String| {
+        canvas_state.record_snapshot("Update Select Placeholder");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Select(sel) = c {
                 sel.placeholder = val;
@@ -26,6 +29,7 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
     };
 
     let update_disabled = move |val: bool| {
+        canvas_state.record_snapshot("Update Select Disabled");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Select(sel) = c {
                 sel.disabled = val;
@@ -37,6 +41,8 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
     let select_clone = select.clone();
     let id_clone2 = id;
     let select_clone2 = select_clone.clone();
+    let id_style = id;
+    let select_style = select.clone();
 
     view! {
         <div class="property-group">
@@ -63,6 +69,7 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
             event_name="On Change".to_string()
             handler_name=select_clone2.on_change.clone()
             on_change=Callback::new(move |val: String| {
+                canvas_state.record_snapshot("Update Select Event");
                 canvas_state.update_component(&id_clone2, |c| {
                     if let crate::domain::CanvasComponent::Select(sel) = c {
                         sel.on_change = if val.is_empty() { None } else { Some(val) };
@@ -71,10 +78,23 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
             })
         />
 
+        <StyleEditor
+            style=select_style.style
+            on_change=move |new_style| {
+                canvas_state.record_snapshot("Update Select Style");
+                canvas_state.update_component(&id_style, |c| {
+                     if let crate::domain::CanvasComponent::Select(sel) = c {
+                        sel.style = new_style;
+                    }
+                });
+            }
+        />
+
         <AnimationPropertyEditor
             _id=id_clone
             animation=select_clone.animation
             on_change=move |new_anim| {
+                canvas_state.record_snapshot("Update Select Animation");
                 canvas_state.update_component(&id_clone, |c| {
                     if let crate::domain::CanvasComponent::Select(sel) = c {
                         sel.animation = new_anim;

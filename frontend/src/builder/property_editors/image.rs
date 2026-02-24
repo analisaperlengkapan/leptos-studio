@@ -1,5 +1,6 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::StringInput;
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::ImageComponent;
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -10,6 +11,7 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     let canvas_state = app_state.canvas;
 
     let update_src = move |new_src: String| {
+        canvas_state.record_snapshot("Update Image Source");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Image(img) = c {
                 img.src = new_src;
@@ -18,6 +20,7 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     };
 
     let update_alt = move |new_alt: String| {
+        canvas_state.record_snapshot("Update Image Alt");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Image(img) = c {
                 img.alt = new_alt;
@@ -26,6 +29,7 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     };
 
     let update_width = move |new_width: String| {
+        canvas_state.record_snapshot("Update Image Width");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Image(img) = c {
                 if new_width.is_empty() {
@@ -38,6 +42,7 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     };
 
     let update_height = move |new_height: String| {
+        canvas_state.record_snapshot("Update Image Height");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Image(img) = c {
                 if new_height.is_empty() {
@@ -53,6 +58,8 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     let img_clone = image.clone();
     let id_clone2 = id;
     let img_clone2 = img_clone.clone();
+    let id_style = id;
+    let img_style = image.clone();
 
     view! {
         <div class="property-group">
@@ -84,6 +91,7 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
             event_name="On Click".to_string()
             handler_name=img_clone2.on_click.clone()
             on_change=Callback::new(move |val: String| {
+                canvas_state.record_snapshot("Update Image Event");
                 canvas_state.update_component(&id_clone2, |c| {
                     if let crate::domain::CanvasComponent::Image(img) = c {
                         img.on_click = if val.is_empty() { None } else { Some(val) };
@@ -92,10 +100,23 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
             })
         />
 
+        <StyleEditor
+            style=img_style.style
+            on_change=move |new_style| {
+                canvas_state.record_snapshot("Update Image Style");
+                canvas_state.update_component(&id_style, |c| {
+                     if let crate::domain::CanvasComponent::Image(img) = c {
+                        img.style = new_style;
+                    }
+                });
+            }
+        />
+
         <AnimationPropertyEditor
             _id=id_clone
             animation=img_clone.animation
             on_change=move |new_anim| {
+                canvas_state.record_snapshot("Update Image Animation");
                 canvas_state.update_component(&id_clone, |c| {
                     if let crate::domain::CanvasComponent::Image(img) = c {
                         img.animation = new_anim;

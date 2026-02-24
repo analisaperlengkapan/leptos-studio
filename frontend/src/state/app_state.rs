@@ -176,32 +176,6 @@ impl CanvasState {
         id: &ComponentId,
         f: impl FnOnce(&mut CanvasComponent),
     ) -> bool {
-        // We need to find the component first, then apply the closure
-        // Since we can't easily pass the closure down recursively without cloning or complex types,
-        // we'll implement a search-and-apply approach.
-        // Actually, for a FnOnce, we need to find it first.
-
-        // Iterative search or recursive search?
-        // Let's stick to the current recursive pattern but adapted for in-place mutation.
-        // We can't pass FnOnce recursively easily if we don't find it immediately.
-        // So we will change this to use a tailored recursive function that returns the result.
-        // But since we need to mutate deep down, passing the closure is tricky if it's FnOnce.
-        // Let's require the closure to be `FnOnce(&mut CanvasComponent)`.
-
-        // Wait, standard recursion with mutable iterator is fine if we return early.
-        // But we need to move `f` into the successful match arm.
-
-        // To do this with a single FnOnce, we need to locate the item first, OR pass the closure down.
-        // Since we can't clone FnOnce, we can only pass it if we haven't used it.
-        // This is hard with simple recursion.
-        // Let's try to find the path first? No, that's slow.
-
-        // Alternative: Use `FnMut` or just accept that we might need to change the signature.
-        // The previous implementation took `new_component`, which was fully constructed.
-        // The usage in `SelectPropertyEditor` passes a closure.
-        // I will change this method to accept a closure to support partial updates more efficiently.
-        // BUT, I need to implement the recursion carefully.
-
         fn recurse(
             components: &mut [CanvasComponent],
             id: &ComponentId,
@@ -289,6 +263,169 @@ impl CanvasState {
                 && Self::move_recursive(&mut card.children, id, offset)
             {
                 return true;
+            }
+        }
+        false
+    }
+
+    // --- New Move Logic for Tree View ---
+
+    pub fn move_component_relative(&self, id: ComponentId, target_id: ComponentId) {
+        if id == target_id {
+            return;
+        }
+
+        let mut components = self.components.get();
+
+        // Check for descendant move to prevent infinite recursion/data loss
+        // We use the cloned components for check as well
+        if Self::get_recursive(&components, &id)
+            .is_some_and(|parent| Self::is_descendant(&parent, &target_id))
+        {
+            web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
+            return;
+        }
+
+        if let Some(comp) = Self::extract_recursive(&mut components, &id) {
+            let mut comp_opt = Some(comp);
+            if Self::insert_after_recursive(&mut components, &target_id, &mut comp_opt) {
+                // Success: record snapshot of OLD state (current signal) then set new state
+                self.record_snapshot("Reorder Component");
+                self.components.set(components);
+            } else if let Some(_c) = comp_opt {
+                // Failed to insert: logic might suggest putting it back or logging warning.
+                // Since we operated on a clone, the signal is untouched. We don't need to restore 'c'.
+                // But we should probably warn.
+                web_sys::console::warn_1(
+                    &"Failed to move component to target (insert failed)".into(),
+                );
+                // No mutation happened, no snapshot needed.
+            }
+        }
+    }
+
+    // New: Move component into a parent (for drag and drop)
+    pub fn move_component_to_parent(&self, id: ComponentId, parent_id: ComponentId) {
+        if id == parent_id {
+            return;
+        }
+
+        let mut components = self.components.get();
+
+        if Self::get_recursive(&components, &id)
+            .is_some_and(|parent| Self::is_descendant(&parent, &parent_id))
+        {
+            web_sys::console::warn_1(&"Cannot move a component into its own descendant".into());
+            return;
+        }
+
+        if let Some(comp) = Self::extract_recursive(&mut components, &id) {
+            if Self::add_child_recursive(&mut components, &parent_id, comp) {
+                self.record_snapshot("Move Component Into Parent");
+                self.components.set(components);
+            } else {
+                // Failed to add child (e.g. parent not found or not container)
+                // Since it's a clone, no harm done to original state.
+                web_sys::console::warn_1(&"Failed to move component into parent".into());
+            }
+        }
+    }
+
+    // New: Move component to root
+    pub fn move_component_to_root(&self, id: ComponentId) {
+        let mut components = self.components.get();
+
+        // Optimization: Check if already at root
+        if components.iter().any(|comp| *comp.id() == id) {
+            return;
+        }
+
+        #[allow(clippy::collapsible_if)]
+        if let Some(comp) = Self::extract_recursive(&mut components, &id) {
+            components.push(comp);
+            self.record_snapshot("Move Component to Root");
+            self.components.set(components);
+        }
+    }
+
+    fn is_descendant(parent: &CanvasComponent, target_id: &ComponentId) -> bool {
+        match parent {
+            CanvasComponent::Container(c) => {
+                for child in &c.children {
+                    if child.id() == target_id {
+                        return true;
+                    }
+                    if Self::is_descendant(child, target_id) {
+                        return true;
+                    }
+                }
+            }
+            CanvasComponent::Card(c) => {
+                for child in &c.children {
+                    if child.id() == target_id {
+                        return true;
+                    }
+                    if Self::is_descendant(child, target_id) {
+                        return true;
+                    }
+                }
+            }
+            _ => {}
+        }
+        false
+    }
+
+    fn extract_recursive(
+        components: &mut Vec<CanvasComponent>,
+        id: &ComponentId,
+    ) -> Option<CanvasComponent> {
+        if let Some(pos) = components.iter().position(|c| c.id() == id) {
+            return Some(components.remove(pos));
+        }
+        for comp in components.iter_mut() {
+            match comp {
+                CanvasComponent::Container(c) => {
+                    if let Some(found) = Self::extract_recursive(&mut c.children, id) {
+                        return Some(found);
+                    }
+                }
+                CanvasComponent::Card(c) => {
+                    if let Some(found) = Self::extract_recursive(&mut c.children, id) {
+                        return Some(found);
+                    }
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+
+    #[allow(clippy::collapsible_if)]
+    fn insert_after_recursive(
+        components: &mut Vec<CanvasComponent>,
+        target_id: &ComponentId,
+        item: &mut Option<CanvasComponent>,
+    ) -> bool {
+        if let Some(pos) = components.iter().position(|c| c.id() == target_id) {
+            if let Some(i) = item.take() {
+                components.insert(pos + 1, i);
+                return true;
+            }
+        }
+
+        for comp in components.iter_mut() {
+            match comp {
+                CanvasComponent::Container(c) => {
+                    if Self::insert_after_recursive(&mut c.children, target_id, item) {
+                        return true;
+                    }
+                }
+                CanvasComponent::Card(c) => {
+                    if Self::insert_after_recursive(&mut c.children, target_id, item) {
+                        return true;
+                    }
+                }
+                _ => {}
             }
         }
         false

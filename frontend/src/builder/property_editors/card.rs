@@ -1,5 +1,6 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, NumberInput};
+use crate::builder::styling_system::StyleEditor;
 use crate::domain::CardComponent;
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -10,6 +11,7 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     let canvas_state = app_state.canvas;
 
     let update_padding = move |val: f64| {
+        canvas_state.record_snapshot("Update Card Padding");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Card(card) = c {
                 card.padding = val as u32;
@@ -18,6 +20,7 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     };
 
     let update_radius = move |val: f64| {
+        canvas_state.record_snapshot("Update Card Radius");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Card(card) = c {
                 card.border_radius = val as u32;
@@ -26,6 +29,7 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     };
 
     let update_shadow = move |val: bool| {
+        canvas_state.record_snapshot("Update Card Shadow");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Card(card) = c {
                 card.shadow = val;
@@ -34,6 +38,7 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     };
 
     let update_border = move |val: bool| {
+        canvas_state.record_snapshot("Update Card Border");
         canvas_state.update_component(&id, |c| {
             if let crate::domain::CanvasComponent::Card(card) = c {
                 card.border = val;
@@ -45,6 +50,8 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     let id_clone = id;
     let card_clone2 = card_clone.clone();
     let id_clone2 = id;
+    let card_style = card.clone();
+    let id_style = id;
 
     view! {
         <div class="property-group">
@@ -76,6 +83,7 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
             event_name="On Click".to_string()
             handler_name=card_clone2.on_click.clone()
             on_change=Callback::new(move |val: String| {
+                canvas_state.record_snapshot("Update Card Event");
                 canvas_state.update_component(&id_clone2, |c| {
                     if let crate::domain::CanvasComponent::Card(card) = c {
                         card.on_click = if val.is_empty() { None } else { Some(val) };
@@ -84,10 +92,23 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
             })
         />
 
+        <StyleEditor
+            style=card_style.style
+            on_change=move |new_style| {
+                canvas_state.record_snapshot("Update Card Style");
+                canvas_state.update_component(&id_style, |c| {
+                     if let crate::domain::CanvasComponent::Card(card) = c {
+                        card.style = new_style;
+                    }
+                });
+            }
+        />
+
         <AnimationPropertyEditor
             _id=id_clone
             animation=card_clone.animation
             on_change=move |new_anim| {
+                canvas_state.record_snapshot("Update Card Animation");
                 canvas_state.update_component(&id_clone, |c| {
                     if let crate::domain::CanvasComponent::Card(card) = c {
                         card.animation = new_anim;

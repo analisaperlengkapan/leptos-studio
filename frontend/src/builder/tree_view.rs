@@ -1,7 +1,9 @@
+use crate::builder::component_library::create_canvas_component;
 use crate::domain::{CanvasComponent, ComponentId};
 use crate::state::AppState;
 use leptos::prelude::*;
 use std::collections::HashMap;
+use wasm_bindgen::JsCast;
 
 #[component]
 pub fn TreeView() -> impl IntoView {
@@ -110,6 +112,112 @@ fn TreeNode(
                     }
                 };
 
+                let on_drag_start = move |ev: leptos::ev::DragEvent| {
+                    if let Some(dt) = ev.data_transfer() {
+                        let _ = dt.set_data("move-component", &id.to_string());
+                        dt.set_effect_allowed("move");
+                    }
+                    ev.stop_propagation();
+                };
+
+                let on_drag_over = move |ev: leptos::ev::DragEvent| {
+                    ev.prevent_default(); // Allow drop
+                    ev.stop_propagation();
+                    if let Some(dt) = ev.data_transfer() {
+                        dt.set_drop_effect("move");
+                    }
+                };
+
+                let on_drop = move |ev: leptos::ev::DragEvent| {
+                    let drag_ev = ev.clone().unchecked_into::<web_sys::DragEvent>();
+                    let mut handled = false;
+
+                    if let Some(dt) = drag_ev.data_transfer() {
+                        // Case 1: Reordering (move-component)
+                        if let Ok(dragged_id_str) = dt.get_data("move-component")
+                            && !dragged_id_str.is_empty()
+                        {
+                            let map = component_map.get();
+                            let dragged_id = map.keys().find(|k| k.to_string() == dragged_id_str).cloned();
+
+                            if let Some(did) = dragged_id {
+                                // Determine if we should move INTO or AFTER based on target type
+                                let target_is_container = map.get(&id).map(|c| matches!(c,
+                                    CanvasComponent::Container(_) | CanvasComponent::Card(_)
+                                )).unwrap_or(false);
+
+                                if target_is_container {
+                                    app_state.canvas.move_component_to_parent(did, id);
+                                } else {
+                                    app_state.canvas.move_component_relative(did, id);
+                                }
+                                handled = true;
+                            }
+                        }
+                        // Case 2: Adding New Component (component)
+                        else {
+                            #[allow(clippy::collapsible_if)]
+                            if let Ok(component_type_str) = dt.get_data("component")
+                                && !component_type_str.is_empty()
+                            {
+                                if let Some(new_component) = create_canvas_component(&component_type_str) {
+                                    // Try to add as child first (if container)
+                                    let added_as_child = app_state.canvas.add_child_component(&id, new_component.clone());
+
+                                    if added_as_child {
+                                        handled = true;
+                                    } else {
+                                        // If not a container, find parent and add as sibling (insert after)
+                                        let components = app_state.canvas.components.get_untracked();
+                                        // Helper to find parent ID
+                                        fn find_parent_id_recursive(
+                                            comps: &[CanvasComponent],
+                                            target_id: &ComponentId
+                                        ) -> Option<ComponentId> {
+                                            for c in comps {
+                                                match c {
+                                                    CanvasComponent::Container(cont) => {
+                                                        if cont.children.iter().any(|child| child.id() == target_id) {
+                                                            return Some(*c.id());
+                                                        }
+                                                        if let Some(pid) = find_parent_id_recursive(&cont.children, target_id) {
+                                                            return Some(pid);
+                                                        }
+                                                    },
+                                                    CanvasComponent::Card(card) => {
+                                                        if card.children.iter().any(|child| child.id() == target_id) {
+                                                            return Some(*c.id());
+                                                        }
+                                                        if let Some(pid) = find_parent_id_recursive(&card.children, target_id) {
+                                                            return Some(pid);
+                                                        }
+                                                    },
+                                                    _ => {}
+                                                }
+                                            }
+                                            None
+                                        }
+
+                                        if let Some(parent_id) = find_parent_id_recursive(&components, &id) {
+                                            if app_state.canvas.add_child_component(&parent_id, new_component) {
+                                                handled = true;
+                                            }
+                                        } else {
+                                            app_state.canvas.add_component(new_component);
+                                            handled = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if handled {
+                        ev.prevent_default();
+                        ev.stop_propagation();
+                    }
+                };
+
                 let children = match &comp {
                     CanvasComponent::Container(c) => c.children.clone(),
                     CanvasComponent::Card(c) => c.children.clone(),
@@ -123,6 +231,10 @@ fn TreeNode(
                             style=format!("padding-left: {}px", level * 12 + 12)
                             on:click=on_click
                             on:keydown=on_keydown
+                            draggable="true"
+                            on:dragstart=on_drag_start
+                            on:dragover=on_drag_over
+                            on:drop=on_drop
                             role="treeitem"
                             aria-selected=move || is_selected().to_string()
                             tabindex="0"
