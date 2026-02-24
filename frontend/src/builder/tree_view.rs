@@ -141,7 +141,16 @@ fn TreeNode(
                             let dragged_id = map.keys().find(|k| k.to_string() == dragged_id_str).cloned();
 
                             if let Some(did) = dragged_id {
-                                app_state.canvas.move_component_relative(did, id);
+                                // Determine if we should move INTO or AFTER based on target type
+                                let target_is_container = map.get(&id).map(|c| matches!(c,
+                                    CanvasComponent::Container(_) | CanvasComponent::Card(_)
+                                )).unwrap_or(false);
+
+                                if target_is_container {
+                                    app_state.canvas.move_component_to_parent(did, id);
+                                } else {
+                                    app_state.canvas.move_component_relative(did, id);
+                                }
                                 handled = true;
                             }
                         }
@@ -160,10 +169,7 @@ fn TreeNode(
                                     } else {
                                         // If not a container, find parent and add as sibling (insert after)
                                         let components = app_state.canvas.components.get_untracked();
-                                        // We need to find the parent of the current node 'id'
-                                        // Since we don't have a direct parent map, we can search.
-
-                                        // Helper to find parent ID - duplicated logic for now, ideally move to app_state or helper
+                                        // Helper to find parent ID
                                         fn find_parent_id_recursive(
                                             comps: &[CanvasComponent],
                                             target_id: &ComponentId
@@ -193,19 +199,10 @@ fn TreeNode(
                                         }
 
                                         if let Some(parent_id) = find_parent_id_recursive(&components, &id) {
-                                            // Add to parent, effectively as a sibling.
-                                            // But standard add_child appends to end.
-                                            // Ideally we want "insert after".
-                                            // For now, let's just append to parent which is a safe default for "dropping near".
-                                            // Or we could implement `insert_component_after(target_id, new_component)` in AppState.
-
-                                            // Using add_child_component on parent
                                             if app_state.canvas.add_child_component(&parent_id, new_component) {
                                                 handled = true;
                                             }
                                         } else {
-                                            // No parent found, means it's a root component.
-                                            // Add to root (canvas)
                                             app_state.canvas.add_component(new_component);
                                             handled = true;
                                         }

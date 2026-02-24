@@ -4,41 +4,53 @@ use leptos::prelude::*;
 /// Styling Editor Component
 #[component]
 pub fn StyleEditor(
-    #[prop(into)] style: ComponentStyle,
+    #[prop(into)] style: Signal<ComponentStyle>,
     #[prop(into)] on_change: Callback<ComponentStyle>,
 ) -> impl IntoView {
     // Initialize local signals from the passed prop value.
-    // Since this component is recreated when the parent re-renders (due to prop change),
-    // we don't need to sync with props via Effect.
-    let bg_color = RwSignal::new(style.background_color.clone().unwrap_or_default());
-    let color = RwSignal::new(style.color.clone().unwrap_or_default());
-    let padding = RwSignal::new(style.padding.clone().unwrap_or_default());
-    let margin = RwSignal::new(style.margin.clone().unwrap_or_default());
+    // We start with the current value of the signal/static prop.
+    let initial_style = style.get();
+
+    let bg_color = RwSignal::new(initial_style.background_color.clone().unwrap_or_default());
+    let color = RwSignal::new(initial_style.color.clone().unwrap_or_default());
+    let padding = RwSignal::new(initial_style.padding.clone().unwrap_or_default());
+    let margin = RwSignal::new(initial_style.margin.clone().unwrap_or_default());
     let border_radius = RwSignal::new(
-        style
+        initial_style
             .border_radius
             .map(|v| v.to_string())
             .unwrap_or_default(),
     );
     let border_width = RwSignal::new(
-        style
+        initial_style
             .border_width
             .map(|v| v.to_string())
             .unwrap_or_default(),
     );
-    let border_color = RwSignal::new(style.border_color.clone().unwrap_or_default());
-    let font_size = RwSignal::new(style.font_size.map(|v| v.to_string()).unwrap_or_default());
+    let border_color = RwSignal::new(initial_style.border_color.clone().unwrap_or_default());
+    let font_size = RwSignal::new(initial_style.font_size.map(|v| v.to_string()).unwrap_or_default());
 
-    // Fix Bug 3: Use an RwSignal to store the current accumulated style state
-    // instead of capturing a static clone in the closure.
-    let current_style = RwSignal::new(style.clone());
+    // Use an RwSignal to store the current accumulated style state
+    let current_style = RwSignal::new(initial_style.clone());
+
+    // Effect to sync local signals when the `style` prop changes.
+    // This supports both component recreation (initial run) and reactive updates if `style` is a signal.
+    Effect::new(move |_| {
+        let new_style = style.get();
+        // Update local signals
+        bg_color.set(new_style.background_color.clone().unwrap_or_default());
+        color.set(new_style.color.clone().unwrap_or_default());
+        padding.set(new_style.padding.clone().unwrap_or_default());
+        margin.set(new_style.margin.clone().unwrap_or_default());
+        border_radius.set(new_style.border_radius.map(|v| v.to_string()).unwrap_or_default());
+        border_width.set(new_style.border_width.map(|v| v.to_string()).unwrap_or_default());
+        border_color.set(new_style.border_color.clone().unwrap_or_default());
+        font_size.set(new_style.font_size.map(|v| v.to_string()).unwrap_or_default());
+        current_style.set(new_style);
+    });
 
     let update = move |field: &str, value: String| {
         let mut new_style = current_style.get();
-
-        // Update local signal as well (though input might do it, this keeps it consistent)
-        // Actually, for "uncontrolled" inputs that drive state, we need to be careful.
-        // But here inputs are bound to signals.
 
         match field {
             "background_color" => {
