@@ -146,7 +146,7 @@ pub fn ComponentPalette() -> impl IntoView {
             .collect();
 
         // Sort by score (descending)
-        components.sort_by(|a, b| b.1.cmp(&a.1));
+        components.sort_by_key(|b| std::cmp::Reverse(b.1));
 
         components.into_iter().map(|(c, _)| c).collect::<Vec<_>>()
     });

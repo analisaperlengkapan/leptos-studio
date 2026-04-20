@@ -93,19 +93,23 @@ impl CanvasState {
 
             // Recurse into children
             match comp {
-                CanvasComponent::Container(container) => {
+                CanvasComponent::Container(container)
                     if Self::add_child_recursive(
                         &mut container.children[..],
                         parent_id,
                         child.clone(),
-                    ) {
-                        return true;
-                    }
+                    ) =>
+                {
+                    return true;
                 }
-                CanvasComponent::Card(card) => {
-                    if Self::add_child_recursive(&mut card.children[..], parent_id, child.clone()) {
-                        return true;
-                    }
+                CanvasComponent::Card(card)
+                    if Self::add_child_recursive(
+                        &mut card.children[..],
+                        parent_id,
+                        child.clone(),
+                    ) =>
+                {
+                    return true;
                 }
                 _ => {}
             }
@@ -191,15 +195,13 @@ impl CanvasState {
 
                 // Recurse into children
                 match comp {
-                    CanvasComponent::Container(c) => {
-                        if recurse(&mut c.children, id, f) {
-                            return true;
-                        }
+                    CanvasComponent::Container(c)
+                        if recurse(&mut c.children, id, f) =>
+                    {
+                        return true;
                     }
-                    CanvasComponent::Card(c) => {
-                        if recurse(&mut c.children, id, f) {
-                            return true;
-                        }
+                    CanvasComponent::Card(c) if recurse(&mut c.children, id, f) => {
+                        return true;
                     }
                     _ => {}
                 }
@@ -400,7 +402,6 @@ impl CanvasState {
         None
     }
 
-    #[allow(clippy::collapsible_if)]
     fn insert_after_recursive(
         components: &mut Vec<CanvasComponent>,
         target_id: &ComponentId,
@@ -415,15 +416,15 @@ impl CanvasState {
 
         for comp in components.iter_mut() {
             match comp {
-                CanvasComponent::Container(c) => {
-                    if Self::insert_after_recursive(&mut c.children, target_id, item) {
-                        return true;
-                    }
+                CanvasComponent::Container(c)
+                    if Self::insert_after_recursive(&mut c.children, target_id, item) =>
+                {
+                    return true;
                 }
-                CanvasComponent::Card(c) => {
-                    if Self::insert_after_recursive(&mut c.children, target_id, item) {
-                        return true;
-                    }
+                CanvasComponent::Card(c)
+                    if Self::insert_after_recursive(&mut c.children, target_id, item) =>
+                {
+                    return true;
                 }
                 _ => {}
             }
