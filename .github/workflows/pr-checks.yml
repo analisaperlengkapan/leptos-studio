@@ -35,7 +35,7 @@ jobs:
           fi
 
       - name: Add size label
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const label = '${{ steps.size.outputs.label }}';
