@@ -29,7 +29,7 @@ serde_json = "1.0"
 console_error_panic_hook = "0.1"
 js-sys = "0.3"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
-gloo-timers = { version = "0.3", features = ["futures"] }
+gloo-timers = { version = "0.4", features = ["futures"] }
 wasm-bindgen-futures = "0.4"
 gloo-net = "0.6"
 thiserror = "2.0"
