@@ -103,11 +103,7 @@ impl CanvasState {
                     }
                 }
                 CanvasComponent::Card(card) => {
-                    if Self::add_child_recursive(
-                        &mut card.children[..],
-                        parent_id,
-                        child.clone(),
-                    ) {
+                    if Self::add_child_recursive(&mut card.children[..], parent_id, child.clone()) {
                         return true;
                     }
                 }
