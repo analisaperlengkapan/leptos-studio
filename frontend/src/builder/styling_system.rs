@@ -28,7 +28,12 @@ pub fn StyleEditor(
             .unwrap_or_default(),
     );
     let border_color = RwSignal::new(initial_style.border_color.clone().unwrap_or_default());
-    let font_size = RwSignal::new(initial_style.font_size.map(|v| v.to_string()).unwrap_or_default());
+    let font_size = RwSignal::new(
+        initial_style
+            .font_size
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+    );
 
     // Use an RwSignal to store the current accumulated style state
     let current_style = RwSignal::new(initial_style.clone());
@@ -42,10 +47,25 @@ pub fn StyleEditor(
         color.set(new_style.color.clone().unwrap_or_default());
         padding.set(new_style.padding.clone().unwrap_or_default());
         margin.set(new_style.margin.clone().unwrap_or_default());
-        border_radius.set(new_style.border_radius.map(|v| v.to_string()).unwrap_or_default());
-        border_width.set(new_style.border_width.map(|v| v.to_string()).unwrap_or_default());
+        border_radius.set(
+            new_style
+                .border_radius
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+        );
+        border_width.set(
+            new_style
+                .border_width
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+        );
         border_color.set(new_style.border_color.clone().unwrap_or_default());
-        font_size.set(new_style.font_size.map(|v| v.to_string()).unwrap_or_default());
+        font_size.set(
+            new_style
+                .font_size
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+        );
         current_style.set(new_style);
     });
 

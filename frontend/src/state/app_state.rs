@@ -71,6 +71,7 @@ impl CanvasState {
         result
     }
 
+    #[allow(clippy::collapsible_match)]
     fn add_child_recursive(
         components: &mut [CanvasComponent],
         parent_id: &ComponentId,
@@ -176,6 +177,7 @@ impl CanvasState {
         id: &ComponentId,
         f: impl FnOnce(&mut CanvasComponent),
     ) -> bool {
+        #[allow(clippy::collapsible_match)]
         fn recurse(
             components: &mut [CanvasComponent],
             id: &ComponentId,
@@ -400,7 +402,7 @@ impl CanvasState {
         None
     }
 
-    #[allow(clippy::collapsible_if)]
+    #[allow(clippy::collapsible_if, clippy::collapsible_match)]
     fn insert_after_recursive(
         components: &mut Vec<CanvasComponent>,
         target_id: &ComponentId,
