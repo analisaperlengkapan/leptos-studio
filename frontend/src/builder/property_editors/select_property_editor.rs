@@ -1,6 +1,7 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, StringInput};
 use crate::builder::styling_system::StyleEditor;
+use super::VariableBinding;
 use crate::domain::{ComponentId, SelectComponent};
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -47,21 +48,48 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
     view! {
         <div class="property-group">
             <h4>"Select Properties"</h4>
-            <StringInput
-                label="Options (comma separated)".to_string()
-                value=select.options
-                on_change=update_options
-            />
-            <StringInput
-                label="Placeholder".to_string()
-                value=select.placeholder
-                on_change=update_placeholder
-            />
-            <BoolCheckbox
-                label="Disabled".to_string()
-                checked=select.disabled
-                on_change=update_disabled
-            />
+            <div class="flex-row items-end gap-1">
+                <div class="flex-grow">
+                    <StringInput
+                        label="Options (comma separated)".to_string()
+                        value=select.options.clone()
+                        on_change=update_options
+                    />
+                </div>
+                <VariableBinding
+                    component_id=id
+                    property_name="options".to_string()
+                    current_binding=select.bindings.get("options").cloned().unwrap_or_default()
+                />
+            </div>
+            <div class="flex-row items-end gap-1">
+                <div class="flex-grow">
+                    <StringInput
+                        label="Placeholder".to_string()
+                        value=select.placeholder.clone()
+                        on_change=update_placeholder
+                    />
+                </div>
+                <VariableBinding
+                    component_id=id
+                    property_name="placeholder".to_string()
+                    current_binding=select.bindings.get("placeholder").cloned().unwrap_or_default()
+                />
+            </div>
+            <div class="flex-row items-center gap-1">
+                <div class="flex-grow">
+                    <BoolCheckbox
+                        label="Disabled".to_string()
+                        checked=select.disabled
+                        on_change=update_disabled
+                    />
+                </div>
+                <VariableBinding
+                    component_id=id
+                    property_name="disabled".to_string()
+                    current_binding=select.bindings.get("disabled").cloned().unwrap_or_default()
+                />
+            </div>
         </div>
 
         <EventPropertyEditor

@@ -2,6 +2,7 @@ use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::builder::styling_system::StyleEditor;
+use super::VariableBinding;
 use crate::domain::{ButtonSize, ButtonVariant, CanvasComponent, ComponentId, PropValue};
 use crate::services::update_button_prop;
 use crate::state::AppState;
@@ -65,20 +66,34 @@ pub fn ButtonPropertyEditor(
                             _ => String::new(),
                         };
                         let prop_name_closure = prop_name.clone();
+                        let bind_name = prop_name.clone();
+                        let current_bind = button.bindings.get(&bind_name).cloned();
+
                         view! {
-                            <StringInput
-                                value=value
-                                label=label_text
-                                on_change=move |new_val| {
-                                    if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
-                                        let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::String(new_val));
-                                        apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
-                                    }
-                                }
-                            />
+                            <div class="flex-row items-end gap-1">
+                                <div class="flex-grow">
+                                    <StringInput
+                                        value=value
+                                        label=label_text
+                                        on_change=move |new_val| {
+                                            if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
+                                                let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::String(new_val));
+                                                apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                            }
+                                        }
+                                    />
+                                </div>
+                                <VariableBinding
+                                    component_id=comp_id_field
+                                    property_name=bind_name
+                                    current_binding=current_bind.unwrap_or_default()
+                                />
+                            </div>
                         }.into_any()
                     },
                     PropType::Enum { options } => {
+                        let bind_name = prop_name.clone();
+                        let current_bind = button.bindings.get(&bind_name).cloned();
                         let value = match prop_name.as_str() {
                             "variant" => match current_variant {
                                 ButtonVariant::Primary => "Primary",
@@ -95,36 +110,56 @@ pub fn ButtonPropertyEditor(
                         };
                         let prop_name_closure = prop_name.clone();
                         view! {
-                            <EnumSelect
-                                value=value
-                                label=label_text
-                                options=options
-                                on_change=move |new_val| {
-                                    if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
-                                        let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::String(new_val));
-                                        apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
-                                    }
-                                }
-                            />
+                            <div class="flex-row items-end gap-1">
+                                <div class="flex-grow">
+                                    <EnumSelect
+                                        value=value
+                                        label=label_text
+                                        options=options
+                                        on_change=move |new_val| {
+                                            if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
+                                                let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::String(new_val));
+                                                apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                            }
+                                        }
+                                    />
+                                </div>
+                                <VariableBinding
+                                    component_id=comp_id_field
+                                    property_name=bind_name
+                                    current_binding=current_bind.unwrap_or_default()
+                                />
+                            </div>
                         }.into_any()
                     },
                     PropType::Bool => {
+                        let bind_name = prop_name.clone();
+                        let current_bind = button.bindings.get(&bind_name).cloned();
                         let checked = match prop_name.as_str() {
                             "disabled" => current_disabled,
                             _ => false,
                         };
                         let prop_name_closure = prop_name.clone();
                         view! {
-                            <BoolCheckbox
-                                checked=checked
-                                label=label_text
-                                on_change=move |new_val| {
-                                    if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
-                                        let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::Boolean(new_val));
-                                        apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
-                                    }
-                                }
-                            />
+                            <div class="flex-row items-center gap-1">
+                                <div class="flex-grow">
+                                    <BoolCheckbox
+                                        checked=checked
+                                        label=label_text
+                                        on_change=move |new_val| {
+                                            if let Some(CanvasComponent::Button(latest_btn)) = canvas_state.get_component(&comp_id_field) {
+                                                let updated_btn = update_button_prop(latest_btn, prop_name_closure.as_str(), PropValue::Boolean(new_val));
+                                                apply_update(comp_id_field, CanvasComponent::Button(updated_btn), prop_name_closure.clone());
+                                            }
+                                        }
+                                    />
+                                </div>
+                                <VariableBinding
+                                    component_id=comp_id_field
+                                    property_name=bind_name
+                                    current_binding=current_bind.unwrap_or_default()
+                                />
+                            </div>
                         }.into_any()
                     },
                     _ => ().into_any(),

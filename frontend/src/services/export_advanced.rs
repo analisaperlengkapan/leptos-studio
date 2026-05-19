@@ -3,16 +3,15 @@
 //! Additional export generators for JSON Schema, TypeScript types,
 //! React components, and other formats.
 
-use crate::domain::{AppError, AppResult, CanvasComponent};
+use crate::domain::{AppError, AppResult, CanvasComponent, Variable, VariableType};
 
 use super::CodeGenerator;
 
 /// JSON Schema generator for component validation
-#[derive(Default)]
 pub struct JsonSchemaGenerator;
 
 impl CodeGenerator for JsonSchemaGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         let schema = serde_json::json!({
             "$schema": "http://json-schema.org/draft-07/schema#",
             "title": "Leptos Studio Layout",
@@ -243,11 +242,10 @@ impl CodeGenerator for JsonSchemaGenerator {
 }
 
 /// TypeScript types generator
-#[derive(Default)]
 pub struct TypeScriptGenerator;
 
 impl CodeGenerator for TypeScriptGenerator {
-    fn generate(&self, _components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, _components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         let types = r#"/**
  * Leptos Studio - TypeScript Type Definitions
  * Auto-generated from component layout
@@ -433,11 +431,10 @@ export function isCustom(c: CanvasComponent): c is { Custom: CustomComponent } {
 }
 
 /// React component generator
-#[derive(Default)]
 pub struct ReactGenerator;
 
 impl CodeGenerator for ReactGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String> {
         let mut output = String::new();
 
         // Imports
@@ -445,6 +442,28 @@ impl CodeGenerator for ReactGenerator {
 
         // Generate component
         output.push_str("export function GeneratedLayout() {\n");
+        output.push_str("  // Signals / State\n");
+
+        let vars_init = if variables.is_empty() {
+            "{}".to_string()
+        } else {
+            let entries: Vec<String> = variables
+                .iter()
+                .map(|v| {
+                    let val = match v.data_type {
+                        VariableType::String => format!("'{}'", v.default_value),
+                        _ => v.default_value.clone(),
+                    };
+                    format!("{}: {}", v.name, val)
+                })
+                .collect();
+            format!("{{ {} }}", entries.join(", "))
+        };
+
+        output.push_str(&format!(
+            "  const [vars, setVars] = React.useState({});\n\n",
+            vars_init
+        ));
         output.push_str("  return (\n");
         output.push_str("    <>\n");
 
@@ -489,9 +508,15 @@ impl ReactGenerator {
                     crate::domain::ButtonSize::Large => "btn-lg",
                 };
 
+                let label_expr = if let Some(bind) = btn.bindings.get("label") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    btn.label.clone()
+                };
+
                 output.push_str(&format!(
                     "{}<button className=\"{} {}\" disabled={{{}}}>{}</button>\n",
-                    indent, variant_class, size_class, btn.disabled, btn.label
+                    indent, variant_class, size_class, btn.disabled, label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -609,9 +634,21 @@ impl ReactGenerator {
                     .height
                     .as_ref()
                     .map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                let src_val = if let Some(bind) = img.bindings.get("src") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    format!("\"{}\"", img.src)
+                };
+
+                let alt_val = if let Some(bind) = img.bindings.get("alt") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    format!("\"{}\"", img.alt)
+                };
+
                 output.push_str(&format!(
-                    "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
-                    indent, img.src, img.alt, width_attr, height_attr
+                    "{}<img src={} alt={}{}{} />\n",
+                    indent, src_val, alt_val, width_attr, height_attr
                 ));
             }
             CanvasComponent::Card(card) => {
@@ -646,11 +683,10 @@ impl ReactGenerator {
 }
 
 /// Vue component generator
-#[derive(Default)]
 pub struct VueGenerator;
 
 impl CodeGenerator for VueGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String> {
         let mut template = String::from("<template>\n  <div class=\"generated-layout\">\n");
 
         for component in components {
@@ -661,7 +697,29 @@ impl CodeGenerator for VueGenerator {
 
         // Script section
         template.push_str("<script setup lang=\"ts\">\n");
+        template.push_str("import { ref } from 'vue';\n");
         template.push_str("// Generated by Leptos Studio\n");
+
+        let vars_init = if variables.is_empty() {
+            "{}".to_string()
+        } else {
+            let entries: Vec<String> = variables
+                .iter()
+                .map(|v| {
+                    let val = match v.data_type {
+                        VariableType::String => format!("'{}'", v.default_value),
+                        _ => v.default_value.clone(),
+                    };
+                    format!("{}: {}", v.name, val)
+                })
+                .collect();
+            format!("{{ {} }}", entries.join(", "))
+        };
+
+        template.push_str(&format!(
+            "const vars = ref<Record<string, any>>({});\n",
+            vars_init
+        ));
         template.push_str("</script>\n\n");
 
         // Style section
@@ -689,9 +747,15 @@ impl VueGenerator {
 
         match component {
             CanvasComponent::Button(btn) => {
+                let label_expr = if let Some(bind) = btn.bindings.get("label") {
+                    format!("{{{{ vars['{}'] }}}}", bind)
+                } else {
+                    btn.label.clone()
+                };
+
                 output.push_str(&format!(
                     "{}<button :disabled=\"{}\">{}</button>\n",
-                    indent, btn.disabled, btn.label
+                    indent, btn.disabled, label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -753,9 +817,21 @@ impl VueGenerator {
                     .height
                     .as_ref()
                     .map_or(String::new(), |h| format!(" height=\"{}\"", h));
+                let src_val = if let Some(bind) = img.bindings.get("src") {
+                    format!(":src=\"vars['{}']\"", bind)
+                } else {
+                    format!("src=\"{}\"", img.src)
+                };
+
+                let alt_val = if let Some(bind) = img.bindings.get("alt") {
+                    format!(":alt=\"vars['{}']\"", bind)
+                } else {
+                    format!("alt=\"{}\"", img.alt)
+                };
+
                 output.push_str(&format!(
-                    "{}<img src=\"{}\" alt=\"{}\"{}{} />\n",
-                    indent, img.src, img.alt, width_attr, height_attr
+                    "{}<img {} {}{}{} />\n",
+                    indent, src_val, alt_val, width_attr, height_attr
                 ));
             }
             CanvasComponent::Card(card) => {
@@ -784,11 +860,10 @@ impl VueGenerator {
 }
 
 /// CSS generator (extracts styles)
-#[derive(Default)]
 pub struct CssGenerator;
 
 impl CodeGenerator for CssGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         let mut css = String::from("/* Generated by Leptos Studio */\n\n");
 
         // Basic button styles
@@ -948,7 +1023,7 @@ mod tests {
     fn test_json_schema_generator() {
         let generator = JsonSchemaGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let schema = generator.generate(&[button]).unwrap();
+        let schema = generator.generate(&[button], &[]).unwrap();
 
         assert!(schema.contains("$schema"));
         assert!(schema.contains("definitions"));
@@ -958,7 +1033,7 @@ mod tests {
     #[test]
     fn test_typescript_generator() {
         let generator = TypeScriptGenerator;
-        let types = generator.generate(&[]).unwrap();
+        let types = generator.generate(&[], &[]).unwrap();
 
         assert!(types.contains("ButtonVariant"));
         assert!(types.contains("CanvasComponent"));
@@ -969,7 +1044,7 @@ mod tests {
     fn test_react_generator() {
         let generator = ReactGenerator;
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
-        let code = generator.generate(&[text]).unwrap();
+        let code = generator.generate(&[text], &[]).unwrap();
 
         assert!(code.contains("import React"));
         assert!(code.contains("Hello"));
@@ -980,7 +1055,7 @@ mod tests {
     fn test_vue_generator() {
         let generator = VueGenerator;
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
-        let code = generator.generate(&[text]).unwrap();
+        let code = generator.generate(&[text], &[]).unwrap();
 
         assert!(code.contains("<template>"));
         assert!(code.contains("<script setup"));
@@ -991,7 +1066,7 @@ mod tests {
     fn test_css_generator() {
         let generator = CssGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let css = generator.generate(&[button]).unwrap();
+        let css = generator.generate(&[button], &[]).unwrap();
 
         assert!(css.contains(".btn-primary"));
         assert!(css.contains(".btn-secondary"));
@@ -1001,7 +1076,7 @@ mod tests {
     fn test_tailwind_generator() {
         let generator = TailwindHtmlGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let html = generator.generate(&[button]).unwrap();
+        let html = generator.generate(&[button], &[]).unwrap();
 
         assert!(html.contains("class="));
         assert!(html.contains("Test"));
@@ -1011,7 +1086,7 @@ mod tests {
     fn test_svelte_generator() {
         let generator = SvelteGenerator;
         let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
-        let code = generator.generate(&[text]).unwrap();
+        let code = generator.generate(&[text], &[]).unwrap();
 
         assert!(code.contains("<script"));
         assert!(code.contains("Hello"));
@@ -1023,11 +1098,10 @@ mod tests {
 // ============================================================================
 
 /// HTML with Tailwind CSS classes generator
-#[derive(Default)]
 pub struct TailwindHtmlGenerator;
 
 impl CodeGenerator for TailwindHtmlGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         let mut output = String::new();
 
         output.push_str("<!-- Generated by Leptos Studio with Tailwind CSS -->\n");
@@ -1261,17 +1335,33 @@ impl TailwindHtmlGenerator {
 }
 
 /// Svelte component generator
-#[derive(Default)]
 pub struct SvelteGenerator;
 
 impl CodeGenerator for SvelteGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String> {
         let mut output = String::new();
 
         // Script section
         output.push_str("<script lang=\"ts\">\n");
         output.push_str("  // Generated by Leptos Studio\n");
-        output.push_str("  // Props can be added here\n");
+
+        let vars_init = if variables.is_empty() {
+            "{}".to_string()
+        } else {
+            let entries: Vec<String> = variables
+                .iter()
+                .map(|v| {
+                    let val = match v.data_type {
+                        VariableType::String => format!("'{}'", v.default_value),
+                        _ => v.default_value.clone(),
+                    };
+                    format!("{}: {}", v.name, val)
+                })
+                .collect();
+            format!("{{ {} }}", entries.join(", "))
+        };
+
+        output.push_str(&format!("  let vars = {};\n", vars_init));
         output.push_str("</script>\n\n");
 
         // Template section
@@ -1341,9 +1431,15 @@ impl SvelteGenerator {
                     crate::domain::ButtonVariant::Ghost => "btn btn-ghost",
                 };
 
+                let label_expr = if let Some(bind) = btn.bindings.get("label") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    btn.label.clone()
+                };
+
                 output.push_str(&format!(
                     "{}<button class=\"{}\" disabled={{{}}}>{}</button>\n",
-                    indent, variant_class, btn.disabled, btn.label
+                    indent, variant_class, btn.disabled, label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -1423,9 +1519,21 @@ impl SvelteGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
+                let src_val = if let Some(bind) = img.bindings.get("src") {
+                    format!("src={{vars['{}']}}", bind)
+                } else {
+                    format!("src=\"{}\"", img.src)
+                };
+
+                let alt_val = if let Some(bind) = img.bindings.get("alt") {
+                    format!("alt={{vars['{}']}}", bind)
+                } else {
+                    format!("alt=\"{}\"", img.alt)
+                };
+
                 output.push_str(&format!(
-                    "{}<img src=\"{}\" alt=\"{}\" />\n",
-                    indent, img.src, img.alt
+                    "{}<img {} {} />\n",
+                    indent, src_val, alt_val
                 ));
             }
             CanvasComponent::Card(card) => {

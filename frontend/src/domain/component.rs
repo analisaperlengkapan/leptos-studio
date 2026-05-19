@@ -336,6 +336,8 @@ pub struct SelectComponent {
     #[serde(default)]
     pub animation: Option<Animation>,
     #[serde(default)]
+    pub bindings: HashMap<String, String>,
+    #[serde(default)]
     pub style: ComponentStyle,
 }
 
@@ -348,6 +350,7 @@ impl SelectComponent {
             disabled: false,
             on_change: None,
             animation: None,
+            bindings: HashMap::new(),
             style: ComponentStyle::default(),
         }
     }
@@ -439,6 +442,8 @@ pub struct ContainerComponent {
     #[serde(default)]
     pub animation: Option<Animation>,
     #[serde(default)]
+    pub bindings: HashMap<String, String>,
+    #[serde(default)]
     pub style: ComponentStyle,
 }
 
@@ -457,6 +462,7 @@ impl ContainerComponent {
             padding: Spacing::default(),
             on_click: None,
             animation: None,
+            bindings: HashMap::new(),
             style: ComponentStyle::default(),
         }
     }
@@ -498,6 +504,8 @@ pub struct ImageComponent {
     #[serde(default)]
     pub animation: Option<Animation>,
     #[serde(default)]
+    pub bindings: HashMap<String, String>,
+    #[serde(default)]
     pub style: ComponentStyle,
 }
 
@@ -511,6 +519,7 @@ impl ImageComponent {
             height: None,
             on_click: None,
             animation: None,
+            bindings: HashMap::new(),
             style: ComponentStyle::default(),
         }
     }
@@ -549,6 +558,8 @@ pub struct CardComponent {
     #[serde(default)]
     pub animation: Option<Animation>,
     #[serde(default)]
+    pub bindings: HashMap<String, String>,
+    #[serde(default)]
     pub style: ComponentStyle,
 }
 
@@ -563,6 +574,7 @@ impl CardComponent {
             border_radius: 8,
             on_click: None,
             animation: None,
+            bindings: HashMap::new(),
             style: ComponentStyle::default(),
         }
     }

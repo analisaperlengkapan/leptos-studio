@@ -2,7 +2,7 @@ use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{EnumSelect, StringInput};
 use crate::builder::styling_system::StyleEditor;
-use crate::builder::variable_binding::VariableBinding;
+use super::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, PropValue, TextStyle, TextTag};
 use crate::services::update_text_prop;
 use crate::state::AppState;
@@ -92,17 +92,9 @@ pub fn TextPropertyEditor(
                                         view! {
                                             <div style="margin-bottom: 8px;">
                                                 <VariableBinding
-                                                    value=binding_val
-                                                    on_change=move |new_bind| {
-                                                        if let Some(CanvasComponent::Text(mut updated)) = canvas_state.get_component(&comp_id_bind) {
-                                                            if let Some(v) = new_bind {
-                                                                updated.bindings.insert("content".to_string(), v);
-                                                            } else {
-                                                                updated.bindings.remove("content");
-                                                            }
-                                                            apply_update(comp_id_bind, CanvasComponent::Text(updated), "content binding".to_string());
-                                                        }
-                                                    }
+                                                    component_id=comp_id_bind
+                                                    property_name="content".to_string()
+                                                    current_binding=binding_val.unwrap_or_default()
                                                 />
                                             </div>
                                         }.into_any()

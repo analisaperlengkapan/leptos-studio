@@ -1,4 +1,4 @@
-use super::{AnimationPropertyEditor, EventPropertyEditor};
+use super::{AnimationPropertyEditor, EventPropertyEditor, VariableBinding};
 use crate::builder::property_inputs::{BoolCheckbox, NumberInput};
 use crate::builder::styling_system::StyleEditor;
 use crate::domain::CardComponent;
@@ -54,6 +54,18 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
     let id_style = id;
 
     view! {
+        <div class="property-group">
+            <h4 class="group-title">"Binding"</h4>
+            <VariableBinding
+                component_id=id.clone()
+                property_name="id".to_string()
+            />
+            <VariableBinding
+                component_id=id.clone()
+                property_name="custom_css_classes".to_string()
+            />
+        </div>
+
         <div class="property-group">
             <h4 class="group-title">"Card Properties"</h4>
             <NumberInput

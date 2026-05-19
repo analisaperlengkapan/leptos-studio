@@ -1,6 +1,7 @@
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::StringInput;
 use crate::builder::styling_system::StyleEditor;
+use super::VariableBinding;
 use crate::domain::ImageComponent;
 use crate::state::AppState;
 use leptos::prelude::*;
@@ -64,16 +65,34 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
     view! {
         <div class="property-group">
             <h4 class="group-title">"Image Properties"</h4>
-            <StringInput
-                label="Source URL".to_string()
-                value=image.src.clone()
-                on_change=move |val: String| update_src(val)
-            />
-            <StringInput
-                label="Alt Text".to_string()
-                value=image.alt.clone()
-                on_change=move |val: String| update_alt(val)
-            />
+            <div class="flex-row items-end gap-1">
+                <div class="flex-grow">
+                    <StringInput
+                        label="Source URL".to_string()
+                        value=image.src.clone()
+                        on_change=move |val: String| update_src(val)
+                    />
+                </div>
+                <VariableBinding
+                    component_id=id
+                    property_name="src".to_string()
+                    current_binding=image.bindings.get("src").cloned().unwrap_or_default()
+                />
+            </div>
+            <div class="flex-row items-end gap-1">
+                <div class="flex-grow">
+                    <StringInput
+                        label="Alt Text".to_string()
+                        value=image.alt.clone()
+                        on_change=move |val: String| update_alt(val)
+                    />
+                </div>
+                <VariableBinding
+                    component_id=id
+                    property_name="alt".to_string()
+                    current_binding=image.bindings.get("alt").cloned().unwrap_or_default()
+                />
+            </div>
             <StringInput
                 label="Width (e.g. 100%, 200px)".to_string()
                 value=image.width.clone().unwrap_or_default()

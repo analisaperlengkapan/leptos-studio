@@ -1,9 +1,293 @@
 {
-  "7d4b4411-ce34-422b-b5ee-6371a69e0585": {
-    "id": "7d4b4411-ce34-422b-b5ee-6371a69e0585",
-    "last_modified": 0.0,
+  "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912": {
+    "description": null,
+    "design_tokens": {
+      "border_radius": [
+        {
+          "description": "No border radius",
+          "name": "none",
+          "value": "0px"
+        },
+        {
+          "description": "Small border radius",
+          "name": "sm",
+          "value": "2px"
+        },
+        {
+          "description": "Medium border radius",
+          "name": "md",
+          "value": "4px"
+        },
+        {
+          "description": "Large border radius",
+          "name": "lg",
+          "value": "6px"
+        },
+        {
+          "description": "Extra large border radius",
+          "name": "xl",
+          "value": "12px"
+        },
+        {
+          "description": "Full border radius",
+          "name": "full",
+          "value": "9999px"
+        }
+      ],
+      "colors": [
+        {
+          "description": "Lightest primary blue",
+          "name": "primary-50",
+          "value": "#eff6ff"
+        },
+        {
+          "description": "Very light primary blue",
+          "name": "primary-100",
+          "value": "#dbeafe"
+        },
+        {
+          "description": "Primary blue",
+          "name": "primary-500",
+          "value": "#3b82f6"
+        },
+        {
+          "description": "Dark primary blue",
+          "name": "primary-600",
+          "value": "#2563eb"
+        },
+        {
+          "description": "Darkest primary blue",
+          "name": "primary-900",
+          "value": "#1e3a8a"
+        },
+        {
+          "description": "Lightest gray",
+          "name": "gray-50",
+          "value": "#f9fafb"
+        },
+        {
+          "description": "Very light gray",
+          "name": "gray-100",
+          "value": "#f3f4f6"
+        },
+        {
+          "description": "Light gray",
+          "name": "gray-200",
+          "value": "#e5e7eb"
+        },
+        {
+          "description": "Medium light gray",
+          "name": "gray-300",
+          "value": "#d1d5db"
+        },
+        {
+          "description": "Medium gray",
+          "name": "gray-400",
+          "value": "#9ca3af"
+        },
+        {
+          "description": "Medium dark gray",
+          "name": "gray-500",
+          "value": "#6b7280"
+        },
+        {
+          "description": "Dark gray",
+          "name": "gray-600",
+          "value": "#4b5563"
+        },
+        {
+          "description": "Very dark gray",
+          "name": "gray-700",
+          "value": "#374151"
+        },
+        {
+          "description": "Darkest gray",
+          "name": "gray-800",
+          "value": "#1f2937"
+        },
+        {
+          "description": "Black gray",
+          "name": "gray-900",
+          "value": "#111827"
+        },
+        {
+          "description": "Success green",
+          "name": "success-500",
+          "value": "#10b981"
+        },
+        {
+          "description": "Warning orange",
+          "name": "warning-500",
+          "value": "#f59e0b"
+        },
+        {
+          "description": "Error red",
+          "name": "error-500",
+          "value": "#ef4444"
+        },
+        {
+          "description": "Pure white",
+          "name": "white",
+          "value": "#ffffff"
+        },
+        {
+          "description": "Pure black",
+          "name": "black",
+          "value": "#000000"
+        }
+      ],
+      "shadows": [
+        {
+          "description": "No shadow",
+          "name": "none",
+          "value": "none"
+        },
+        {
+          "description": "Small shadow",
+          "name": "sm",
+          "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)"
+        },
+        {
+          "description": "Medium shadow",
+          "name": "md",
+          "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
+        },
+        {
+          "description": "Large shadow",
+          "name": "lg",
+          "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
+        },
+        {
+          "description": "Extra large shadow",
+          "name": "xl",
+          "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+        }
+      ],
+      "spacing": [
+        {
+          "description": "Extra small spacing",
+          "name": "1",
+          "rem_value": 0.25,
+          "value": "4px"
+        },
+        {
+          "description": "Small spacing",
+          "name": "2",
+          "rem_value": 0.5,
+          "value": "8px"
+        },
+        {
+          "description": "Medium small spacing",
+          "name": "3",
+          "rem_value": 0.75,
+          "value": "12px"
+        },
+        {
+          "description": "Medium spacing",
+          "name": "4",
+          "rem_value": 1.0,
+          "value": "16px"
+        },
+        {
+          "description": "Medium large spacing",
+          "name": "5",
+          "rem_value": 1.25,
+          "value": "20px"
+        },
+        {
+          "description": "Large spacing",
+          "name": "6",
+          "rem_value": 1.5,
+          "value": "24px"
+        },
+        {
+          "description": "Extra large spacing",
+          "name": "8",
+          "rem_value": 2.0,
+          "value": "32px"
+        },
+        {
+          "description": "2X large spacing",
+          "name": "10",
+          "rem_value": 2.5,
+          "value": "40px"
+        },
+        {
+          "description": "3X large spacing",
+          "name": "12",
+          "rem_value": 3.0,
+          "value": "48px"
+        },
+        {
+          "description": "4X large spacing",
+          "name": "16",
+          "rem_value": 4.0,
+          "value": "64px"
+        }
+      ],
+      "typography": [
+        {
+          "description": "Extra small text",
+          "font_size": "12px",
+          "font_weight": "400",
+          "letter_spacing": null,
+          "line_height": "16px",
+          "name": "text-xs"
+        },
+        {
+          "description": "Small text",
+          "font_size": "14px",
+          "font_weight": "400",
+          "letter_spacing": null,
+          "line_height": "20px",
+          "name": "text-sm"
+        },
+        {
+          "description": "Base text",
+          "font_size": "16px",
+          "font_weight": "400",
+          "letter_spacing": null,
+          "line_height": "24px",
+          "name": "text-base"
+        },
+        {
+          "description": "Large text",
+          "font_size": "18px",
+          "font_weight": "400",
+          "letter_spacing": null,
+          "line_height": "28px",
+          "name": "text-lg"
+        },
+        {
+          "description": "Extra large text",
+          "font_size": "20px",
+          "font_weight": "400",
+          "letter_spacing": null,
+          "line_height": "28px",
+          "name": "text-xl"
+        },
+        {
+          "description": "2X large text",
+          "font_size": "24px",
+          "font_weight": "700",
+          "letter_spacing": "-0.025em",
+          "line_height": "32px",
+          "name": "text-2xl"
+        },
+        {
+          "description": "3X large text",
+          "font_size": "30px",
+          "font_weight": "700",
+          "letter_spacing": "-0.025em",
+          "line_height": "36px",
+          "name": "text-3xl"
+        }
+      ]
+    },
+    "id": "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912",
+    "last_modified": 1779186499779.0,
     "layout": [],
-    "name": "Test Async",
+    "name": "Test Persist",
     "settings": {
       "auto_save": true,
       "export_preset": "Plain",
@@ -11,11 +295,11 @@
     },
     "variables": []
   },
-  "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912": {
-    "id": "6fe5ed9e-66b9-4f12-be9a-7b1c72e74912",
+  "7d4b4411-ce34-422b-b5ee-6371a69e0585": {
+    "id": "7d4b4411-ce34-422b-b5ee-6371a69e0585",
     "last_modified": 0.0,
     "layout": [],
-    "name": "Test Persist",
+    "name": "Test Async",
     "settings": {
       "auto_save": true,
       "export_preset": "Plain",

@@ -2,7 +2,7 @@ use super::AnimationPropertyEditor;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::builder::styling_system::StyleEditor;
-use crate::builder::variable_binding::VariableBinding;
+use super::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, InputType, PropValue};
 use crate::services::update_input_prop;
 use crate::state::AppState;
@@ -93,17 +93,9 @@ pub fn InputPropertyEditor(
                                         view! {
                                             <div style="margin-bottom: 8px;">
                                                 <VariableBinding
-                                                    value=binding_val
-                                                    on_change=move |new_bind| {
-                                                        if let Some(CanvasComponent::Input(mut updated)) = canvas_state.get_component(&comp_id_bind) {
-                                                            if let Some(v) = new_bind {
-                                                                updated.bindings.insert("placeholder".to_string(), v);
-                                                            } else {
-                                                                updated.bindings.remove("placeholder");
-                                                            }
-                                                            apply_update(comp_id_bind, CanvasComponent::Input(updated), "placeholder binding".to_string());
-                                                        }
-                                                    }
+                                                    component_id=comp_id_bind
+                                                    property_name="placeholder".to_string()
+                                                    current_binding=binding_val.unwrap_or_default()
                                                 />
                                             </div>
                                         }.into_any()

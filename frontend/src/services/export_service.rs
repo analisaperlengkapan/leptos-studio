@@ -12,24 +12,22 @@ fn get_animation_css(animation: &Option<Animation>) -> String {
 
 /// Code generator trait
 pub trait CodeGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String>;
+    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String>;
     fn file_extension(&self) -> &str;
 }
 
 /// Leptos code generator
 pub struct LeptosCodeGenerator {
     preset: ExportPreset,
-    variables: Vec<Variable>,
     /// Tracks signals that need to be injected at the top of the component
     /// Format: (signal_name, default_value)
     required_signals: RefCell<Vec<(String, String)>>,
 }
 
 impl LeptosCodeGenerator {
-    pub fn new(preset: ExportPreset, variables: Vec<Variable>) -> Self {
+    pub fn new(preset: ExportPreset, _variables: Vec<Variable>) -> Self {
         Self {
             preset,
-            variables,
             required_signals: RefCell::new(Vec::new()),
         }
     }
@@ -81,6 +79,12 @@ impl LeptosCodeGenerator {
                         .to_string()
                 };
 
+                let label_expr = if let Some(bind) = btn.bindings.get("label") {
+                    format!("move || {}.get()", bind)
+                } else {
+                    format!("\"{}\"", btn.label)
+                };
+
                 // Add interactive scaffolding
                 output.push_str(&format!(
                     "{}        <button class=\"{} {}\" disabled={} {}{}>{}</button>\n",
@@ -90,7 +94,7 @@ impl LeptosCodeGenerator {
                     btn.disabled,
                     click_handler,
                     style_attr,
-                    btn.label
+                    label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
@@ -200,6 +204,16 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                let options_expr = if let Some(bind) = sel.bindings.get("options") {
+                    format!("move || {}.get().split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>().into_iter().map(|opt| view! {{ <option value=opt.clone()>{{opt}}</option> }}).collect_view()", bind)
+                } else {
+                    let opts = sel.options.split(',')
+                        .map(|o| format!("view! {{ <option value=\"{}\">\"{}\"</option> }}", o.trim(), o.trim()))
+                        .collect::<Vec<_>>()
+                        .join(", ");
+                    format!("vec![{}].collect_view()", opts)
+                };
+
                 output.push_str(&format!(
                     "{}        <select disabled={} {}{}>\n",
                     indent, sel.disabled, change_handler, style_attr
@@ -212,13 +226,7 @@ impl LeptosCodeGenerator {
                     ));
                 }
 
-                for option in sel.options.split(',') {
-                    let opt = option.trim();
-                    output.push_str(&format!(
-                        "{}            <option value=\"{}\">\"{}\"</option>\n",
-                        indent, opt, opt
-                    ));
-                }
+                output.push_str(&format!("{}            {{{}}}\n", indent, options_expr));
 
                 output.push_str(&format!("{}        </select>\n", indent));
             }
@@ -323,9 +331,21 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                let src_attr = if let Some(bind) = img.bindings.get("src") {
+                    format!("prop:src=move || {}.get()", bind)
+                } else {
+                    format!("src=\"{}\"", img.src)
+                };
+
+                let alt_attr = if let Some(bind) = img.bindings.get("alt") {
+                    format!("prop:alt=move || {}.get()", bind)
+                } else {
+                    format!("alt=\"{}\"", img.alt)
+                };
+
                 output.push_str(&format!(
-                    "{}        <img src=\"{}\" alt=\"{}\"{}{}{}{} />\n",
-                    indent, img.src, img.alt, width_attr, height_attr, style_attr, click_handler
+                    "{}        <img {} {} {}{}{}{} />\n",
+                    indent, src_attr, alt_attr, width_attr, height_attr, style_attr, click_handler
                 ));
             }
             CanvasComponent::Card(card) => {
@@ -370,7 +390,7 @@ impl LeptosCodeGenerator {
 }
 
 impl CodeGenerator for LeptosCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String> {
         let mut output = String::new();
         // Reset required signals for each generation
         self.required_signals.borrow_mut().clear();
@@ -394,9 +414,9 @@ impl CodeGenerator for LeptosCodeGenerator {
 
         // Now inject signals
         // First global variables
-        if !self.variables.is_empty() {
+        if !variables.is_empty() {
             output.push_str("    // Global signals\n");
-            for var in &self.variables {
+            for var in variables {
                 let default_val = match var.data_type {
                     VariableType::String => format!("\"{}\".to_string()", var.default_value),
                     VariableType::Number => var.default_value.clone(),
@@ -438,7 +458,7 @@ impl CodeGenerator for LeptosCodeGenerator {
 pub struct HtmlCodeGenerator;
 
 impl CodeGenerator for HtmlCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         let mut output = String::from(
             "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Generated Layout</title>\n</head>\n<body>\n",
         );
@@ -578,7 +598,7 @@ impl HtmlCodeGenerator {
 pub struct JsonCodeGenerator;
 
 impl CodeGenerator for JsonCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         serde_json::to_string_pretty(components)
             .map_err(|e| AppError::Export(format!("Failed to serialize to JSON: {}", e)))
     }
@@ -592,7 +612,7 @@ impl CodeGenerator for JsonCodeGenerator {
 pub struct MarkdownCodeGenerator;
 
 impl CodeGenerator for MarkdownCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent]) -> AppResult<String> {
+    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
         let mut output = String::from("# Generated Layout Documentation\n\n");
 
         for (i, component) in components.iter().enumerate() {
@@ -691,7 +711,7 @@ mod tests {
     fn test_leptos_generator() {
         let generator = LeptosCodeGenerator::new(ExportPreset::Plain, vec![]);
         let button = CanvasComponent::Button(ButtonComponent::new("Click me".to_string()));
-        let code = generator.generate(&[button]).unwrap();
+        let code = generator.generate(&[button], &[]).unwrap();
 
         assert!(code.contains("use leptos::*;"));
         assert!(code.contains("#[component]"));
@@ -703,6 +723,7 @@ mod tests {
     #[test]
     fn test_leptos_input_generator() {
         let generator = LeptosCodeGenerator::new(ExportPreset::Plain, vec![]);
+        let variables = vec![];
         let input = CanvasComponent::Input(InputComponent {
             id: Default::default(),
             input_type: InputType::Text,
@@ -715,7 +736,7 @@ mod tests {
             bindings: Default::default(),
             style: Default::default(),
         });
-        let code = generator.generate(&[input]).unwrap();
+        let code = generator.generate(&[input], &variables).unwrap();
 
         // Should generate a signal
         assert!(code.contains("let (input_0, set_input_0) = signal(String::new());"));
@@ -728,7 +749,7 @@ mod tests {
     fn test_html_generator() {
         let generator = HtmlCodeGenerator;
         let text = CanvasComponent::Text(TextComponent::new("Hello World".to_string()));
-        let code = generator.generate(&[text]).unwrap();
+        let code = generator.generate(&[text], &[]).unwrap();
 
         assert!(code.contains("<!DOCTYPE html>"));
         assert!(code.contains("<body>"));
@@ -739,7 +760,7 @@ mod tests {
     fn test_json_generator() {
         let generator = JsonCodeGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let code = generator.generate(&[button]).unwrap();
+        let code = generator.generate(&[button], &[]).unwrap();
 
         assert!(code.contains("Button"));
         assert!(code.contains("Test"));
@@ -749,7 +770,7 @@ mod tests {
     fn test_markdown_generator() {
         let generator = MarkdownCodeGenerator;
         let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let code = generator.generate(&[button]).unwrap();
+        let code = generator.generate(&[button], &[]).unwrap();
 
         assert!(code.contains("# Generated Layout Documentation"));
         assert!(code.contains("**Button**"));
@@ -760,6 +781,7 @@ mod tests {
     fn test_leptos_select_generator() {
         use crate::domain::SelectComponent;
         let generator = LeptosCodeGenerator::new(ExportPreset::Plain, vec![]);
+        let variables = vec![];
         let select = CanvasComponent::Select(SelectComponent {
             id: Default::default(),
             options: "A, B, C".to_string(),
@@ -767,9 +789,10 @@ mod tests {
             disabled: false,
             on_change: None,
             animation: None,
+            bindings: Default::default(),
             style: Default::default(),
         });
-        let code = generator.generate(&[select]).unwrap();
+        let code = generator.generate(&[select], &variables).unwrap();
 
         assert!(code.contains("<select disabled=false >"));
         assert!(code.contains("<option value=\"\" disabled selected>\"Choose\"</option>"));
@@ -781,6 +804,7 @@ mod tests {
     fn test_html_select_generator() {
         use crate::domain::SelectComponent;
         let generator = HtmlCodeGenerator;
+        let variables = vec![];
         let select = CanvasComponent::Select(SelectComponent {
             id: Default::default(),
             options: "X, Y".to_string(),
@@ -788,9 +812,10 @@ mod tests {
             disabled: true,
             on_change: None,
             animation: None,
+            bindings: Default::default(),
             style: Default::default(),
         });
-        let code = generator.generate(&[select]).unwrap();
+        let code = generator.generate(&[select], &variables).unwrap();
 
         assert!(code.contains("<select disabled>"));
         assert!(code.contains("<option value=\"\" disabled selected>Pick</option>"));
@@ -801,6 +826,7 @@ mod tests {
     fn test_markdown_select_generator() {
         use crate::domain::SelectComponent;
         let generator = MarkdownCodeGenerator;
+        let variables = vec![];
         let select = CanvasComponent::Select(SelectComponent {
             id: Default::default(),
             options: "One, Two".to_string(),
@@ -808,9 +834,10 @@ mod tests {
             disabled: false,
             on_change: None,
             animation: None,
+            bindings: Default::default(),
             style: Default::default(),
         });
-        let code = generator.generate(&[select]).unwrap();
+        let code = generator.generate(&[select], &variables).unwrap();
 
         assert!(code.contains("- **Select**"));
         assert!(code.contains("- Placeholder: Select One"));
