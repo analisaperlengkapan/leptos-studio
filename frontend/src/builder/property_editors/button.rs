@@ -1,8 +1,8 @@
 use super::AnimationPropertyEditor;
+use super::VariableBinding;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::builder::styling_system::StyleEditor;
-use super::VariableBinding;
 use crate::domain::{ButtonSize, ButtonVariant, CanvasComponent, ComponentId, PropValue};
 use crate::services::update_button_prop;
 use crate::state::AppState;

@@ -12,7 +12,8 @@ fn get_animation_css(animation: &Option<Animation>) -> String {
 
 /// Code generator trait
 pub trait CodeGenerator {
-    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String>;
+    fn generate(&self, components: &[CanvasComponent], variables: &[Variable])
+    -> AppResult<String>;
     fn file_extension(&self) -> &str;
 }
 
@@ -205,10 +206,21 @@ impl LeptosCodeGenerator {
                 };
 
                 let options_expr = if let Some(bind) = sel.bindings.get("options") {
-                    format!("move || {}.get().split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>().into_iter().map(|opt| view! {{ <option value=opt.clone()>{{opt}}</option> }}).collect_view()", bind)
+                    format!(
+                        "move || {}.get().split(',').map(|s| s.trim().to_string()).collect::<Vec<_>>().into_iter().map(|opt| view! {{ <option value=opt.clone()>{{opt}}</option> }}).collect_view()",
+                        bind
+                    )
                 } else {
-                    let opts = sel.options.split(',')
-                        .map(|o| format!("view! {{ <option value=\"{}\">\"{}\"</option> }}", o.trim(), o.trim()))
+                    let opts = sel
+                        .options
+                        .split(',')
+                        .map(|o| {
+                            format!(
+                                "view! {{ <option value=\"{}\">\"{}\"</option> }}",
+                                o.trim(),
+                                o.trim()
+                            )
+                        })
                         .collect::<Vec<_>>()
                         .join(", ");
                     format!("vec![{}].collect_view()", opts)
@@ -390,7 +402,11 @@ impl LeptosCodeGenerator {
 }
 
 impl CodeGenerator for LeptosCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent], variables: &[Variable]) -> AppResult<String> {
+    fn generate(
+        &self,
+        components: &[CanvasComponent],
+        variables: &[Variable],
+    ) -> AppResult<String> {
         let mut output = String::new();
         // Reset required signals for each generation
         self.required_signals.borrow_mut().clear();
@@ -458,7 +474,11 @@ impl CodeGenerator for LeptosCodeGenerator {
 pub struct HtmlCodeGenerator;
 
 impl CodeGenerator for HtmlCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
+    fn generate(
+        &self,
+        components: &[CanvasComponent],
+        _variables: &[Variable],
+    ) -> AppResult<String> {
         let mut output = String::from(
             "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Generated Layout</title>\n</head>\n<body>\n",
         );
@@ -598,7 +618,11 @@ impl HtmlCodeGenerator {
 pub struct JsonCodeGenerator;
 
 impl CodeGenerator for JsonCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
+    fn generate(
+        &self,
+        components: &[CanvasComponent],
+        _variables: &[Variable],
+    ) -> AppResult<String> {
         serde_json::to_string_pretty(components)
             .map_err(|e| AppError::Export(format!("Failed to serialize to JSON: {}", e)))
     }
@@ -612,7 +636,11 @@ impl CodeGenerator for JsonCodeGenerator {
 pub struct MarkdownCodeGenerator;
 
 impl CodeGenerator for MarkdownCodeGenerator {
-    fn generate(&self, components: &[CanvasComponent], _variables: &[Variable]) -> AppResult<String> {
+    fn generate(
+        &self,
+        components: &[CanvasComponent],
+        _variables: &[Variable],
+    ) -> AppResult<String> {
         let mut output = String::from("# Generated Layout Documentation\n\n");
 
         for (i, component) in components.iter().enumerate() {

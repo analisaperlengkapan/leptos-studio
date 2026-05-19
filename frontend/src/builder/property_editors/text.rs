@@ -1,8 +1,8 @@
 use super::AnimationPropertyEditor;
+use super::VariableBinding;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{EnumSelect, StringInput};
 use crate::builder::styling_system::StyleEditor;
-use super::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, PropValue, TextStyle, TextTag};
 use crate::services::update_text_prop;
 use crate::state::AppState;

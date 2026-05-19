@@ -1,7 +1,7 @@
+use super::VariableBinding;
 use super::{AnimationPropertyEditor, EventPropertyEditor};
 use crate::builder::property_inputs::{BoolCheckbox, StringInput};
 use crate::builder::styling_system::StyleEditor;
-use super::VariableBinding;
 use crate::domain::{ComponentId, SelectComponent};
 use crate::state::AppState;
 use leptos::prelude::*;
