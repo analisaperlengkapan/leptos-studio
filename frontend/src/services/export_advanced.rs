@@ -1034,87 +1034,6 @@ impl CssGenerator {
     }
 }
 
-#[cfg(test)]
-#[allow(clippy::items_after_test_module)]
-mod tests {
-    use super::*;
-    use crate::domain::{ButtonComponent, TextComponent};
-
-    #[test]
-    fn test_json_schema_generator() {
-        let generator = JsonSchemaGenerator;
-        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let schema = generator.generate(&[button], &[]).unwrap();
-
-        assert!(schema.contains("$schema"));
-        assert!(schema.contains("definitions"));
-        assert!(schema.contains("ButtonComponent"));
-    }
-
-    #[test]
-    fn test_typescript_generator() {
-        let generator = TypeScriptGenerator;
-        let types = generator.generate(&[], &[]).unwrap();
-
-        assert!(types.contains("ButtonVariant"));
-        assert!(types.contains("CanvasComponent"));
-        assert!(types.contains("export interface"));
-    }
-
-    #[test]
-    fn test_react_generator() {
-        let generator = ReactGenerator;
-        let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
-        let code = generator.generate(&[text], &[]).unwrap();
-
-        assert!(code.contains("import React"));
-        assert!(code.contains("Hello"));
-        assert!(code.contains("export function"));
-    }
-
-    #[test]
-    fn test_vue_generator() {
-        let generator = VueGenerator;
-        let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
-        let code = generator.generate(&[text], &[]).unwrap();
-
-        assert!(code.contains("<template>"));
-        assert!(code.contains("<script setup"));
-        assert!(code.contains("Hello"));
-    }
-
-    #[test]
-    fn test_css_generator() {
-        let generator = CssGenerator;
-        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let css = generator.generate(&[button], &[]).unwrap();
-
-        assert!(css.contains(".btn-primary"));
-        assert!(css.contains(".btn-secondary"));
-    }
-
-    #[test]
-    fn test_tailwind_generator() {
-        let generator = TailwindHtmlGenerator;
-        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
-        let html = generator.generate(&[button], &[]).unwrap();
-
-        assert!(html.contains("class="));
-        assert!(html.contains("Test"));
-    }
-
-    #[test]
-    fn test_svelte_generator() {
-        let generator = SvelteGenerator;
-        let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
-        let code = generator.generate(&[text], &[]).unwrap();
-
-        assert!(code.contains("<script"));
-        assert!(code.contains("Hello"));
-    }
-}
-
-// ============================================================================
 // Additional Generators
 // ============================================================================
 
@@ -1594,5 +1513,84 @@ impl SvelteGenerator {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::{ButtonComponent, TextComponent};
+
+    #[test]
+    fn test_json_schema_generator() {
+        let generator = JsonSchemaGenerator;
+        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
+        let schema = generator.generate(&[button], &[]).unwrap();
+
+        assert!(schema.contains("$schema"));
+        assert!(schema.contains("definitions"));
+        assert!(schema.contains("ButtonComponent"));
+    }
+
+    #[test]
+    fn test_typescript_generator() {
+        let generator = TypeScriptGenerator;
+        let types = generator.generate(&[], &[]).unwrap();
+
+        assert!(types.contains("ButtonVariant"));
+        assert!(types.contains("CanvasComponent"));
+        assert!(types.contains("export interface"));
+    }
+
+    #[test]
+    fn test_react_generator() {
+        let generator = ReactGenerator;
+        let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
+        let code = generator.generate(&[text], &[]).unwrap();
+
+        assert!(code.contains("import React"));
+        assert!(code.contains("Hello"));
+        assert!(code.contains("export function"));
+    }
+
+    #[test]
+    fn test_vue_generator() {
+        let generator = VueGenerator;
+        let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
+        let code = generator.generate(&[text], &[]).unwrap();
+
+        assert!(code.contains("<template>"));
+        assert!(code.contains("<script setup"));
+        assert!(code.contains("Hello"));
+    }
+
+    #[test]
+    fn test_css_generator() {
+        let generator = CssGenerator;
+        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
+        let css = generator.generate(&[button], &[]).unwrap();
+
+        assert!(css.contains(".btn-primary"));
+        assert!(css.contains(".btn-secondary"));
+    }
+
+    #[test]
+    fn test_tailwind_generator() {
+        let generator = TailwindHtmlGenerator;
+        let button = CanvasComponent::Button(ButtonComponent::new("Test".to_string()));
+        let html = generator.generate(&[button], &[]).unwrap();
+
+        assert!(html.contains("class="));
+        assert!(html.contains("Test"));
+    }
+
+    #[test]
+    fn test_svelte_generator() {
+        let generator = SvelteGenerator;
+        let text = CanvasComponent::Text(TextComponent::new("Hello".to_string()));
+        let code = generator.generate(&[text], &[]).unwrap();
+
+        assert!(code.contains("<script"));
+        assert!(code.contains("Hello"));
     }
 }
