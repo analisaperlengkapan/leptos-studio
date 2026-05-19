@@ -54,8 +54,9 @@ pub fn VariablePanel() -> impl IntoView {
 
             <form on:submit=add_variable class="variable-form">
                 <div class="form-group">
-                    <label>"Name"</label>
+                    <label for="var-name">"Name"</label>
                     <input
+                        id="var-name"
                         type="text"
                         class="input-text"
                         placeholder="e.g., user_name"
@@ -64,8 +65,9 @@ pub fn VariablePanel() -> impl IntoView {
                     />
                 </div>
                 <div class="form-group">
-                    <label>"Type"</label>
+                    <label for="var-type">"Type"</label>
                     <select
+                        id="var-type"
                         class="input-select"
                         on:change=move |ev| {
                             let val = event_target_value(&ev);
@@ -83,8 +85,9 @@ pub fn VariablePanel() -> impl IntoView {
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>"Default Value"</label>
+                    <label for="var-default">"Default Value"</label>
                     <input
+                        id="var-default"
                         type="text"
                         class="input-text"
                         placeholder="Value..."
