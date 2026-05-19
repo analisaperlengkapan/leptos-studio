@@ -59,10 +59,12 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
             <VariableBinding
                 component_id=id
                 property_name="id".to_string()
+                current_binding=card.bindings.get("id").cloned().unwrap_or_default()
             />
             <VariableBinding
                 component_id=id
                 property_name="custom_css_classes".to_string()
+                current_binding=card.bindings.get("custom_css_classes").cloned().unwrap_or_default()
             />
         </div>
 

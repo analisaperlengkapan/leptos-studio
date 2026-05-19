@@ -1,3 +1,4 @@
+use super::VariableBinding;
 use crate::builder::property_inputs::StringInput;
 use crate::builder::styling_system::StyleEditor;
 use crate::domain::{CanvasComponent, ComponentId};
@@ -50,6 +51,20 @@ pub fn CustomPropertyEditor(
     let current_style = custom.style.clone();
 
     view! {
+        <div class="property-group">
+            <h4 class="group-title">"Binding"</h4>
+            <VariableBinding
+                component_id=id
+                property_name="id".to_string()
+                current_binding=custom.bindings.get("id").cloned().unwrap_or_default()
+            />
+            <VariableBinding
+                component_id=id
+                property_name="custom_css_classes".to_string()
+                current_binding=custom.bindings.get("custom_css_classes").cloned().unwrap_or_default()
+            />
+        </div>
+
         <div class="property-group">
             <div class="group-title">"Custom Component"</div>
             <StringInput

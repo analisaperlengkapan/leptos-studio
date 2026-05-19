@@ -620,6 +620,8 @@ pub struct CustomComponent {
     pub template: String,
     pub props: HashMap<String, PropValue>,
     #[serde(default)]
+    pub bindings: HashMap<String, String>,
+    #[serde(default)]
     pub style: ComponentStyle,
 }
 
@@ -630,6 +632,7 @@ impl CustomComponent {
             name,
             template,
             props: HashMap::new(),
+            bindings: HashMap::new(),
             style: ComponentStyle::default(),
         }
     }

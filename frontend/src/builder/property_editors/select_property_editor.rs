@@ -47,6 +47,20 @@ pub fn SelectPropertyEditor(id: ComponentId, select: SelectComponent) -> impl In
 
     view! {
         <div class="property-group">
+            <h4 class="group-title">"Binding"</h4>
+            <VariableBinding
+                component_id=id
+                property_name="id".to_string()
+                current_binding=select.bindings.get("id").cloned().unwrap_or_default()
+            />
+            <VariableBinding
+                component_id=id
+                property_name="custom_css_classes".to_string()
+                current_binding=select.bindings.get("custom_css_classes").cloned().unwrap_or_default()
+            />
+        </div>
+
+        <div class="property-group">
             <h4>"Select Properties"</h4>
             <div class="flex-row items-end gap-1">
                 <div class="flex-grow">

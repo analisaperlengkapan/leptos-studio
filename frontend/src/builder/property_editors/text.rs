@@ -45,6 +45,20 @@ pub fn TextPropertyEditor(
 
     view! {
         <div class="property-group">
+            <h4 class="group-title">"Binding"</h4>
+            <VariableBinding
+                component_id=id
+                property_name="id".to_string()
+                current_binding=text.bindings.get("id").cloned().unwrap_or_default()
+            />
+            <VariableBinding
+                component_id=id
+                property_name="custom_css_classes".to_string()
+                current_binding=text.bindings.get("custom_css_classes").cloned().unwrap_or_default()
+            />
+        </div>
+
+        <div class="property-group">
                 <div class="group-title">"Text Properties"</div>
                 {text_schema.into_iter().map(|prop| {
                 let prop_name = prop.name.clone();

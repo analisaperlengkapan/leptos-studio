@@ -53,6 +53,18 @@ impl LeptosCodeGenerator {
 
         match component {
             CanvasComponent::Button(btn) => {
+                let id_attr = if let Some(bind) = btn.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = btn.bindings.get("custom_css_classes") {
+                    format!(" class=move || format!(\"{{}}\", {}.get())", bind)
+                } else {
+                    String::new()
+                };
+
                 let variant_class = match btn.variant {
                     crate::domain::ButtonVariant::Primary => "btn-primary",
                     crate::domain::ButtonVariant::Secondary => "btn-secondary",
@@ -86,19 +98,58 @@ impl LeptosCodeGenerator {
                     format!("\"{}\"", btn.label)
                 };
 
+                let disabled_attr = if let Some(bind) = btn.bindings.get("disabled") {
+                    format!("prop:disabled=move || {}.get()", bind)
+                } else {
+                    format!("disabled={}", btn.disabled)
+                };
+
                 // Add interactive scaffolding
                 output.push_str(&format!(
-                    "{}        <button class=\"{} {}\" disabled={} {}{}>{{{}}}</button>\n",
+                    "{}        <button{}{} class=\"{} {}\" {} {}{}>{}</button>\n",
                     indent,
+                    id_attr,
+                    class_attr,
                     variant_class,
                     size_class,
-                    btn.disabled,
+                    disabled_attr,
                     click_handler,
                     style_attr,
                     label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
+                let id_attr = if let Some(bind) = txt.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = txt.bindings.get("custom_css_classes") {
+                    format!(
+                        " class=move || format!(\"text-{{}} {{}}\", \"{}\", {}.get())",
+                        match txt.style {
+                            crate::domain::TextStyle::Heading1 => "heading1",
+                            crate::domain::TextStyle::Heading2 => "heading2",
+                            crate::domain::TextStyle::Heading3 => "heading3",
+                            crate::domain::TextStyle::Body => "body",
+                            crate::domain::TextStyle::Caption => "caption",
+                        },
+                        bind
+                    )
+                } else {
+                    format!(
+                        " class=\"text-{}\"",
+                        match txt.style {
+                            crate::domain::TextStyle::Heading1 => "heading1",
+                            crate::domain::TextStyle::Heading2 => "heading2",
+                            crate::domain::TextStyle::Heading3 => "heading3",
+                            crate::domain::TextStyle::Body => "body",
+                            crate::domain::TextStyle::Caption => "caption",
+                        }
+                    )
+                };
+
                 let tag = match txt.tag {
                     crate::domain::TextTag::H1 => "h1",
                     crate::domain::TextTag::H2 => "h2",
@@ -121,22 +172,23 @@ impl LeptosCodeGenerator {
                 };
 
                 output.push_str(&format!(
-                    "{}        <{} class=\"text-{}\"{}>{{{}}}</{}>\n",
-                    indent,
-                    tag,
-                    match txt.style {
-                        crate::domain::TextStyle::Heading1 => "heading1",
-                        crate::domain::TextStyle::Heading2 => "heading2",
-                        crate::domain::TextStyle::Heading3 => "heading3",
-                        crate::domain::TextStyle::Body => "body",
-                        crate::domain::TextStyle::Caption => "caption",
-                    },
-                    style_attr,
-                    content_expr,
-                    tag
+                    "{}        <{}{}{}{}>{}</{}>\n",
+                    indent, tag, id_attr, class_attr, style_attr, content_expr, tag
                 ));
             }
             CanvasComponent::Input(inp) => {
+                let id_attr = if let Some(bind) = inp.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = inp.bindings.get("custom_css_classes") {
+                    format!(" class=move || format!(\"{{}}\", {}.get())", bind)
+                } else {
+                    String::new()
+                };
+
                 let input_type = match inp.input_type {
                     crate::domain::InputType::Text => "text",
                     crate::domain::InputType::Password => "password",
@@ -178,20 +230,40 @@ impl LeptosCodeGenerator {
                     format!("placeholder=\"{}\"", inp.placeholder)
                 };
 
+                let disabled_attr = if let Some(bind) = inp.bindings.get("disabled") {
+                    format!("prop:disabled=move || {}.get()", bind)
+                } else {
+                    format!("disabled={}", inp.disabled)
+                };
+
                 // Add binding
                 output.push_str(&format!(
-                    "{}        <input type=\"{}\" {} {} {} required={} disabled={}{} />\n",
+                    "{}        <input{}{} type=\"{}\" {} {} {} required={} {}{} />\n",
                     indent,
+                    id_attr,
+                    class_attr,
                     input_type,
                     placeholder_attr,
                     input_handler,
                     change_handler,
                     inp.required,
-                    inp.disabled,
+                    disabled_attr,
                     style_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
+                let id_attr = if let Some(bind) = sel.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = sel.bindings.get("custom_css_classes") {
+                    format!(" class=move || format!(\"{{}}\", {}.get())", bind)
+                } else {
+                    String::new()
+                };
+
                 let anim_style = get_animation_css(&sel.animation);
                 let style_attr = if !anim_style.is_empty() {
                     format!(" style=\"{}\"", anim_style)
@@ -227,23 +299,29 @@ impl LeptosCodeGenerator {
                 };
 
                 let disabled_attr = if let Some(bind) = sel.bindings.get("disabled") {
-                    format!("disabled=move || {}.get()", bind)
+                    format!("prop:disabled=move || {}.get()", bind)
                 } else {
                     format!("disabled={}", sel.disabled)
                 };
 
+                let placeholder_attr = if let Some(bind) = sel.bindings.get("placeholder") {
+                    format!("prop:placeholder=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <select {} {}{}>\n",
-                    indent, disabled_attr, change_handler, style_attr
+                    "{}        <select{}{} {} {} {}{}>\n",
+                    indent,
+                    id_attr,
+                    class_attr,
+                    disabled_attr,
+                    placeholder_attr,
+                    change_handler,
+                    style_attr
                 ));
 
-                if let Some(bind) = sel.bindings.get("placeholder") {
-                    let placeholder_expr = format!("move || {}.get()", bind);
-                    output.push_str(&format!(
-                        "{}            <option value=\"\" disabled selected>{{{}}}</option>\n",
-                        indent, placeholder_expr
-                    ));
-                } else if !sel.placeholder.is_empty() {
+                if !sel.placeholder.is_empty() {
                     output.push_str(&format!(
                         "{}            <option value=\"\" disabled selected>\"{}\"</option>\n",
                         indent, sel.placeholder
@@ -311,26 +389,26 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
-                let class_attr = if let Some(bind) = container.bindings.get("custom_css_classes") {
-                    format!(
-                        "class=move || format!(\"container {} {{}}\", {}.get())",
-                        layout_class, bind
-                    )
-                } else {
-                    format!("class=\"container {}\"", layout_class)
-                };
-
                 let id_attr = if let Some(bind) = container.bindings.get("id") {
                     format!(" id=move || {}.get()", bind)
                 } else {
                     String::new()
                 };
 
+                let class_attr = if let Some(bind) = container.bindings.get("custom_css_classes") {
+                    format!(
+                        " class=move || format!(\"container {} {{}}\", {}.get())",
+                        layout_class, bind
+                    )
+                } else {
+                    format!(" class=\"container {}\"", layout_class)
+                };
+
                 output.push_str(&format!(
-                    "{}        <div {}{} style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\"{}>\n",
+                    "{}        <div{}{} style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\"{}>\n",
                     indent,
-                    class_attr,
                     id_attr,
+                    class_attr,
                     container.gap,
                     container.padding.top,
                     container.padding.right,
@@ -349,6 +427,18 @@ impl LeptosCodeGenerator {
                 output.push_str(&format!("{}        </div>\n", indent));
             }
             CanvasComponent::Image(img) => {
+                let id_attr = if let Some(bind) = img.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = img.bindings.get("custom_css_classes") {
+                    format!(" class=move || format!(\"{{}}\", {}.get())", bind)
+                } else {
+                    String::new()
+                };
+
                 let width_attr = img
                     .width
                     .as_ref()
@@ -384,8 +474,16 @@ impl LeptosCodeGenerator {
                 };
 
                 output.push_str(&format!(
-                    "{}        <img {} {} {}{}{}{} />\n",
-                    indent, src_attr, alt_attr, width_attr, height_attr, style_attr, click_handler
+                    "{}        <img{}{} {} {} {}{}{}{} />\n",
+                    indent,
+                    id_attr,
+                    class_attr,
+                    src_attr,
+                    alt_attr,
+                    width_attr,
+                    height_attr,
+                    style_attr,
+                    click_handler
                 ));
             }
             CanvasComponent::Card(card) => {
@@ -407,32 +505,26 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
-                let base_class = if border_class.is_empty() {
-                    "card".to_string()
-                } else {
-                    format!("card {}", border_class)
-                };
-
-                let class_attr = if let Some(bind) = card.bindings.get("custom_css_classes") {
-                    format!(
-                        "class=move || format!(\"{} {{}}\", {}.get())",
-                        base_class, bind
-                    )
-                } else {
-                    format!("class=\"{}\"", base_class)
-                };
-
                 let id_attr = if let Some(bind) = card.bindings.get("id") {
                     format!(" id=move || {}.get()", bind)
                 } else {
                     String::new()
                 };
 
+                let class_attr = if let Some(bind) = card.bindings.get("custom_css_classes") {
+                    format!(
+                        " class=move || format!(\"card {} {{}}\", {}.get())",
+                        border_class, bind
+                    )
+                } else {
+                    format!(" class=\"card {}\"", border_class)
+                };
+
                 output.push_str(&format!(
-                    "{}        <div {}{} style=\"padding: {}px; border-radius: {}px; {} {}\"{}>\n",
+                    "{}        <div{}{} style=\"padding: {}px; border-radius: {}px; {} {}\"{}>\n",
                     indent,
-                    class_attr,
                     id_attr,
+                    class_attr,
                     card.padding,
                     card.border_radius,
                     shadow_style,
@@ -445,11 +537,26 @@ impl LeptosCodeGenerator {
                 output.push_str(&format!("{}        </div>\n", indent));
             }
             CanvasComponent::Custom(custom) => {
+                let id_attr = if let Some(bind) = custom.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = custom.bindings.get("custom_css_classes") {
+                    format!(" class=move || format!(\"{{}}\", {}.get())", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
                     "{}        // Custom component: {}\n",
                     indent, custom.name
                 ));
-                output.push_str(&format!("{}        {}\n", indent, custom.template));
+                output.push_str(&format!(
+                    "{}        <div{}{}>{}        </div>\n",
+                    indent, id_attr, class_attr, custom.template
+                ));
             }
         }
 
@@ -878,7 +985,7 @@ mod tests {
         });
         let code = generator.generate(&[select], &variables).unwrap();
 
-        assert!(code.contains("<select disabled=false >"));
+        assert!(code.contains("<select disabled=false  >"));
         assert!(code.contains("<option value=\"\" disabled selected>\"Choose\"</option>"));
         assert!(code.contains("<option value=\"A\">\"A\"</option>"));
         assert!(code.contains("<option value=\"B\">\"B\"</option>"));

@@ -507,6 +507,18 @@ impl ReactGenerator {
 
         match component {
             CanvasComponent::Button(btn) => {
+                let id_attr = if let Some(bind) = btn.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = btn.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let variant_class = match btn.variant {
                     crate::domain::ButtonVariant::Primary => "btn-primary",
                     crate::domain::ButtonVariant::Secondary => "btn-secondary",
@@ -526,12 +538,36 @@ impl ReactGenerator {
                     btn.label.clone()
                 };
 
+                let disabled_expr = if let Some(bind) = btn.bindings.get("disabled") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    btn.disabled.to_string()
+                };
+
                 output.push_str(&format!(
-                    "{}<button className=\"{} {}\" disabled={{{}}}>{}</button>\n",
-                    indent, variant_class, size_class, btn.disabled, label_expr
+                    "{}<button{} {} className=\"{} {}\" disabled={{{}}}>{}</button>\n",
+                    indent,
+                    id_attr,
+                    class_attr,
+                    variant_class,
+                    size_class,
+                    disabled_expr,
+                    label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
+                let id_attr = if let Some(bind) = txt.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = txt.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let tag = match txt.tag {
                     crate::domain::TextTag::H1 => "h1",
                     crate::domain::TextTag::H2 => "h2",
@@ -540,9 +576,30 @@ impl ReactGenerator {
                     crate::domain::TextTag::Span => "span",
                 };
 
-                output.push_str(&format!("{}<{}>{}</{}>\n", indent, tag, txt.content, tag));
+                let content_expr = if let Some(bind) = txt.bindings.get("content") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    txt.content.clone()
+                };
+
+                output.push_str(&format!(
+                    "{}<{} {}{}>{}</{}>\n",
+                    indent, tag, id_attr, class_attr, content_expr, tag
+                ));
             }
             CanvasComponent::Input(inp) => {
+                let id_attr = if let Some(bind) = inp.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = inp.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let input_type = match inp.input_type {
                     crate::domain::InputType::Text => "text",
                     crate::domain::InputType::Password => "password",
@@ -551,28 +608,77 @@ impl ReactGenerator {
                     crate::domain::InputType::Tel => "tel",
                 };
 
+                let placeholder_expr = if let Some(bind) = inp.bindings.get("placeholder") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    format!("\"{}\"", inp.placeholder)
+                };
+
+                let disabled_expr = if let Some(bind) = inp.bindings.get("disabled") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    inp.disabled.to_string()
+                };
+
                 output.push_str(&format!(
-                    "{}<input type=\"{}\" placeholder=\"{}\" required={{{}}} disabled={{{}}} />\n",
-                    indent, input_type, inp.placeholder, inp.required, inp.disabled
+                    "{}<input{} {} type=\"{}\" placeholder={} required={{{}}} disabled={{{}}} />\n",
+                    indent,
+                    id_attr,
+                    class_attr,
+                    input_type,
+                    placeholder_expr,
+                    inp.required,
+                    disabled_expr
                 ));
             }
             CanvasComponent::Select(sel) => {
+                let id_attr = if let Some(bind) = sel.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = sel.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let disabled_expr = if let Some(bind) = sel.bindings.get("disabled") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    sel.disabled.to_string()
+                };
+
                 output.push_str(&format!(
-                    "{}<select disabled={{{}}}>\n",
-                    indent, sel.disabled
+                    "{}<select{} {} disabled={{{}}}>\n",
+                    indent, id_attr, class_attr, disabled_expr
                 ));
                 if !sel.placeholder.is_empty() {
+                    let placeholder_expr = if let Some(bind) = sel.bindings.get("placeholder") {
+                        format!("{{vars['{}']}}", bind)
+                    } else {
+                        format!("\" {} \"", sel.placeholder)
+                    };
                     output.push_str(&format!(
-                        "{}  <option value=\"\" disabled selected>{{\" {} \"}}</option>\n",
-                        indent, sel.placeholder
+                        "{}  <option value=\"\" disabled selected>{{{}}}</option>\n",
+                        indent, placeholder_expr
                     ));
                 }
-                for option in sel.options.split(',') {
-                    let opt = option.trim();
+
+                if let Some(bind) = sel.bindings.get("options") {
                     output.push_str(&format!(
-                        "{}  <option value=\"{}\">{{\" {} \"}}</option>\n",
-                        indent, opt, opt
+                        "{}  {{vars['{}']?.split(',').map(opt => <option key={{opt}} value={{opt.trim()}}>{{opt.trim()}}</option>)}}\n",
+                        indent, bind
                     ));
+                } else {
+                    for option in sel.options.split(',') {
+                        let opt = option.trim();
+                        output.push_str(&format!(
+                            "{}  <option value=\"{}\">{{\" {} \"}}</option>\n",
+                            indent, opt, opt
+                        ));
+                    }
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -629,7 +735,22 @@ impl ReactGenerator {
                     container.padding.left
                 );
 
-                output.push_str(&format!("{}<div style={{{}}}>\n", indent, style));
+                let id_attr = if let Some(bind) = container.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = container.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                output.push_str(&format!(
+                    "{}<div{} {} style={{{}}}>\n",
+                    indent, id_attr, class_attr, style
+                ));
 
                 for child in &container.children {
                     Self::generate_react(child, output, indent_level + 1)?;
@@ -638,6 +759,18 @@ impl ReactGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
+                let id_attr = if let Some(bind) = img.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = img.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let width_attr = img
                     .width
                     .as_ref()
@@ -659,8 +792,8 @@ impl ReactGenerator {
                 };
 
                 output.push_str(&format!(
-                    "{}<img src={} alt={}{}{} />\n",
-                    indent, src_val, alt_val, width_attr, height_attr
+                    "{}<img{} {} src={} alt={}{}{} />\n",
+                    indent, id_attr, class_attr, src_val, alt_val, width_attr, height_attr
                 ));
             }
             CanvasComponent::Card(card) => {
@@ -675,17 +808,45 @@ impl ReactGenerator {
                     style_parts.push("border: '1px solid #e5e7eb'".to_string());
                 }
                 let style_str = style_parts.join(", ");
-                output.push_str(&format!("{}<div style={{{{ {} }}}}>\n", indent, style_str));
+
+                let id_attr = if let Some(bind) = card.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = card.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                output.push_str(&format!(
+                    "{}<div{} {} style={{{{ {} }}}}>\n",
+                    indent, id_attr, class_attr, style_str
+                ));
                 for child in &card.children {
                     Self::generate_react(child, output, indent_level + 1)?;
                 }
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Custom(custom) => {
+                let id_attr = if let Some(bind) = custom.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = custom.bindings.get("custom_css_classes") {
+                    format!(" className={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!("{}<!-- Custom: {} -->\n", indent, custom.name));
                 output.push_str(&format!(
-                    "{}<div dangerouslySetInnerHTML={{{{ __html: `{}` }}}} />\n",
-                    indent, custom.template
+                    "{}<div{}{} dangerouslySetInnerHTML={{{{ __html: `{}` }}}} />\n",
+                    indent, id_attr, class_attr, custom.template
                 ));
             }
         }
@@ -763,18 +924,48 @@ impl VueGenerator {
 
         match component {
             CanvasComponent::Button(btn) => {
+                let id_attr = if let Some(bind) = btn.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = btn.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
                 let label_expr = if let Some(bind) = btn.bindings.get("label") {
                     format!("{{{{ vars['{}'] }}}}", bind)
                 } else {
                     btn.label.clone()
                 };
 
+                let disabled_attr = if let Some(bind) = btn.bindings.get("disabled") {
+                    format!(":disabled=\"vars['{}']\"", bind)
+                } else {
+                    format!(":disabled=\"{}\"", btn.disabled)
+                };
+
                 output.push_str(&format!(
-                    "{}<button :disabled=\"{}\">{}</button>\n",
-                    indent, btn.disabled, label_expr
+                    "{}<button{}{} {}>{}</button>\n",
+                    indent, id_attr, class_attr, disabled_attr, label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
+                let id_attr = if let Some(bind) = txt.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = txt.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
                 let tag = match txt.tag {
                     crate::domain::TextTag::H1 => "h1",
                     crate::domain::TextTag::H2 => "h2",
@@ -782,9 +973,31 @@ impl VueGenerator {
                     crate::domain::TextTag::P => "p",
                     crate::domain::TextTag::Span => "span",
                 };
-                output.push_str(&format!("{}<{}>{}</{}>\n", indent, tag, txt.content, tag));
+
+                let content_expr = if let Some(bind) = txt.bindings.get("content") {
+                    format!("{{{{ vars['{}'] }}}}", bind)
+                } else {
+                    txt.content.clone()
+                };
+
+                output.push_str(&format!(
+                    "{}<{} {}{}>{}</{}>\n",
+                    indent, tag, id_attr, class_attr, content_expr, tag
+                ));
             }
             CanvasComponent::Input(inp) => {
+                let id_attr = if let Some(bind) = inp.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = inp.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
                 let input_type = match inp.input_type {
                     crate::domain::InputType::Text => "text",
                     crate::domain::InputType::Password => "password",
@@ -792,39 +1005,113 @@ impl VueGenerator {
                     crate::domain::InputType::Number => "number",
                     crate::domain::InputType::Tel => "tel",
                 };
+
+                let placeholder_attr = if let Some(bind) = inp.bindings.get("placeholder") {
+                    format!(":placeholder=\"vars['{}']\"", bind)
+                } else {
+                    format!("placeholder=\"{}\"", inp.placeholder)
+                };
+
+                let disabled_attr = if let Some(bind) = inp.bindings.get("disabled") {
+                    format!(":disabled=\"vars['{}']\"", bind)
+                } else {
+                    format!(":disabled=\"{}\"", inp.disabled)
+                };
+
                 output.push_str(&format!(
-                    "{}<input type=\"{}\" placeholder=\"{}\" :required=\"{}\" :disabled=\"{}\" />\n",
-                    indent, input_type, inp.placeholder, inp.required, inp.disabled
+                    "{}<input{}{} type=\"{}\" {} :required=\"{}\" {} />\n",
+                    indent,
+                    id_attr,
+                    class_attr,
+                    input_type,
+                    placeholder_attr,
+                    inp.required,
+                    disabled_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
+                let id_attr = if let Some(bind) = sel.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = sel.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let disabled_attr = if let Some(bind) = sel.bindings.get("disabled") {
+                    format!(":disabled=\"vars['{}']\"", bind)
+                } else {
+                    format!(":disabled=\"{}\"", sel.disabled)
+                };
+
                 output.push_str(&format!(
-                    "{}<select :disabled=\"{}\">\n",
-                    indent, sel.disabled
+                    "{}<select{}{} {}>\n",
+                    indent, id_attr, class_attr, disabled_attr
                 ));
                 if !sel.placeholder.is_empty() {
+                    let placeholder_expr = if let Some(bind) = sel.bindings.get("placeholder") {
+                        format!("{{{{ vars['{}'] }}}}", bind)
+                    } else {
+                        sel.placeholder.clone()
+                    };
                     output.push_str(&format!(
                         "{}  <option value=\"\" disabled selected>{}</option>\n",
-                        indent, sel.placeholder
+                        indent, placeholder_expr
                     ));
                 }
-                for option in sel.options.split(',') {
-                    let opt = option.trim();
+
+                if let Some(bind) = sel.bindings.get("options") {
                     output.push_str(&format!(
-                        "{}  <option value=\"{}\">{}</option>\n",
-                        indent, opt, opt
+                        "{}  <option v-for=\"opt in vars['{}']?.split(',')\" :key=\"opt\" :value=\"opt.trim()\">{{{{ opt.trim() }}}}</option>\n",
+                        indent, bind
                     ));
+                } else {
+                    for option in sel.options.split(',') {
+                        let opt = option.trim();
+                        output.push_str(&format!(
+                            "{}  <option value=\"{}\">{}</option>\n",
+                            indent, opt, opt
+                        ));
+                    }
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
             CanvasComponent::Container(container) => {
-                output.push_str(&format!("{}<div>\n", indent));
+                let id_attr = if let Some(bind) = container.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = container.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                output.push_str(&format!("{}<div{}{}>\n", indent, id_attr, class_attr));
                 for child in &container.children {
                     Self::generate_vue(child, output, indent_level + 1)?;
                 }
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
+                let id_attr = if let Some(bind) = img.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = img.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
                 let width_attr = img
                     .width
                     .as_ref()
@@ -846,16 +1133,29 @@ impl VueGenerator {
                 };
 
                 output.push_str(&format!(
-                    "{}<img {} {}{}{} />\n",
-                    indent, src_val, alt_val, width_attr, height_attr
+                    "{}<img{}{} {} {}{}{} />\n",
+                    indent, id_attr, class_attr, src_val, alt_val, width_attr, height_attr
                 ));
             }
             CanvasComponent::Card(card) => {
                 let shadow_class = if card.shadow { "shadow-md" } else { "" };
                 let border_class = if card.border { "border" } else { "" };
+
+                let id_attr = if let Some(bind) = card.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = card.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    format!(" class=\"card {} {}\"", shadow_class, border_class)
+                };
+
                 output.push_str(&format!(
-                    "{}<div class=\"card {} {}\" style=\"padding: {}px; border-radius: {}px;\">\n",
-                    indent, shadow_class, border_class, card.padding, card.border_radius
+                    "{}<div{}{} style=\"padding: {}px; border-radius: {}px;\">\n",
+                    indent, id_attr, class_attr, card.padding, card.border_radius
                 ));
                 for child in &card.children {
                     Self::generate_vue(child, output, indent_level + 1)?;
@@ -863,10 +1163,22 @@ impl VueGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Custom(custom) => {
+                let id_attr = if let Some(bind) = custom.bindings.get("id") {
+                    format!(" :id=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = custom.bindings.get("custom_css_classes") {
+                    format!(" :class=\"vars['{}']\"", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!("{}<!-- {} -->\n", indent, custom.name));
                 output.push_str(&format!(
-                    "{}<div v-html=\"`{}`\"></div>\n",
-                    indent, custom.template
+                    "{}<div{}{} v-html=\"`{}`\"></div>\n",
+                    indent, id_attr, class_attr, custom.template
                 ));
             }
         }
@@ -1372,6 +1684,18 @@ impl SvelteGenerator {
 
         match component {
             CanvasComponent::Button(btn) => {
+                let id_attr = if let Some(bind) = btn.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = btn.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let variant_class = match btn.variant {
                     crate::domain::ButtonVariant::Primary => "btn btn-primary",
                     crate::domain::ButtonVariant::Secondary => "btn btn-secondary",
@@ -1385,12 +1709,30 @@ impl SvelteGenerator {
                     btn.label.clone()
                 };
 
+                let disabled_expr = if let Some(bind) = btn.bindings.get("disabled") {
+                    format!("disabled={{vars['{}']}}", bind)
+                } else {
+                    if btn.disabled { " disabled" } else { "" }.to_string()
+                };
+
                 output.push_str(&format!(
-                    "{}<button class=\"{}\" disabled={{{}}}>{}</button>\n",
-                    indent, variant_class, btn.disabled, label_expr
+                    "{}<button{}{} class=\"{}\" {}>{}</button>\n",
+                    indent, id_attr, class_attr, variant_class, disabled_expr, label_expr
                 ));
             }
             CanvasComponent::Text(txt) => {
+                let id_attr = if let Some(bind) = txt.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = txt.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let tag = match txt.tag {
                     crate::domain::TextTag::H1 => "h1",
                     crate::domain::TextTag::H2 => "h2",
@@ -1399,9 +1741,30 @@ impl SvelteGenerator {
                     crate::domain::TextTag::Span => "span",
                 };
 
-                output.push_str(&format!("{}<{}>{}</{}>\n", indent, tag, txt.content, tag));
+                let content_expr = if let Some(bind) = txt.bindings.get("content") {
+                    format!("{{vars['{}']}}", bind)
+                } else {
+                    txt.content.clone()
+                };
+
+                output.push_str(&format!(
+                    "{}<{} {}{}>{}</{}>\n",
+                    indent, tag, id_attr, class_attr, content_expr, tag
+                ));
             }
             CanvasComponent::Input(inp) => {
+                let id_attr = if let Some(bind) = inp.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = inp.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let input_type = match inp.input_type {
                     crate::domain::InputType::Text => "text",
                     crate::domain::InputType::Password => "password",
@@ -1410,32 +1773,82 @@ impl SvelteGenerator {
                     crate::domain::InputType::Tel => "tel",
                 };
 
+                let placeholder_attr = if let Some(bind) = inp.bindings.get("placeholder") {
+                    format!("placeholder={{vars['{}']}}", bind)
+                } else {
+                    format!("placeholder=\"{}\"", inp.placeholder)
+                };
+
+                let disabled_attr = if let Some(bind) = inp.bindings.get("disabled") {
+                    format!("disabled={{vars['{}']}}", bind)
+                } else {
+                    if inp.disabled { " disabled" } else { "" }.to_string()
+                };
+
                 output.push_str(&format!(
-                    "{}<input type=\"{}\" placeholder=\"{}\"{}{}>\n",
+                    "{}<input{}{} type=\"{}\" {} {} {} />\n",
                     indent,
+                    id_attr,
+                    class_attr,
                     input_type,
-                    inp.placeholder,
+                    placeholder_attr,
                     if inp.required { " required" } else { "" },
-                    if inp.disabled { " disabled" } else { "" }
+                    disabled_attr
                 ));
             }
             CanvasComponent::Select(sel) => {
+                let id_attr = if let Some(bind) = sel.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = sel.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let disabled_attr = if let Some(bind) = sel.bindings.get("disabled") {
+                    format!("disabled={{vars['{}']}}", bind)
+                } else {
+                    if sel.disabled { " disabled" } else { "" }.to_string()
+                };
+
                 output.push_str(&format!(
-                    "{}<select disabled={{{}}}>\n",
-                    indent, sel.disabled
+                    "{}<select{}{} {}>\n",
+                    indent, id_attr, class_attr, disabled_attr
                 ));
                 if !sel.placeholder.is_empty() {
+                    let placeholder_expr = if let Some(bind) = sel.bindings.get("placeholder") {
+                        format!("{{vars['{}']}}", bind)
+                    } else {
+                        sel.placeholder.clone()
+                    };
                     output.push_str(&format!(
                         "{}  <option value=\"\" disabled selected>{}</option>\n",
-                        indent, sel.placeholder
+                        indent, placeholder_expr
                     ));
                 }
-                for option in sel.options.split(',') {
-                    let opt = option.trim();
+
+                if let Some(bind) = sel.bindings.get("options") {
                     output.push_str(&format!(
-                        "{}  <option value=\"{}\">{}</option>\n",
-                        indent, opt, opt
+                        "{}  {{#each (vars['{}']?.split(',') || []) as opt}}\n",
+                        indent, bind
                     ));
+                    output.push_str(&format!(
+                        "{}    <option value={{opt.trim()}}>{{opt.trim()}}</option>\n",
+                        indent
+                    ));
+                    output.push_str(&format!("{}  {{/each}}\n", indent));
+                } else {
+                    for option in sel.options.split(',') {
+                        let opt = option.trim();
+                        output.push_str(&format!(
+                            "{}  <option value=\"{}\">{}</option>\n",
+                            indent, opt, opt
+                        ));
+                    }
                 }
                 output.push_str(&format!("{}</select>\n", indent));
             }
@@ -1458,7 +1871,22 @@ impl SvelteGenerator {
                     container.padding.left
                 );
 
-                output.push_str(&format!("{}<div style=\"{}\">\n", indent, style));
+                let id_attr = if let Some(bind) = container.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = container.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                output.push_str(&format!(
+                    "{}<div{}{} style=\"{}\">\n",
+                    indent, id_attr, class_attr, style
+                ));
 
                 for child in &container.children {
                     Self::generate_svelte(child, output, indent_level + 1)?;
@@ -1467,6 +1895,18 @@ impl SvelteGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Image(img) => {
+                let id_attr = if let Some(bind) = img.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = img.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 let src_val = if let Some(bind) = img.bindings.get("src") {
                     format!("src={{vars['{}']}}", bind)
                 } else {
@@ -1479,7 +1919,10 @@ impl SvelteGenerator {
                     format!("alt=\"{}\"", img.alt)
                 };
 
-                output.push_str(&format!("{}<img {} {} />\n", indent, src_val, alt_val));
+                output.push_str(&format!(
+                    "{}<img{}{} {} {} />\n",
+                    indent, id_attr, class_attr, src_val, alt_val
+                ));
             }
             CanvasComponent::Card(card) => {
                 let style = format!(
@@ -1498,7 +1941,22 @@ impl SvelteGenerator {
                     }
                 );
 
-                output.push_str(&format!("{}<div style=\"{}\">\n", indent, style));
+                let id_attr = if let Some(bind) = card.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = card.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                output.push_str(&format!(
+                    "{}<div{}{} style=\"{}\">\n",
+                    indent, id_attr, class_attr, style
+                ));
 
                 for child in &card.children {
                     Self::generate_svelte(child, output, indent_level + 1)?;
@@ -1507,8 +1965,23 @@ impl SvelteGenerator {
                 output.push_str(&format!("{}</div>\n", indent));
             }
             CanvasComponent::Custom(custom) => {
+                let id_attr = if let Some(bind) = custom.bindings.get("id") {
+                    format!(" id={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
+                let class_attr = if let Some(bind) = custom.bindings.get("custom_css_classes") {
+                    format!(" class={{vars['{}']}}", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!("{}<!-- Custom: {} -->\n", indent, custom.name));
-                output.push_str(&format!("{}{{@html `{}`}}\n", indent, custom.template));
+                output.push_str(&format!(
+                    "{}<div{}{}>{{@html `{}`}}</div>\n",
+                    indent, id_attr, class_attr, custom.template
+                ));
             }
         }
 

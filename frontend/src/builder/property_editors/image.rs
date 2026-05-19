@@ -64,6 +64,20 @@ pub fn ImagePropertyEditor(id: crate::domain::ComponentId, image: ImageComponent
 
     view! {
         <div class="property-group">
+            <h4 class="group-title">"Binding"</h4>
+            <VariableBinding
+                component_id=id
+                property_name="id".to_string()
+                current_binding=image.bindings.get("id").cloned().unwrap_or_default()
+            />
+            <VariableBinding
+                component_id=id
+                property_name="custom_css_classes".to_string()
+                current_binding=image.bindings.get("custom_css_classes").cloned().unwrap_or_default()
+            />
+        </div>
+
+        <div class="property-group">
             <h4 class="group-title">"Image Properties"</h4>
             <div class="flex-row items-end gap-1">
                 <div class="flex-grow">
