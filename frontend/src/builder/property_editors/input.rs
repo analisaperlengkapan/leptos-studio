@@ -1,8 +1,8 @@
 use super::AnimationPropertyEditor;
+use super::VariableBinding;
 use crate::builder::component_library::PropType;
 use crate::builder::property_inputs::{BoolCheckbox, EnumSelect, StringInput};
 use crate::builder::styling_system::StyleEditor;
-use crate::builder::variable_binding::VariableBinding;
 use crate::domain::{CanvasComponent, ComponentId, InputType, PropValue};
 use crate::services::update_input_prop;
 use crate::state::AppState;
@@ -44,6 +44,20 @@ pub fn InputPropertyEditor(
     let input_animation = input.animation.clone();
 
     view! {
+        <div class="property-group">
+            <h4 class="group-title">"Binding"</h4>
+            <VariableBinding
+                component_id=id
+                property_name="id".to_string()
+                current_binding=input.bindings.get("id").cloned().unwrap_or_default()
+            />
+            <VariableBinding
+                component_id=id
+                property_name="custom_css_classes".to_string()
+                current_binding=input.bindings.get("custom_css_classes").cloned().unwrap_or_default()
+            />
+        </div>
+
         <div class="property-group">
                 <div class="group-title">"Input Properties"</div>
                 {input_schema.into_iter().map(|prop| {
@@ -93,17 +107,9 @@ pub fn InputPropertyEditor(
                                         view! {
                                             <div style="margin-bottom: 8px;">
                                                 <VariableBinding
-                                                    value=binding_val
-                                                    on_change=move |new_bind| {
-                                                        if let Some(CanvasComponent::Input(mut updated)) = canvas_state.get_component(&comp_id_bind) {
-                                                            if let Some(v) = new_bind {
-                                                                updated.bindings.insert("placeholder".to_string(), v);
-                                                            } else {
-                                                                updated.bindings.remove("placeholder");
-                                                            }
-                                                            apply_update(comp_id_bind, CanvasComponent::Input(updated), "placeholder binding".to_string());
-                                                        }
-                                                    }
+                                                    component_id=comp_id_bind
+                                                    property_name="placeholder".to_string()
+                                                    current_binding=binding_val.unwrap_or_default()
                                                 />
                                             </div>
                                         }.into_any()

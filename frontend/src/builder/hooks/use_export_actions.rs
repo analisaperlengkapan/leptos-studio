@@ -17,26 +17,25 @@ pub fn use_export_actions(
 
     move |_| {
         let comps = app_state.canvas.components.get();
+        let variables = app_state.variables.get();
 
         let code = match export_template.get().as_str() {
             "leptos" => {
-                let variables = app_state.variables.get();
-                let generator =
-                    LeptosCodeGenerator::new(crate::state::ExportPreset::Plain, variables);
+                let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "html" => {
                 let generator = HtmlCodeGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "markdown" => {
                 let generator = MarkdownCodeGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "json" => serde_json::to_string_pretty(&comps)
@@ -44,31 +43,31 @@ pub fn use_export_actions(
             "jsonschema" => {
                 let generator = JsonSchemaGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "typescript" => {
                 let generator = TypeScriptGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "react" => {
                 let generator = ReactGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "tailwind" => {
                 let generator = TailwindHtmlGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "svelte" => {
                 let generator = SvelteGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             _ => "Unknown template".to_string(),

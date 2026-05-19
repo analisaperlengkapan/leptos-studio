@@ -6,7 +6,7 @@ use leptos_studio::state::ExportPreset;
 
 #[test]
 fn test_leptos_generator_structure() {
-    let generator = LeptosCodeGenerator::new(ExportPreset::Plain, Vec::new());
+    let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
 
     // Create nested structure: Container -> Button
     let mut container = ContainerComponent::new();
@@ -23,7 +23,7 @@ fn test_leptos_generator_structure() {
     let components = vec![CanvasComponent::Container(container)];
 
     let code = generator
-        .generate(&components)
+        .generate(&components, &[])
         .expect("Failed to generate code");
 
     println!("{}", code);

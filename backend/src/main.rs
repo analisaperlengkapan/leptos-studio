@@ -91,7 +91,10 @@ async fn main() {
 
     let project_routes = Router::new()
         .route("/api/projects", get(list_projects).post(save_project))
-        .route("/api/projects/:id", get(get_project).delete(delete_project))
+        .route(
+            "/api/projects/{id}",
+            get(get_project).delete(delete_project),
+        )
         .with_state(store);
 
     let template_routes = Router::new()
@@ -99,12 +102,12 @@ async fn main() {
             "/api/templates",
             get(templates::list_templates).post(templates::save_template),
         )
-        .route("/api/templates/:id", delete(templates::delete_template))
+        .route("/api/templates/{id}", delete(templates::delete_template))
         .with_state(template_store);
 
     let git_routes = Router::new()
         .route(
-            "/api/projects/:id/commits",
+            "/api/projects/{id}/commits",
             get(git::get_log)
                 .post(git::post_commit)
                 .delete(git::delete_history),

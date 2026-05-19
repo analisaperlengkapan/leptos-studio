@@ -8,6 +8,7 @@ pub mod image;
 pub mod input;
 pub mod select_property_editor;
 pub mod text;
+pub mod variable_binding;
 
 pub use animation::AnimationPropertyEditor;
 pub use button::ButtonPropertyEditor;
@@ -19,3 +20,4 @@ pub use image::ImagePropertyEditor;
 pub use input::InputPropertyEditor;
 pub use select_property_editor::SelectPropertyEditor;
 pub use text::TextPropertyEditor;
+pub use variable_binding::VariableBinding;

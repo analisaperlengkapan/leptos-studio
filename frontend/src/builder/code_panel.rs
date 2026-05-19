@@ -19,27 +19,26 @@ pub fn CodePanel() -> impl IntoView {
     // Memoize code generation to avoid constant re-rendering
     let code = Memo::new(move |_| {
         let comps = app_state.canvas.components.get();
+        let variables = app_state.variables.get();
         let selected_format = format.get();
 
         match selected_format.as_str() {
             "leptos" => {
-                let variables = app_state.variables.get();
-                let generator =
-                    LeptosCodeGenerator::new(crate::state::ExportPreset::Plain, variables);
+                let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "html" => {
                 let generator = HtmlCodeGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "markdown" => {
                 let generator = MarkdownCodeGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "json" => serde_json::to_string_pretty(&comps)
@@ -47,43 +46,43 @@ pub fn CodePanel() -> impl IntoView {
             "jsonschema" => {
                 let generator = JsonSchemaGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "typescript" => {
                 let generator = TypeScriptGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "react" => {
                 let generator = ReactGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "vue" => {
                 let generator = VueGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "tailwind" => {
                 let generator = TailwindHtmlGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "svelte" => {
                 let generator = SvelteGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             "css" => {
                 let generator = CssGenerator;
                 generator
-                    .generate(&comps)
+                    .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
             }
             _ => "Unknown format".to_string(),
