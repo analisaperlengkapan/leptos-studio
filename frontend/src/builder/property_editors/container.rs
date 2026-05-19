@@ -92,11 +92,11 @@ pub fn ContainerPropertyEditor(
             <div class="property-section">
                 <div class="section-header">"Binding"</div>
                 <VariableBinding
-                    component_id=id.clone()
+                    component_id=id
                     property_name="id".to_string()
                 />
                 <VariableBinding
-                    component_id=id.clone()
+                    component_id=id
                     property_name="custom_css_classes".to_string()
                 />
             </div>

@@ -57,11 +57,11 @@ pub fn CardPropertyEditor(id: crate::domain::ComponentId, card: CardComponent) -
         <div class="property-group">
             <h4 class="group-title">"Binding"</h4>
             <VariableBinding
-                component_id=id.clone()
+                component_id=id
                 property_name="id".to_string()
             />
             <VariableBinding
-                component_id=id.clone()
+                component_id=id
                 property_name="custom_css_classes".to_string()
             />
         </div>

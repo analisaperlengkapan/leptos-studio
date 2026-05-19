@@ -53,7 +53,7 @@ pub fn VariableBinding(
                 style="max-width: 100px; padding: 2px;"
                 title="Bind to variable"
             >
-                <option value="" selected=current_binding.as_ref().map_or(true, |s| s.is_empty())>"No Binding"</option>
+                <option value="" selected=current_binding.as_ref().is_none_or(|s| s.is_empty())>"No Binding"</option>
                 {move || variables.get().into_iter().map(|v| {
                     let is_selected = current_binding.as_ref() == Some(&v.name);
                     view! {
