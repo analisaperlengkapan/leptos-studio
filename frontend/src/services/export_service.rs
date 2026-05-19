@@ -310,10 +310,26 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                let class_attr = if let Some(bind) = container.bindings.get("custom_css_classes") {
+                    format!(
+                        "class=move || format!(\"container {} {{}}\", {}.get())",
+                        layout_class, bind
+                    )
+                } else {
+                    format!("class=\"container {}\"", layout_class)
+                };
+
+                let id_attr = if let Some(bind) = container.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <div class=\"container {}\" style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\"{}>\n",
+                    "{}        <div {}{} style=\"gap: {}px; padding: {}px {}px {}px {}px; {} {}\"{}>\n",
                     indent,
-                    layout_class,
+                    class_attr,
+                    id_attr,
                     container.gap,
                     container.padding.top,
                     container.padding.right,
@@ -390,9 +406,37 @@ impl LeptosCodeGenerator {
                     String::new()
                 };
 
+                let base_class = if border_class.is_empty() {
+                    "card".to_string()
+                } else {
+                    format!("card {}", border_class)
+                };
+
+                let class_attr = if let Some(bind) = card.bindings.get("custom_css_classes") {
+                    format!(
+                        "class=move || format!(\"{} {{}}\", {}.get())",
+                        base_class, bind
+                    )
+                } else {
+                    format!("class=\"{}\"", base_class)
+                };
+
+                let id_attr = if let Some(bind) = card.bindings.get("id") {
+                    format!(" id=move || {}.get()", bind)
+                } else {
+                    String::new()
+                };
+
                 output.push_str(&format!(
-                    "{}        <div class=\"card {}\" style=\"padding: {}px; border-radius: {}px; {} {}\"{}>\n",
-                    indent, border_class, card.padding, card.border_radius, shadow_style, anim_style, click_handler
+                    "{}        <div {}{} style=\"padding: {}px; border-radius: {}px; {} {}\"{}>\n",
+                    indent,
+                    class_attr,
+                    id_attr,
+                    card.padding,
+                    card.border_radius,
+                    shadow_style,
+                    anim_style,
+                    click_handler
                 ));
                 for child in &card.children {
                     self.generate_component(child, output, indent_level + 1)?;

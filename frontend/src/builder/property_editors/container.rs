@@ -1,4 +1,4 @@
-use super::AnimationPropertyEditor;
+use super::{AnimationPropertyEditor, VariableBinding};
 use crate::builder::property_inputs::NumberInput;
 use crate::builder::styling_system::StyleEditor;
 use crate::domain::{
@@ -89,6 +89,18 @@ pub fn ContainerPropertyEditor(
 
     view! {
         <div class="property-group-container">
+            <div class="property-section">
+                <div class="section-header">"Binding"</div>
+                <VariableBinding
+                    component_id=id
+                    property_name="id".to_string()
+                />
+                <VariableBinding
+                    component_id=id
+                    property_name="custom_css_classes".to_string()
+                />
+            </div>
+
             // 1. Layout Mode Selection
             <div class="property-section">
                 <div class="section-header">"Layout"</div>
