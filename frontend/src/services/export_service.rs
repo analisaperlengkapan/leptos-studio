@@ -26,7 +26,7 @@ pub struct LeptosCodeGenerator {
 }
 
 impl LeptosCodeGenerator {
-    pub fn new(preset: ExportPreset, _variables: Vec<Variable>) -> Self {
+    pub fn new(preset: ExportPreset) -> Self {
         Self {
             preset,
             required_signals: RefCell::new(Vec::new()),
@@ -81,7 +81,7 @@ impl LeptosCodeGenerator {
                 };
 
                 let label_expr = if let Some(bind) = btn.bindings.get("label") {
-                    format!("move || {}.get()", bind)
+                    format!("{{move || {}.get()}}", bind)
                 } else {
                     format!("\"{}\"", btn.label)
                 };
@@ -115,7 +115,7 @@ impl LeptosCodeGenerator {
                 };
 
                 let content_expr = if let Some(bind) = txt.bindings.get("content") {
-                    format!("move || {}.get()", bind)
+                    format!("{{move || {}.get()}}", bind)
                 } else {
                     format!("\"{}\"", txt.content)
                 };
@@ -226,12 +226,23 @@ impl LeptosCodeGenerator {
                     format!("vec![{}].collect_view()", opts)
                 };
 
+                let disabled_attr = if let Some(bind) = sel.bindings.get("disabled") {
+                    format!("disabled=move || {}.get()", bind)
+                } else {
+                    format!("disabled={}", sel.disabled)
+                };
+
                 output.push_str(&format!(
-                    "{}        <select disabled={} {}{}>\n",
-                    indent, sel.disabled, change_handler, style_attr
+                    "{}        <select {} {}{}>\n",
+                    indent, disabled_attr, change_handler, style_attr
                 ));
 
-                if !sel.placeholder.is_empty() {
+                if let Some(bind) = sel.bindings.get("placeholder") {
+                    output.push_str(&format!(
+                        "{}            <option value=\"\" disabled selected>{{move || {}.get()}}</option>\n",
+                        indent, bind
+                    ));
+                } else if !sel.placeholder.is_empty() {
                     output.push_str(&format!(
                         "{}            <option value=\"\" disabled selected>\"{}\"</option>\n",
                         indent, sel.placeholder
@@ -737,7 +748,7 @@ mod tests {
 
     #[test]
     fn test_leptos_generator() {
-        let generator = LeptosCodeGenerator::new(ExportPreset::Plain, vec![]);
+        let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
         let button = CanvasComponent::Button(ButtonComponent::new("Click me".to_string()));
         let code = generator.generate(&[button], &[]).unwrap();
 
@@ -750,7 +761,7 @@ mod tests {
 
     #[test]
     fn test_leptos_input_generator() {
-        let generator = LeptosCodeGenerator::new(ExportPreset::Plain, vec![]);
+        let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
         let variables = vec![];
         let input = CanvasComponent::Input(InputComponent {
             id: Default::default(),
@@ -808,7 +819,7 @@ mod tests {
     #[test]
     fn test_leptos_select_generator() {
         use crate::domain::SelectComponent;
-        let generator = LeptosCodeGenerator::new(ExportPreset::Plain, vec![]);
+        let generator = LeptosCodeGenerator::new(ExportPreset::Plain);
         let variables = vec![];
         let select = CanvasComponent::Select(SelectComponent {
             id: Default::default(),

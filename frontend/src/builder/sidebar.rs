@@ -174,7 +174,7 @@ pub fn Sidebar() -> impl IntoView {
         let components = app_state.canvas.components.get();
         let preset = app_state.settings.with(|s| s.export_preset.clone());
         let variables = app_state.variables.get();
-        let generator = LeptosCodeGenerator::new(preset, variables.clone());
+        let generator = LeptosCodeGenerator::new(preset);
 
         match generator.generate(&components, &variables) {
             Ok(code) => {

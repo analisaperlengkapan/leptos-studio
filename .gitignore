@@ -31,3 +31,6 @@ Thumbs.db
 
 # Cargo
 Cargo.lock
+
+# Local workspace state
+/projects.json

@@ -21,8 +21,7 @@ pub fn use_export_actions(
 
         let code = match export_template.get().as_str() {
             "leptos" => {
-                let generator =
-                    LeptosCodeGenerator::new(crate::state::ExportPreset::Plain, variables.clone());
+                let generator = LeptosCodeGenerator::new(crate::state::ExportPreset::Plain);
                 generator
                     .generate(&comps, &variables)
                     .unwrap_or_else(|e| e.user_message())
