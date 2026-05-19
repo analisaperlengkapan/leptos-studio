@@ -81,14 +81,14 @@ impl LeptosCodeGenerator {
                 };
 
                 let label_expr = if let Some(bind) = btn.bindings.get("label") {
-                    format!("{{move || {}.get()}}", bind)
+                    format!("move || {}.get()", bind)
                 } else {
                     format!("\"{}\"", btn.label)
                 };
 
                 // Add interactive scaffolding
                 output.push_str(&format!(
-                    "{}        <button class=\"{} {}\" disabled={} {}{}>{}</button>\n",
+                    "{}        <button class=\"{} {}\" disabled={} {}{}>{{{}}}</button>\n",
                     indent,
                     variant_class,
                     size_class,
@@ -115,13 +115,13 @@ impl LeptosCodeGenerator {
                 };
 
                 let content_expr = if let Some(bind) = txt.bindings.get("content") {
-                    format!("{{move || {}.get()}}", bind)
+                    format!("move || {}.get()", bind)
                 } else {
                     format!("\"{}\"", txt.content)
                 };
 
                 output.push_str(&format!(
-                    "{}        <{} class=\"text-{}\"{}>{}</{}>\n",
+                    "{}        <{} class=\"text-{}\"{}>{{{}}}</{}>\n",
                     indent,
                     tag,
                     match txt.style {
@@ -238,9 +238,10 @@ impl LeptosCodeGenerator {
                 ));
 
                 if let Some(bind) = sel.bindings.get("placeholder") {
+                    let placeholder_expr = format!("move || {}.get()", bind);
                     output.push_str(&format!(
-                        "{}            <option value=\"\" disabled selected>{{move || {}.get()}}</option>\n",
-                        indent, bind
+                        "{}            <option value=\"\" disabled selected>{{{}}}</option>\n",
+                        indent, placeholder_expr
                     ));
                 } else if !sel.placeholder.is_empty() {
                     output.push_str(&format!(
